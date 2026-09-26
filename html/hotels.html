@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotels | Hotel Group Booking Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+</head>
+<body data-page="hotels">
+<div id="hgbms-root" class="app-wrapper"></div>
+<div id="page-content">
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb"><ol class="breadcrumb mb-1"><li class="breadcrumb-item"><a href="dashboard.html">Home</a></li><li class="breadcrumb-item active">Hotels</li></ol></nav>
+      <h1 class="page-title">Hotels</h1>
+      <p class="page-subtitle">Manage hotel properties across the group — 14 properties in the United Kingdom.</p>
+    </div>
+    <div class="d-flex gap-2"><button class="btn btn-outline-secondary btn-sm" data-refresh><i class="bi bi-arrow-clockwise"></i> Refresh</button><button class="btn btn-outline-secondary btn-sm" data-export><i class="bi bi-download"></i> Export</button><button class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#addHotelModal"><i class="bi bi-plus-lg"></i> Add Hotel</button></div>
+  </div>
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="input-group search-input"><span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span><input type="search" class="form-control border-start-0 table-search" placeholder="Search hotels…" data-table="hotelsTable"></div>
+      <select class="form-select form-select-sm" style="width:auto"><option>All Statuses</option><option>Active</option><option>Inactive</option></select>
+      <select class="form-select form-select-sm" style="width:auto"><option>All Cities</option><option>Brighton</option><option>Edinburgh</option><option>Bath</option><option>York</option></select>
+      <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas"><i class="bi bi-funnel"></i> Filters</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="table table-hover" id="hotelsTable" data-sortable>
+        <thead><tr>
+          <th data-sort>Hotel Name</th><th data-sort>Code</th><th data-sort>City</th><th data-sort>Country</th>
+          <th data-sort class="text-center">Rooms</th><th data-sort>Status</th><th data-sort>Manager</th><th data-sort>Phone</th><th data-sort>Email</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="hotelsTableBody"></tbody>
+      </table>
+    </div>
+    <div class="table-footer"><span>Showing <strong>1</strong> to <strong>14</strong> of <strong>14</strong> entries</span>
+      <nav><ul class="pagination pagination-sm mb-0"><li class="page-item disabled"><a class="page-link">Previous</a></li><li class="page-item active"><a class="page-link">1</a></li><li class="page-item disabled"><a class="page-link">Next</a></li></ul></nav>
+    </div>
+  </div>
+  <div class="modal fade" id="addHotelModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Add Hotel</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><div class="row g-3">
+      <div class="col-md-6"><div class="form-floating"><input type="text" class="form-control" id="hName" placeholder="Name"><label for="hName">Hotel Name</label></div></div>
+      <div class="col-md-3"><div class="form-floating"><input type="text" class="form-control" id="hCode" placeholder="Code"><label for="hCode">Hotel Code</label></div></div>
+      <div class="col-md-3"><div class="form-floating"><input type="number" class="form-control" id="hRooms" placeholder="Rooms"><label for="hRooms">Total Rooms</label></div></div>
+      <div class="col-md-4"><div class="form-floating"><input type="text" class="form-control" id="hCity" placeholder="City"><label for="hCity">City</label></div></div>
+      <div class="col-md-4"><div class="form-floating"><input type="text" class="form-control" id="hCountry" value="United Kingdom"><label for="hCountry">Country</label></div></div>
+      <div class="col-md-4"><div class="form-floating"><select class="form-select" id="hStatus"><option>Active</option><option>Inactive</option></select><label for="hStatus">Status</label></div></div>
+      <div class="col-md-4"><div class="form-floating"><input type="text" class="form-control" id="hManager"><label for="hManager">Manager</label></div></div>
+      <div class="col-md-4"><div class="form-floating"><input type="tel" class="form-control" id="hPhone"><label for="hPhone">Phone</label></div></div>
+      <div class="col-md-4"><div class="form-floating"><input type="email" class="form-control" id="hEmail"><label for="hEmail">Email</label></div></div>
+    </div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-accent" data-bs-dismiss="modal">Save Hotel</button></div>
+  </div></div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/data.js"></script><script src="assets/js/layout.js"></script><script src="assets/js/pages.js"></script><script src="assets/js/render.js"></script><script src="assets/js/app.js"></script>
+</body></html>

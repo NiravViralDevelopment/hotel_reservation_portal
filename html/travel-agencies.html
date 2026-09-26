@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Agencies | Hotel Group Booking Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+</head>
+<body data-page="agencies">
+<div id="hgbms-root" class="app-wrapper"></div>
+<div id="page-content">
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div><nav aria-label="breadcrumb"><ol class="breadcrumb mb-1"><li class="breadcrumb-item"><a href="dashboard.html">Home</a></li><li class="breadcrumb-item active">Travel Agencies</li></ol></nav>
+      <h1 class="page-title">Travel Agencies</h1><p class="page-subtitle">UK tour operators and travel companies — primary booking partners.</p></div>
+    <div class="d-flex gap-2"><button class="btn btn-outline-secondary btn-sm" data-refresh><i class="bi bi-arrow-clockwise"></i> Refresh</button><button class="btn btn-outline-secondary btn-sm" data-export><i class="bi bi-download"></i> Export</button><button class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> Add Agency</button></div>
+  </div>
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="input-group search-input"><span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span><input type="search" class="form-control border-start-0 table-search" placeholder="Search agencies…" data-table="agenciesTable"></div>
+      <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas"><i class="bi bi-funnel"></i> Filters</button>
+    </div>
+    <div class="table-wrapper"><table class="table table-hover" id="agenciesTable" data-sortable><thead><tr>
+      <th data-sort>Agency Name</th><th data-sort>Code</th><th data-sort>Primary Contact</th><th data-sort>Email</th><th data-sort>Phone</th><th data-sort>City</th>
+      <th data-sort class="text-center">Bookings</th><th data-sort>Revenue</th><th data-sort>Status</th><th>Actions</th>
+    </tr></thead><tbody id="agenciesTableBody"></tbody></table></div>
+    <div class="table-footer"><span>Showing <strong>1</strong> to <strong>8</strong> of <strong>8</strong> entries</span></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/data.js"></script><script src="assets/js/layout.js"></script><script src="assets/js/pages.js"></script><script src="assets/js/render.js"></script><script src="assets/js/app.js"></script>
+</body></html>

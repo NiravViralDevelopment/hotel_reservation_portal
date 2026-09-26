@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html lang="en-GB" data-theme="light">
+
+<head>
+
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Group Booking Detail</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link href="assets/css/app.css" rel="stylesheet">
+
+</head>
+
+<body data-page="booking-detail">
+
+<div id="hgbms-root" class="app-wrapper"></div>
+
+<div id="page-content">
+
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+
+    <div><nav aria-label="breadcrumb"><ol class="breadcrumb mb-1"><li class="breadcrumb-item"><a href="dashboard.html">Home</a></li><li class="breadcrumb-item"><a href="group-bookings.html">Group Bookings</a></li><li class="breadcrumb-item active" id="detailBreadcrumb">—</li></ol></nav>
+
+      <h1 class="page-title" id="detailTitle">Loading…</h1>
+
+      <p class="page-subtitle" id="detailSubtitle">— <span id="detailStatusBadge"></span> <span id="detailPaymentBadge"></span></p></div>
+
+    <div class="d-flex gap-2"><a class="btn btn-outline-secondary btn-sm" href="group-bookings.html"><i class="bi bi-pencil"></i> Edit via Listing</a><button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button><button class="btn btn-outline-secondary btn-sm" data-export><i class="bi bi-download"></i> Export</button></div>
+
+  </div>
+
+
+
+  <div class="detail-grid-3 mb-4">
+
+    <div class="card"><div class="card-header"><i class="bi bi-info-circle me-2"></i>Contract Details</div><div class="card-body">
+
+      <div class="info-card"><div class="info-card-label">Block Id</div><div class="info-card-value" id="detailRef">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Client</div><div class="info-card-value" id="detailClient">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Agency</div><div class="info-card-value" id="detailAgency">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Status</div><div class="info-card-value" id="detailStatus">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">BB / DBB Basis</div><div class="info-card-value" id="detailMealPlan">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Saved to Doc</div><div class="info-card-value" id="detailSavedDoc">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Source Sheet</div><div class="info-card-value" id="detailSheet">—</div></div>
+
+    </div></div>
+
+    <div class="card"><div class="card-header"><i class="bi bi-person me-2"></i>Contact &amp; Client</div><div class="card-body">
+
+      <div class="info-card"><div class="info-card-label">Contact</div><div class="info-card-value" id="detailContact">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Email Id</div><div class="info-card-value" id="detailEmail">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Agency Ref / Group</div><div class="info-card-value" id="detailGroup">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Contract Sent on</div><div class="info-card-value" id="detailContractSent">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Contract Recd on</div><div class="info-card-value" id="detailContractRecd">—</div></div>
+
+    </div></div>
+
+    <div class="card"><div class="card-header"><i class="bi bi-calendar-event me-2"></i>Arrival &amp; Departure</div><div class="card-body">
+
+      <div class="info-card"><div class="info-card-label">Date of Arrival</div><div class="info-card-value" id="detailArrival">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Arrival Day</div><div class="info-card-value" id="detailArrivalDay">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Date of Departure</div><div class="info-card-value" id="detailDeparture">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">No. of nights</div><div class="info-card-value" id="detailNights">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Total RNs (aggregated)</div><div class="info-card-value" id="detailTotalRNs">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Daily rows in workbook</div><div class="info-card-value" id="detailDailyCount">—</div></div>
+
+    </div></div>
+
+  </div>
+
+
+
+  <div class="detail-grid-3 mb-4">
+
+    <div class="card"><div class="card-header"><i class="bi bi-currency-pound me-2"></i>Rates and Room Nights</div><div class="card-body">
+
+      <div class="info-card"><div class="info-card-label">ADR (calculated)</div><div class="info-card-value" id="detailAdr">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Total Rev</div><div class="info-card-value" id="detailRevenue">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">BB Revenue (Nett £8.33)</div><div class="info-card-value" id="detailBbRev">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Dinner Revenue</div><div class="info-card-value" id="detailDinnerRev">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Nett Rev EX VAT, BF &amp; Dinner</div><div class="info-card-value" id="detailNettRev">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Opera cross check rate</div><div class="info-card-value" id="detailOperaCrossCheck">—</div></div>
+
+    </div></div>
+
+    <div class="card"><div class="card-header"><i class="bi bi-credit-card me-2"></i>Payment Terms &amp; Conditions</div><div class="card-body">
+
+      <div class="info-card"><div class="info-card-label">Payment Term</div><div class="info-card-value" id="detailPaymentTerm">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Due Date</div><div class="info-card-value" id="detailDueDate">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Payment Status (workbook)</div><div class="info-card-value small" id="detailPaymentRaw">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Display Status</div><div class="info-card-value" id="detailPaymentDisplay">—</div></div>
+
+    </div></div>
+
+    <div class="card"><div class="card-header"><i class="bi bi-shield-exclamation me-2"></i>CXL Policy &amp; Invoice</div><div class="card-body">
+
+      <div class="info-card"><div class="info-card-label">CXL Policy</div><div class="info-card-value" id="detailCxlPolicy">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">CXL Due Date</div><div class="info-card-value" id="detailCxlDue">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">CXL Date</div><div class="info-card-value" id="detailCxlDate">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Commission</div><div class="info-card-value" id="detailCommission">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Rooming status</div><div class="info-card-value" id="detailRoomingStatus">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Invoice Status</div><div class="info-card-value" id="detailInvoiceStatus">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Invoice Date</div><div class="info-card-value" id="detailInvoiceDate">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Invoice Amount</div><div class="info-card-value" id="detailInvoiceAmount">—</div></div>
+
+      <div class="info-card"><div class="info-card-label">Commission Payable Status</div><div class="info-card-value" id="detailCommissionPayable">—</div></div>
+
+    </div></div>
+
+  </div>
+
+
+
+  <ul class="nav nav-tabs nav-tabs-custom mb-4">
+
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#bRooms">Room Types</button></li>
+
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bDaily">Daily Allocation (<span id="detailDailyTabCount">0</span> rows)</button></li>
+
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bMeals">Meal Plan &amp; Revenue</button></li>
+
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bPayment">Payment &amp; Invoice</button></li>
+
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bNotes">Update / Notes</button></li>
+
+  </ul>
+
+  <div class="tab-content">
+
+    <div class="tab-pane fade show active" id="bRooms">
+
+      <div class="card"><div class="table-wrapper"><table class="table table-hover mb-0"><thead><tr><th>Room Type</th><th>RNs</th><th>Gross Rate</th><th>Notes</th></tr></thead>
+
+        <tbody id="detailRoomBody"></tbody></table></div></div>
+
+    </div>
+
+    <div class="tab-pane fade" id="bDaily">
+
+      <div class="card"><div class="card-header">Daily rows from Group Tracker 2026 (all workbook entries for this Block Id)</div>
+
+        <div class="table-wrapper"><table class="table table-hover table-sm mb-0" style="font-size:0.78rem"><thead><tr>
+
+          <th>Month Sheet</th><th>Arrival</th><th>Departure</th><th>Nights</th><th>Total RNs</th><th>Total Rev</th><th>BB/DBB</th><th>Update</th>
+
+        </tr></thead><tbody id="detailDailyBody"></tbody></table></div></div>
+
+    </div>
+
+    <div class="tab-pane fade" id="bMeals"><div class="card"><div class="card-body" id="detailMealContent"></div></div></div>
+
+    <div class="tab-pane fade" id="bPayment"><div class="card"><div class="card-body" id="detailPaymentContent"></div></div></div>
+
+    <div class="tab-pane fade" id="bNotes"><div class="card"><div class="card-body">
+
+      <label class="form-label fw-semibold">Update (workbook column)</label>
+
+      <textarea class="form-control" rows="5" id="detailInternalNotes" readonly></textarea>
+
+      <p class="small text-secondary mt-2 mb-0" id="detailUpdate">—</p>
+
+    </div></div></div>
+
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="assets/js/excel-data.js"></script>
+
+<script src="assets/js/data.js"></script>
+
+<script src="assets/js/bookings-data.js"></script>
+
+<script src="assets/js/layout.js"></script><script src="assets/js/pages.js"></script><script src="assets/js/app.js"></script>
+
+<script>
+
+document.addEventListener('hgbms:layout-ready', function () {
+
+  if (window.HGBMS_BOOKINGS) {
+
+    HGBMS_BOOKINGS.renderDetail();
+
+    var c = document.getElementById('detailDailyTabCount');
+
+    var params = new URLSearchParams(window.location.search);
+
+    var ref = params.get('ref');
+
+    if (c && ref && HGBMS_BOOKINGS.dailyByBlock[ref]) c.textContent = HGBMS_BOOKINGS.dailyByBlock[ref].length;
+
+  }
+
+}, { once: true });
+
+</script>
+
+</body></html>
+
+

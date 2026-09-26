@@ -1,0 +1,77 @@
+<?php
+
+use App\Http\Controllers\ArrivalController;
+use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CancelledBookingController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DepartureController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EnquiryController;
+use App\Http\Controllers\GroupBookingController;
+use App\Http\Controllers\HotelController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RevenueController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\TravelAgencyController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
+
+Route::redirect('/', '/login');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'create'])->name('login');
+    Route::post('/login', [LoginController::class, 'store']);
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+    Route::resource('companies', CompanyController::class);
+    Route::resource('hotels', HotelController::class);
+    Route::resource('travel-agencies', TravelAgencyController::class);
+    Route::resource('contacts', ContactController::class);
+
+    Route::resource('enquiries', EnquiryController::class);
+    Route::post('enquiries/{enquiry}/convert', [EnquiryController::class, 'convert'])->name('enquiries.convert');
+
+    Route::resource('group-bookings', GroupBookingController::class);
+    Route::post('group-bookings/{group_booking}/cancel', [GroupBookingController::class, 'cancel'])->name('group-bookings.cancel');
+
+    Route::get('cancelled-bookings', [CancelledBookingController::class, 'index'])->name('cancelled-bookings.index');
+    Route::get('arrivals', [ArrivalController::class, 'index'])->name('arrivals.index');
+    Route::get('departures', [DepartureController::class, 'index'])->name('departures.index');
+    Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
+
+    Route::resource('documents', DocumentController::class);
+    Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+
+    Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('reports/run', [ReportController::class, 'run'])->name('reports.run');
+
+    Route::resource('users', UserController::class)->except(['show']);
+    Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+    Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
+    Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+});

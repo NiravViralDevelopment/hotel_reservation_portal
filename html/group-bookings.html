@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group Bookings | Hotel Group Booking Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+</head>
+<body data-page="bookings">
+<div id="hgbms-root" class="app-wrapper"></div>
+<div id="page-content">
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div><nav aria-label="breadcrumb"><ol class="breadcrumb mb-1"><li class="breadcrumb-item"><a href="dashboard.html">Home</a></li><li class="breadcrumb-item active">Group Bookings</li></ol></nav>
+      <h1 class="page-title">Group Bookings</h1><p class="page-subtitle">Group Tracker 2026 — monthly contract register. <span id="bookingsCountLabel">349</span> definite blocks (DEF) from workbook.</p></div>
+    <div class="d-flex gap-2"><button class="btn btn-outline-secondary btn-sm" data-refresh><i class="bi bi-arrow-clockwise"></i> Refresh</button><button class="btn btn-outline-secondary btn-sm" data-export><i class="bi bi-download"></i> Export</button><button class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#bookingFormModal"><i class="bi bi-plus-lg"></i> New Booking</button></div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end filter-bar">
+        <div class="col-lg-2 col-md-4"><label class="form-label small fw-semibold mb-1">Arrival From</label><input type="date" class="form-control form-control-sm" value="2026-01-01"></div>
+        <div class="col-lg-2 col-md-4"><label class="form-label small fw-semibold mb-1">Departure To</label><input type="date" class="form-control form-control-sm" value="2027-12-31"></div>
+        <div class="col-lg-2 col-md-4"><label class="form-label small fw-semibold mb-1">Client</label><select class="form-select form-select-sm"><option value="">All Clients</option><option>EF World Tours AG</option><option>Tour Partner Group</option><option>Collette  Main-night</option><option>ABBEY Ireland &amp; UK</option><option>Atlas Travel Solutions</option></select></div>
+        <div class="col-lg-2 col-md-4"><label class="form-label small fw-semibold mb-1">Agency Ref</label><select class="form-select form-select-sm"><option value="">All Agency Refs</option><option>341681-1</option><option>HMGR195381</option><option>26004</option></select></div>
+        <div class="col-lg-2 col-md-4"><label class="form-label small fw-semibold mb-1">Status</label><select class="form-select form-select-sm"><option value="">All</option><option selected>DEF</option><option>Confirmed</option></select></div>
+        <div class="col-lg-2 col-md-4"><label class="form-label small fw-semibold mb-1">Payment</label><select class="form-select form-select-sm"><option value="">All</option><option>Paid</option><option>Partial</option><option>Unpaid</option></select></div>
+        <div class="col-lg-1 col-md-4"><label class="form-label small fw-semibold mb-1">Year</label><select class="form-select form-select-sm"><option>2026</option><option>2027</option><option>2025</option></select></div>
+        <div class="col-lg-1 col-md-4"><label class="form-label small fw-semibold mb-1">Month</label><select class="form-select form-select-sm"><option value="">All</option><option>Jun</option><option>Jul</option><option>Aug</option></select></div>
+        <div class="col-auto"><button class="btn btn-accent btn-sm"><i class="bi bi-funnel"></i> Apply</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="input-group search-input"><span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span><input type="search" class="form-control border-start-0 table-search" placeholder="Search ref, group, hotel…" data-table="bookingsTable"></div>
+      <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#advancedFilters"><i class="bi bi-sliders"></i> Advanced</button>
+    </div>
+    <div class="collapse border-bottom px-3 py-2" id="advancedFilters">
+      <div class="row g-2 py-2"><div class="col-md-3"><select class="form-select form-select-sm"><option>All Clients</option><option>EF World Tours AG</option><option>G2 Travel</option><option>Miki Travel</option></select></div>
+      <div class="col-md-3"><select class="form-select form-select-sm"><option>All Meal Basis</option><option>BB</option><option>DBB</option><option>HB</option></select></div>
+      <div class="col-md-3"><input type="number" class="form-control form-control-sm" placeholder="Min ADR"></div>
+      <div class="col-md-3"><input type="number" class="form-control form-control-sm" placeholder="Min Revenue"></div></div>
+    </div>
+    <div class="table-scroll-hint"><i class="bi bi-arrows-expand"></i> Scroll down the page normally — use the horizontal scrollbar below the table (or Shift + mouse wheel) to see all columns</div>
+    <div class="table-wrapper table-scroll-wide">
+      <table class="table table-hover table-sm" id="bookingsTable" data-sortable style="font-size:0.72rem">
+        <thead><tr>
+          <th data-sort>Block Id</th><th data-sort>Arrival</th><th data-sort>Departure</th><th data-sort>Day</th><th data-sort>Nights</th>
+          <th data-sort>Client</th><th data-sort>Agency</th><th data-sort>Contact</th><th data-sort>Email</th><th data-sort>Status</th>
+          <th data-sort>Contract Sent</th><th data-sort>Contract Recd</th><th data-sort>Doc</th>
+          <th data-sort>Payment Term</th><th data-sort>Due Date</th><th data-sort>Payment Status</th>
+          <th data-sort>CXL Policy</th><th data-sort>CXL Due</th><th data-sort>CXL Date</th><th data-sort>Commission</th>
+          <th data-sort>Sgl RNs</th><th data-sort>Sgl Rate</th><th data-sort>Dbl RNs</th><th data-sort>Dbl Rate</th>
+          <th data-sort>Tpl RNs</th><th data-sort>Tpl Rate</th><th data-sort>Total RNs</th>
+          <th data-sort>Total Rev</th><th data-sort>BB Rev</th><th data-sort>Dinner Rev</th><th data-sort>Nett Rev</th>
+          <th data-sort>BB/DBB</th><th data-sort>Update</th><th data-sort>Rooming</th>
+          <th data-sort>Inv Status</th><th data-sort>Inv Date</th><th data-sort>Inv Amount</th>
+          <th data-sort>Comm Payable</th><th data-sort>Opera X-check</th><th data-sort>Daily Rows</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="bookingsTableBody"></tbody>
+      </table>
+    </div>
+    <div class="table-footer"><span id="bookingsTableFooter">Loading entries…</span>
+      <nav><ul class="pagination pagination-sm mb-0" id="bookingsPagination"></ul></nav>
+    </div>
+  </div>
+
+  <!-- Add / Edit Booking — all Excel fields -->
+  <div class="modal fade" id="bookingFormModal" tabindex="-1" aria-labelledby="bookingFormLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="bookingFormLabel"><i class="bi bi-calendar-check me-2"></i>Group Booking — Add / Edit</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="bookingForm" class="row g-3">
+            <div class="col-12"><h6 class="text-accent border-bottom pb-2 mb-0"><i class="bi bi-info-circle me-1"></i> Contract Details</h6></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Date of Arrival</label><input type="text" class="form-control form-control-sm" name="arrival"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Date of Departure</label><input type="text" class="form-control form-control-sm" name="departure"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Arrival Day</label><input type="text" class="form-control form-control-sm" name="arrivalDay"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">No. of nights</label><input type="number" class="form-control form-control-sm" name="nights"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Block Id</label><input type="text" class="form-control form-control-sm" name="blockId" required></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Client</label><input type="text" class="form-control form-control-sm" name="client"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Agency</label><input type="text" class="form-control form-control-sm" name="agency"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Contact</label><input type="text" class="form-control form-control-sm" name="contact"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Email id</label><input type="email" class="form-control form-control-sm" name="email"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Status</label><select class="form-select form-select-sm" name="status"><option>DEF</option><option>Confirmed</option><option>Provisional</option></select></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Contract Sent on</label><input type="text" class="form-control form-control-sm" name="contractSent"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Contract Recd on</label><input type="text" class="form-control form-control-sm" name="contractRecd"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Saved to Doc</label><select class="form-select form-select-sm" name="savedDoc"><option value="">No</option><option value="X">Yes (X)</option></select></div>
+
+            <div class="col-12 mt-2"><h6 class="text-accent border-bottom pb-2 mb-0"><i class="bi bi-credit-card me-1"></i> Payment Terms and Conditions</h6></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Payment Term</label><input type="text" class="form-control form-control-sm" name="paymentTerm"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Due Date</label><input type="text" class="form-control form-control-sm" name="dueDate"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Payment Status</label><textarea class="form-control form-control-sm" name="paymentStatus" rows="2"></textarea></div>
+
+            <div class="col-12 mt-2"><h6 class="text-accent border-bottom pb-2 mb-0"><i class="bi bi-shield-exclamation me-1"></i> CXL Policy</h6></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">CXL Policy</label><input type="text" class="form-control form-control-sm" name="cxlPolicy"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">CXL Due Date</label><input type="text" class="form-control form-control-sm" name="cxlDueDate"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">CXL Date</label><input type="text" class="form-control form-control-sm" name="cxlDate"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Commission</label><input type="text" class="form-control form-control-sm" name="commission"></div>
+
+            <div class="col-12 mt-2"><h6 class="text-accent border-bottom pb-2 mb-0"><i class="bi bi-currency-pound me-1"></i> Rates and RNs</h6></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Single RNs</label><input type="number" class="form-control form-control-sm" name="singleRNs"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Single Gross Rate</label><input type="number" step="0.01" class="form-control form-control-sm" name="singleRate"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Double RNs</label><input type="number" class="form-control form-control-sm" name="doubleRNs"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Double Gross Rate</label><input type="number" step="0.01" class="form-control form-control-sm" name="doubleRate"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Triple RNs</label><input type="number" class="form-control form-control-sm" name="tripleRNs"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Triple Gross Rate</label><input type="number" step="0.01" class="form-control form-control-sm" name="tripleRate"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Total RNs</label><input type="number" class="form-control form-control-sm" name="totalRNs"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Total Rev</label><input type="number" step="0.01" class="form-control form-control-sm" name="revenue"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">BB Revenue (Nett £8.33)</label><input type="number" step="0.01" class="form-control form-control-sm" name="bbRevenue"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Dinner Revenue</label><input type="number" step="0.01" class="form-control form-control-sm" name="dinnerRevenue"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">Nett Rev EX VAT, BF &amp; Dinner</label><input type="number" step="0.01" class="form-control form-control-sm" name="nettRev"></div>
+            <div class="col-md-2"><label class="form-label small fw-semibold">BB/DBB</label><select class="form-select form-select-sm" name="mealPlan"><option>BB</option><option>DBB</option><option>HB</option><option>FB</option><option>RO</option></select></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Update</label><textarea class="form-control form-control-sm" name="update" rows="2"></textarea></div>
+
+            <div class="col-12 mt-2"><h6 class="text-accent border-bottom pb-2 mb-0"><i class="bi bi-journal-text me-1"></i> Updates</h6></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Rooming status</label><input type="text" class="form-control form-control-sm" name="roomingStatus"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Invoice Status</label><input type="text" class="form-control form-control-sm" name="invoiceStatus"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Invoice Date</label><input type="text" class="form-control form-control-sm" name="invoiceDate"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Invoice Amount</label><input type="number" step="0.01" class="form-control form-control-sm" name="invoiceAmount"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Commission Payable Status</label><input type="text" class="form-control form-control-sm" name="commissionPayable"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Opera cross check rate</label><input type="number" step="0.01" class="form-control form-control-sm" name="operaCrossCheckRate"></div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-accent"><i class="bi bi-check-lg me-1"></i> Save Booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/excel-data.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/bookings-data.js"></script>
+<script src="assets/js/layout.js"></script><script src="assets/js/pages.js"></script><script src="assets/js/render.js"></script><script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('hgbms:layout-ready', function () {
+  if (window.HGBMS_BOOKINGS) HGBMS_BOOKINGS.renderList(1);
+}, { once: true });
+</script>
+</body></html>
