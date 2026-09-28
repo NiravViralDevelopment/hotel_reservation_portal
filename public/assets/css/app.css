@@ -169,6 +169,38 @@ a:hover {
   box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.15);
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-field > .form-control {
+  padding-right: 2.75rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  z-index: 5;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.password-toggle:hover,
+.password-toggle:focus {
+  color: var(--brand-accent);
+  outline: none;
+}
+
+.login-form .password-field > .form-control {
+  padding-right: 3rem;
+}
+
 .btn-brand {
   background: var(--brand-primary);
   border-color: var(--brand-primary);
@@ -778,12 +810,27 @@ a:hover {
   color: var(--text-secondary);
   padding: 0.75rem 1rem;
   white-space: nowrap;
-  cursor: pointer;
   user-select: none;
 }
 
-.table thead th:hover {
+.table thead th.sortable-th,
+.table thead th.sortable-th .sortable-link {
+  cursor: pointer;
+}
+
+.table thead th:hover,
+.table thead th.sortable-th:hover .sortable-link {
   color: var(--text-primary);
+}
+
+.sortable-icon {
+  font-size: 0.7rem;
+  opacity: 0.45;
+}
+
+.sortable-icon.active {
+  opacity: 1;
+  color: var(--brand-accent);
 }
 
 .table tbody td {
@@ -1845,4 +1892,67 @@ a:hover {
   .hgbms-toast.is-hiding {
     transform: translateY(120%);
   }
+}
+
+/* ---- Select2 ---- */
+.table-toolbar .select2-container {
+  min-width: 150px;
+  max-width: none !important;
+}
+
+.table-toolbar .select2-container--bootstrap-5 .select2-selection {
+  min-height: calc(1.5em + 0.5rem + 2px);
+  font-size: 0.875rem;
+}
+
+.header-actions .select2-container {
+  min-width: 180px;
+  max-width: none !important;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+  padding-right: 2.5rem !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear {
+  margin-right: 1.1rem;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown {
+  min-width: 100%;
+}
+
+.select2-container--bootstrap-5 .select2-results__option {
+  white-space: nowrap;
+}
+
+.select2-container--bootstrap-5.select2-container--open .select2-dropdown {
+  width: max-content !important;
+  min-width: 100%;
+  max-width: min(480px, 95vw);
+}
+
+[data-theme="dark"] .select2-container--bootstrap-5 .select2-selection {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .select2-container--bootstrap-5 .select2-dropdown {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+  background-color: var(--bg-body);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .select2-container--bootstrap-5 .select2-results__option--highlighted {
+  background-color: var(--brand-accent);
 }

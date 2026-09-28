@@ -192,6 +192,60 @@
     });
   }
 
+  /* ---- Password show/hide ---- */
+  function initPasswordToggles() {
+    // Auto-wrap any password input that does not already have an eye button
+    document.querySelectorAll('input[type="password"]').forEach(function (input) {
+      if (!input.id) {
+        input.id = 'pwd_' + Math.random().toString(36).slice(2, 9);
+      }
+
+      if (input.closest('.password-field') && input.parentElement.querySelector('[data-password-toggle]')) {
+        return;
+      }
+
+      if (document.querySelector('[data-password-toggle="' + input.id + '"]')) {
+        return;
+      }
+
+      const wrap = document.createElement('div');
+      wrap.className = 'password-field';
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'password-toggle';
+      btn.setAttribute('data-password-toggle', input.id);
+      btn.setAttribute('aria-label', 'Show password');
+      btn.setAttribute('title', 'Show password');
+      btn.innerHTML = '<i class="bi bi-eye"></i>';
+      wrap.appendChild(btn);
+    });
+
+    document.querySelectorAll('[data-password-toggle]').forEach(function (btn) {
+      if (btn.dataset.bound === '1') return;
+      btn.dataset.bound = '1';
+
+      btn.addEventListener('click', function () {
+        const inputId = btn.getAttribute('data-password-toggle');
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
+        }
+
+        btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+        btn.setAttribute('title', showing ? 'Show password' : 'Hide password');
+      });
+    });
+  }
+
   /* ---- Login Form (static HTML only; Laravel forms submit normally) ---- */
   function initLogin() {
     const form = document.getElementById('loginForm');
@@ -384,12 +438,102 @@
 
   initPageLoader();
 
+  /* ---- Select2 ---- */
+  function sortSelectOptions($el) {
+    const el = $el[0];
+    if (!el || el.tagName !== 'SELECT') return;
+
+    const selected = $el.val();
+    const options = Array.from(el.options);
+    const blanks = [];
+    const values = [];
+
+    options.forEach(function (opt) {
+      if (opt.value === '' || opt.disabled) {
+        blanks.push(opt);
+      } else {
+        values.push(opt);
+      }
+    });
+
+    values.sort(function (a, b) {
+      return a.text.trim().localeCompare(b.text.trim(), undefined, { sensitivity: 'base', numeric: true });
+    });
+
+    el.innerHTML = '';
+    blanks.concat(values).forEach(function (opt) {
+      el.appendChild(opt);
+    });
+
+    if (selected !== null && selected !== undefined) {
+      $el.val(selected);
+    }
+  }
+
+  function resolveSelect2Width($el) {
+    const custom = $el.data('width');
+    if (custom) return custom;
+
+    const inToolbar = $el.closest('.table-toolbar, .header-actions, .page-header').length > 0;
+    if (!inToolbar) return '100%';
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.font = '14px Inter, system-ui, sans-serif';
+
+    let maxText = 0;
+    Array.from($el[0].options).forEach(function (opt) {
+      maxText = Math.max(maxText, ctx.measureText(opt.text.trim()).width);
+    });
+
+    // padding for clear (x) + arrow + borders
+    const px = Math.ceil(Math.min(Math.max(maxText + 72, 150), 380));
+    $el.css('width', px + 'px');
+    return 'style';
+  }
+
+  function initSelect2() {
+    if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') return;
+
+    jQuery('select.select2').each(function () {
+      const $el = jQuery(this);
+      if ($el.hasClass('select2-hidden-accessible')) {
+        $el.select2('destroy');
+      }
+
+      sortSelectOptions($el);
+
+      const placeholder = $el.find('option[value=""]').first().text() || 'Select…';
+      const width = resolveSelect2Width($el);
+
+      $el.select2({
+        theme: 'bootstrap-5',
+        width: width === 'style' ? 'style' : width,
+        dropdownAutoWidth: true,
+        placeholder: placeholder,
+        allowClear: $el.find('option[value=""]').length > 0,
+        dropdownParent: $el.closest('.modal, .offcanvas').length
+          ? $el.closest('.modal, .offcanvas')
+          : jQuery(document.body),
+        minimumResultsForSearch: 0,
+      });
+
+      if ($el.attr('id') === 'current_hotel_id') {
+        $el.off('change.hgbmsHotel').on('change.hgbmsHotel', function () {
+          if (this.form) this.form.submit();
+        });
+      }
+    });
+  }
+
   /* ---- Init ---- */
   document.addEventListener('DOMContentLoaded', function () {
     initTheme();
     initLogin();
+    initPasswordToggles();
     initNotifications();
     initFlashToasts();
+    initSelect2();
     document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
       btn.addEventListener('click', toggleTheme);
     });
@@ -401,6 +545,7 @@
         initTableSort();
         initRefreshButtons();
         initExportButtons();
+        initSelect2();
       }, { once: true });
     } else {
       initSidebar();

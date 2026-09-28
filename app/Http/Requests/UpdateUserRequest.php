@@ -25,7 +25,6 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'phone' => ['nullable', 'string', 'max:20'],
             'job_title' => ['nullable', 'string', 'max:255'],
-            'department' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'roles' => ['nullable', 'array'],

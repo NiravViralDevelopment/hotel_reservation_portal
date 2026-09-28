@@ -101,6 +101,26 @@ class DemoDataSeeder extends Seeder
             );
         }
 
+        // Assign demo hotel access for non-admin users (Administrators see all hotels via role).
+        User::query()->where('email', 's.mitchell@grandbrighton.co.uk')->first()?->hotels()->sync([
+            $hotels['GBH01']->id,
+        ]);
+        User::query()->where('email', 'e.richardson@lakemanor.co.uk')->first()?->hotels()->sync([
+            $hotels['LDM01']->id,
+            $hotels['BRC01']->id,
+        ]);
+        User::query()->where('email', 'c.bennett@yorkminsterinn.co.uk')->first()?->hotels()->sync([
+            $hotels['YMI01']->id,
+            $hotels['ECV01']->id,
+        ]);
+        User::query()->where('email', 'l.green@hotelgroup.co.uk')->first()?->hotels()->sync([
+            $hotels['GBH01']->id,
+            $hotels['LDM01']->id,
+            $hotels['BRC01']->id,
+            $hotels['YMI01']->id,
+            $hotels['ECV01']->id,
+        ]);
+
         $agenciesData = [
             ['code' => 'TUI', 'name' => 'TUI UK', 'contact' => 'James Whitfield', 'email' => 'j.whitfield@tui.co.uk', 'phone' => '+44 1733 419999', 'city' => 'Luton'],
             ['code' => 'JET2', 'name' => 'Jet2holidays', 'contact' => 'Michelle Turner', 'email' => 'm.turner@jet2holidays.com', 'phone' => '+44 113 496 0000', 'city' => 'Leeds'],

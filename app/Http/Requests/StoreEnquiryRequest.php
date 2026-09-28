@@ -24,7 +24,7 @@ class StoreEnquiryRequest extends FormRequest
             'enquiry_date' => ['nullable', 'date'],
             'group_name' => ['required', 'string', 'max:255'],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
-            'hotel_id' => ['nullable', 'integer', 'exists:hotels,id'],
+            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
             'contact_id' => ['nullable', 'integer', 'exists:contacts,id'],
             'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
             'nights' => ['nullable', 'integer', 'min:1'],

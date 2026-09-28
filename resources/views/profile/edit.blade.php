@@ -16,7 +16,7 @@
   </div>
 
   <div class="row g-4">
-    <div class="col-lg-7">
+    <div class="col-lg-8">
       <div class="card">
         <div class="card-header">Profile details</div>
         <div class="card-body">
@@ -30,55 +30,25 @@
                 @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="col-md-6">
-                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" required>
-                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" class="form-control" value="{{ $user->email }}" readonly disabled>
+                <div class="form-text">Email can only be changed by an administrator.</div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <label for="phone" class="form-label">Phone</label>
                 <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}">
                 @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <label for="job_title" class="form-label">Job title</label>
                 <input type="text" name="job_title" id="job_title" class="form-control @error('job_title') is-invalid @enderror" value="{{ old('job_title', $user->job_title) }}">
                 @error('job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
-              <div class="col-md-4">
-                <label for="department" class="form-label">Department</label>
-                <input type="text" name="department" id="department" class="form-control @error('department') is-invalid @enderror" value="{{ old('department', $user->department) }}">
-                @error('department')<div class="invalid-feedback">{{ $message }}</div>@enderror
-              </div>
               <div class="col-12">
+                <p class="small text-secondary mb-3">Email and password can only be changed by an administrator from Users.</p>
                 <button type="submit" class="btn btn-accent">Save profile</button>
               </div>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-5">
-      <div class="card">
-        <div class="card-header">Change password</div>
-        <div class="card-body">
-          <form method="POST" action="{{ route('profile.password') }}">
-            @csrf
-            @method('PUT')
-            <div class="mb-3">
-              <label for="current_password" class="form-label">Current password <span class="text-danger">*</span></label>
-              <input type="password" name="current_password" id="current_password" class="form-control @error('current_password') is-invalid @enderror" required autocomplete="current-password">
-              @error('current_password')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-            <div class="mb-3">
-              <label for="password" class="form-label">New password <span class="text-danger">*</span></label>
-              <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" required autocomplete="new-password">
-              @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-            <div class="mb-3">
-              <label for="password_confirmation" class="form-label">Confirm new password</label>
-              <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required autocomplete="new-password">
-            </div>
-            <button type="submit" class="btn btn-outline-secondary">Update password</button>
           </form>
         </div>
       </div>

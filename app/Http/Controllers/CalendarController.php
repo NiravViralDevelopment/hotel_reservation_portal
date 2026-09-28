@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GroupBooking;
 use App\Models\Hotel;
+use App\Support\HotelAccess;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -20,6 +21,7 @@ class CalendarController extends Controller
         $end = $start->copy()->endOfMonth();
 
         $query = GroupBooking::query()
+            ->accessibleBy()
             ->with(['hotel'])
             ->active()
             ->where(function ($q) use ($start, $end) {
@@ -32,11 +34,12 @@ class CalendarController extends Controller
             });
 
         if ($request->filled('hotel_id')) {
+            HotelAccess::ensure(null, $request->integer('hotel_id'));
             $query->where('hotel_id', $request->integer('hotel_id'));
         }
 
         $bookings = $query->orderBy('arrival')->get();
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
 
         return view('calendar.index', compact('bookings', 'hotels', 'month', 'year', 'start'));
     }

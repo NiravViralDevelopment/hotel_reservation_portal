@@ -46,27 +46,36 @@
             @error('job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="department" class="form-label">Department</label>
-            <input type="text" name="department" id="department" class="form-control @error('department') is-invalid @enderror" value="{{ old('department', $user->department) }}">
-            @error('department')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-4">
             <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror" required>
               <option value="active" @selected(old('status', $user->status) === 'active')>Active</option>
               <option value="inactive" @selected(old('status', $user->status) === 'inactive')>Inactive</option>
             </select>
             @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
-            <label for="password" class="form-label">New password</label>
-            <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password">
-            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            <div class="form-text">Leave blank to keep current password.</div>
+          <div class="col-12">
+            <hr class="my-1">
+            <div class="fw-semibold mb-1">Update password</div>
+            <p class="small text-secondary mb-0">Only administrators can set or change a user’s password. Leave blank to keep the current password.</p>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
+            <label for="password" class="form-label">New password</label>
+            <div class="password-field">
+              <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password">
+              <button type="button" class="password-toggle" data-password-toggle="password" aria-label="Show password" title="Show password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-6">
             <label for="password_confirmation" class="form-label">Confirm new password</label>
-            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" autocomplete="new-password">
+            <div class="password-field">
+              <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" autocomplete="new-password">
+              <button type="button" class="password-toggle" data-password-toggle="password_confirmation" aria-label="Show password" title="Show password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>

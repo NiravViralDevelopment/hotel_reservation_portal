@@ -4,29 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Models\GroupBooking;
 use App\Models\Hotel;
+use App\Support\HotelAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ReportController extends Controller
 {
     public function index(): View
     {
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $this->authorize('reports.view');
+
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
 
         return view('reports.index', compact('hotels'));
     }
 
     public function run(Request $request): View
     {
+        $this->authorize('reports.generate');
+
         $validated = $request->validate([
             'report' => ['required', 'in:bookings_by_hotel,arrivals_summary,revenue_by_agency'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
-            'hotel_id' => ['nullable', 'integer', 'exists:hotels,id'],
+            'hotel_id' => ['nullable', 'integer', Rule::in(HotelAccess::hotelIds())],
         ]);
 
-        $query = GroupBooking::query()->with(['hotel', 'travelAgency']);
+        if (! empty($validated['hotel_id'])) {
+            HotelAccess::ensure(null, $validated['hotel_id']);
+        }
+
+        $query = GroupBooking::query()
+            ->accessibleBy()
+            ->with(['hotel', 'travelAgency']);
 
         if ($validated['date_from'] ?? null) {
             $query->whereDate('arrival', '>=', $validated['date_from']);
@@ -55,7 +67,7 @@ class ReportController extends Controller
                 ->get(),
         };
 
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
 
         return view('reports.run', compact('results', 'validated', 'hotels'));
     }

@@ -58,7 +58,7 @@
           </div>
           <div class="col-md-4">
             <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror" required>
               <option value="active" @selected(old('status', $travelAgency->status) === 'active')>Active</option>
               <option value="inactive" @selected(old('status', $travelAgency->status) === 'inactive')>Inactive</option>
             </select>

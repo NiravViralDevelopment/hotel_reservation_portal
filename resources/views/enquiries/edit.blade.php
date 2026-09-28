@@ -40,7 +40,7 @@
           </div>
           <div class="col-md-3">
             <label for="status" class="form-label">Status</label>
-            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
+            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror">
               @foreach ($statuses as $status)
                 <option value="{{ $status }}" @selected(old('status', $e->status) === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
               @endforeach
@@ -59,7 +59,7 @@
           </div>
           <div class="col-md-4">
             <label for="travel_agency_id" class="form-label">Travel agency</label>
-            <select name="travel_agency_id" id="travel_agency_id" class="form-select @error('travel_agency_id') is-invalid @enderror">
+            <select name="travel_agency_id" id="travel_agency_id" class="form-select select2 @error('travel_agency_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($travelAgencies as $agency)
                 <option value="{{ $agency->id }}" @selected(old('travel_agency_id', $e->travel_agency_id) == $agency->id)>{{ $agency->name }}</option>
@@ -69,7 +69,7 @@
           </div>
           <div class="col-md-4">
             <label for="hotel_id" class="form-label">Hotel</label>
-            <select name="hotel_id" id="hotel_id" class="form-select @error('hotel_id') is-invalid @enderror">
+            <select name="hotel_id" id="hotel_id" class="form-select select2 @error('hotel_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($hotels as $hotel)
                 <option value="{{ $hotel->id }}" @selected(old('hotel_id', $e->hotel_id) == $hotel->id)>{{ $hotel->name }}</option>
@@ -79,7 +79,7 @@
           </div>
           <div class="col-md-4">
             <label for="assigned_to" class="form-label">Assigned to</label>
-            <select name="assigned_to" id="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror">
+            <select name="assigned_to" id="assigned_to" class="form-select select2 @error('assigned_to') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($users as $user)
                 <option value="{{ $user->id }}" @selected(old('assigned_to', $e->assigned_to) == $user->id)>{{ $user->name }}</option>

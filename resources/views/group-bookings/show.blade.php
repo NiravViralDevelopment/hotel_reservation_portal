@@ -90,32 +90,6 @@
     </div>
   @endif
 
-  <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <span>Documents ({{ $b->documents->count() }})</span>
-      @can('create', App\Models\Document::class)
-        <a href="{{ route('documents.create') }}" class="btn btn-sm btn-outline-secondary">Upload</a>
-      @endcan
-    </div>
-    <div class="table-wrapper">
-      <table class="table table-sm table-hover mb-0">
-        <thead><tr><th>Name</th><th>Category</th><th>Uploaded by</th><th></th></tr></thead>
-        <tbody>
-          @forelse ($b->documents as $doc)
-            <tr>
-              <td><a href="{{ route('documents.show', $doc) }}">{{ $doc->name }}</a></td>
-              <td>{{ $doc->category }}</td>
-              <td>{{ $doc->uploadedBy?->name ?? '—' }}</td>
-              <td class="text-end"><a href="{{ route('documents.download', $doc) }}" class="btn btn-sm btn-link">Download</a></td>
-            </tr>
-          @empty
-            <tr><td colspan="4" class="text-secondary py-3">No documents linked.</td></tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
-  </div>
-
   @can('cancel', $b)
     @if (($b->status?->value ?? $b->status) !== 'Cancelled')
       <div class="card border-danger">

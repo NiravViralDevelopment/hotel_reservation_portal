@@ -3,19 +3,22 @@
     <i class="bi bi-list"></i>
   </button>
 
-  <div class="header-search">
-    <i class="bi bi-search"></i>
-    <input type="search" placeholder="Search bookings, hotels, agencies…" aria-label="Global search" disabled>
-  </div>
+  <div class="header-spacer flex-grow-1"></div>
 
   <div class="header-actions">
-    <button class="header-action-btn" data-theme-toggle data-bs-toggle="tooltip" title="Toggle theme" type="button">
-      <i class="bi bi-moon-fill"></i>
-    </button>
-
-    <button class="header-action-btn" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas" title="Quick filters" type="button">
-      <i class="bi bi-funnel"></i>
-    </button>
+    @if (isset($accessibleHotels) && $accessibleHotels->isNotEmpty())
+      <form method="POST" action="{{ route('hotel-context.switch') }}" class="d-flex align-items-center gap-2 me-2">
+        @csrf
+        <label for="current_hotel_id" class="form-label mb-0 small text-secondary text-nowrap">Current Hotel</label>
+        <select name="hotel_id" id="current_hotel_id" class="form-select form-select-sm select2" style="min-width: 180px; width:auto" data-width="style">
+          @foreach ($accessibleHotels as $hotel)
+            <option value="{{ $hotel->id }}" @selected((int) $currentHotelId === (int) $hotel->id)>
+              {{ $hotel->name }}
+            </option>
+          @endforeach
+        </select>
+      </form>
+    @endif
 
     <div class="dropdown">
       <button class="header-action-btn" data-bs-toggle="dropdown" aria-label="Notifications" type="button">
@@ -34,15 +37,12 @@
         <div class="header-user-avatar">{{ auth()->user()->initials() }}</div>
         <div class="header-user-info">
           <div class="header-user-name">{{ auth()->user()->name }}</div>
-          <div class="header-user-role">{{ auth()->user()->job_title ?: 'User' }}</div>
+          <div class="header-user-role">{{ auth()->user()->getRoleNames()->first() ?: 'User' }}</div>
         </div>
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
         <li>
           <a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person"></i> My Profile</a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="{{ route('settings.edit') }}"><i class="bi bi-gear"></i> Settings</a>
         </li>
         <li><hr class="dropdown-divider"></li>
         <li>

@@ -54,6 +54,18 @@ class User extends Authenticatable
         return $this->status === 'active';
     }
 
+    /**
+     * Users with roles or hotel assignments can only be activated/deactivated, not deleted.
+     */
+    public function canBeDeleted(): bool
+    {
+        if ($this->relationLoaded('roles') && $this->relationLoaded('hotels')) {
+            return $this->roles->isEmpty() && $this->hotels->isEmpty();
+        }
+
+        return ! $this->roles()->exists() && ! $this->hotels()->exists();
+    }
+
     public function initials(): string
     {
         $parts = preg_split('/\s+/', trim($this->name)) ?: [];
@@ -69,6 +81,24 @@ class User extends Authenticatable
     public function hotels(): BelongsToMany
     {
         return $this->belongsToMany(Hotel::class, 'hotel_user')->withTimestamps();
+    }
+
+    public function canAccessAllHotels(): bool
+    {
+        return $this->hasRole('Administrator');
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function accessibleHotelIds(): array
+    {
+        return \App\Support\HotelAccess::hotelIds($this);
+    }
+
+    public function hasHotelAccess(int|string|null $hotelId): bool
+    {
+        return \App\Support\HotelAccess::allows($this, $hotelId);
     }
 
     public function managedHotels(): HasMany

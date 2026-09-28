@@ -5,22 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\GroupBooking;
 use App\Support\Audit;
+use App\Support\HotelAccess;
+use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Document::class);
 
-        $documents = Document::query()
+        $query = Document::query()
             ->with(['groupBooking', 'uploadedBy'])
-            ->latest()
-            ->paginate(25);
+            ->where(function ($query) {
+                $query->whereNull('group_booking_id')
+                    ->orWhereHas('groupBooking', fn ($q) => $q->accessibleBy());
+            });
+
+        QuerySort::apply($query, $request, [
+            'name' => 'name',
+            'category' => 'category',
+            'created_at' => 'created_at',
+        ], 'created_at', 'desc');
+
+        $documents = $query->paginate(25)->withQueryString();
 
         return view('documents.index', compact('documents'));
     }
@@ -30,6 +43,7 @@ class DocumentController extends Controller
         $this->authorize('create', Document::class);
 
         $groupBookings = GroupBooking::query()
+            ->accessibleBy()
             ->active()
             ->orderByDesc('arrival')
             ->limit(100)
@@ -42,12 +56,19 @@ class DocumentController extends Controller
     {
         $this->authorize('create', Document::class);
 
+        $accessibleBookingIds = GroupBooking::query()->accessibleBy()->pluck('id')->all();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:50'],
-            'group_booking_id' => ['nullable', 'integer', 'exists:group_bookings,id'],
+            'group_booking_id' => ['nullable', 'integer', Rule::in($accessibleBookingIds)],
             'file' => ['required', 'file', 'max:10240'],
         ]);
+
+        if (! empty($validated['group_booking_id'])) {
+            $booking = GroupBooking::query()->findOrFail($validated['group_booking_id']);
+            HotelAccess::ensure(null, $booking->hotel_id);
+        }
 
         $file = $request->file('file');
         $path = $file->store('documents/'.$validated['category'], 'local');
@@ -82,6 +103,7 @@ class DocumentController extends Controller
         $this->authorize('update', $document);
 
         $groupBookings = GroupBooking::query()
+            ->accessibleBy()
             ->orderByDesc('arrival')
             ->limit(100)
             ->get(['id', 'block_id', 'group_name']);
@@ -93,11 +115,18 @@ class DocumentController extends Controller
     {
         $this->authorize('update', $document);
 
+        $accessibleBookingIds = GroupBooking::query()->accessibleBy()->pluck('id')->all();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:50'],
-            'group_booking_id' => ['nullable', 'integer', 'exists:group_bookings,id'],
+            'group_booking_id' => ['nullable', 'integer', Rule::in($accessibleBookingIds)],
         ]);
+
+        if (! empty($validated['group_booking_id'])) {
+            $booking = GroupBooking::query()->findOrFail($validated['group_booking_id']);
+            HotelAccess::ensure(null, $booking->hotel_id);
+        }
 
         $document->update($validated);
         Audit::log('updated', 'documents', $document->name, $document);

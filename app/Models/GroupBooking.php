@@ -196,4 +196,18 @@ class GroupBooking extends Model
         return $this->cancelled_at !== null
             || $this->status === BookingStatus::Cancelled;
     }
+
+    /**
+     * @param  Builder<GroupBooking>  $query
+     * @return Builder<GroupBooking>
+     */
+    public function scopeAccessibleBy(Builder $query, ?User $user = null): Builder
+    {
+        $ids = \App\Support\HotelAccess::hotelIds($user);
+        if ($ids === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIn($query->getModel()->getTable().'.hotel_id', $ids);
+    }
 }

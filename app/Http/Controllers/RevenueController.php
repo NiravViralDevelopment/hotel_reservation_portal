@@ -12,9 +12,12 @@ class RevenueController extends Controller
 {
     public function index(Request $request): View
     {
+        $this->authorize('revenue.view');
+
         $year = $request->integer('year', (int) now()->format('Y'));
 
         $monthlyRevenue = GroupBooking::query()
+            ->accessibleBy()
             ->active()
             ->whereYear('arrival', $year)
             ->select(
@@ -36,6 +39,7 @@ class RevenueController extends Controller
             ->keyBy('month');
 
         $yearTotal = GroupBooking::query()
+            ->accessibleBy()
             ->active()
             ->whereYear('arrival', $year)
             ->sum('revenue');

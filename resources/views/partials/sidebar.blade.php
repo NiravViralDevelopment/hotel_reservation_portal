@@ -3,39 +3,37 @@
     [
       'section' => 'Main',
       'items' => [
-        ['route' => 'dashboard', 'icon' => 'speedometer2', 'label' => 'Dashboard'],
-        ['route' => 'hotels.index', 'icon' => 'building', 'label' => 'Hotels'],
-        ['route' => 'companies.index', 'icon' => 'briefcase', 'label' => 'Companies'],
-        ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies'],
-        ['route' => 'contacts.index', 'icon' => 'person-lines-fill', 'label' => 'Contacts'],
+        ['route' => 'dashboard', 'icon' => 'speedometer2', 'label' => 'Dashboard', 'permission' => 'dashboard.view'],
+        ['route' => 'hotels.index', 'icon' => 'building', 'label' => 'Hotels', 'permission' => 'hotels.view'],
+        ['route' => 'companies.index', 'icon' => 'briefcase', 'label' => 'Companies', 'permission' => 'companies.view'],
+        ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies', 'permission' => 'agencies.view'],
+        ['route' => 'contacts.index', 'icon' => 'person-lines-fill', 'label' => 'Contacts', 'permission' => 'contacts.view'],
       ],
     ],
     [
       'section' => 'Bookings',
       'items' => [
-        ['route' => 'group-bookings.index', 'icon' => 'calendar-check', 'label' => 'Group Bookings'],
-        ['route' => 'enquiries.index', 'icon' => 'chat-square-text', 'label' => 'Enquiries'],
-        ['route' => 'cancelled-bookings.index', 'icon' => 'x-circle', 'label' => 'Cancelled Bookings'],
-        ['route' => 'arrivals.index', 'icon' => 'box-arrow-in-right', 'label' => 'Arrivals'],
-        ['route' => 'departures.index', 'icon' => 'box-arrow-right', 'label' => 'Departures'],
-        ['route' => 'calendar.index', 'icon' => 'calendar3', 'label' => 'Calendar'],
+        ['route' => 'group-bookings.index', 'icon' => 'calendar-check', 'label' => 'Group Bookings', 'permission' => 'bookings.view'],
+        ['route' => 'enquiries.index', 'icon' => 'chat-square-text', 'label' => 'Enquiries', 'permission' => 'enquiries.view'],
+        ['route' => 'cancelled-bookings.index', 'icon' => 'x-circle', 'label' => 'Cancelled Bookings', 'permission' => 'bookings.view'],
+        ['route' => 'arrivals.index', 'icon' => 'box-arrow-in-right', 'label' => 'Arrivals', 'permission' => 'bookings.view'],
+        ['route' => 'departures.index', 'icon' => 'box-arrow-right', 'label' => 'Departures', 'permission' => 'bookings.view'],
+        ['route' => 'calendar.index', 'icon' => 'calendar3', 'label' => 'Calendar', 'permission' => 'bookings.view'],
       ],
     ],
     [
       'section' => 'Finance',
       'items' => [
-        ['route' => 'revenue.index', 'icon' => 'currency-pound', 'label' => 'Revenue'],
-        ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports'],
-        ['route' => 'documents.index', 'icon' => 'folder2-open', 'label' => 'Documents'],
+        ['route' => 'revenue.index', 'icon' => 'currency-pound', 'label' => 'Revenue', 'permission' => 'revenue.view'],
+        ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports', 'permission' => 'reports.view'],
       ],
     ],
   ];
 
   $adminItems = [
-    ['route' => 'users.index', 'icon' => 'people', 'label' => 'Users', 'can' => 'viewAny', 'model' => \App\Models\User::class],
-    ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Roles', 'can' => 'viewAny', 'model' => \App\Models\User::class],
-    ['route' => 'audit-logs.index', 'icon' => 'journal-text', 'label' => 'Audit Logs', 'can' => 'viewAny', 'model' => \App\Models\User::class],
-    ['route' => 'settings.edit', 'icon' => 'gear', 'label' => 'Settings', 'can' => 'viewAny', 'model' => \App\Models\User::class],
+    ['route' => 'users.index', 'icon' => 'people', 'label' => 'Users', 'permission' => 'users.view'],
+    ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Roles', 'permission' => 'roles.view'],
+    ['route' => 'audit-logs.index', 'icon' => 'journal-text', 'label' => 'Audit Logs', 'permission' => 'audit.view'],
   ];
 @endphp
 
@@ -48,24 +46,32 @@
 
   <nav class="sidebar-nav">
     @foreach ($nav as $group)
-      <div class="nav-section-label">{{ $group['section'] }}</div>
-      @foreach ($group['items'] as $item)
-        @php
-          $routeBase = \Illuminate\Support\Str::contains($item['route'], '.')
-            ? \Illuminate\Support\Str::beforeLast($item['route'], '.').'.*'
-            : $item['route'];
-          $isActive = request()->routeIs($item['route'], $routeBase);
-        @endphp
-        <a href="{{ route($item['route']) }}" class="sidebar-link{{ $isActive ? ' active' : '' }}" title="{{ $item['label'] }}">
-          <i class="bi bi-{{ $item['icon'] }}"></i>
-          <span class="sidebar-link-text">{{ $item['label'] }}</span>
-        </a>
-      @endforeach
+      @php
+        $visibleItems = collect($group['items'])->filter(fn ($item) => auth()->user()->can($item['permission']));
+      @endphp
+      @if ($visibleItems->isNotEmpty())
+        <div class="nav-section-label">{{ $group['section'] }}</div>
+        @foreach ($visibleItems as $item)
+          @php
+            $routeBase = \Illuminate\Support\Str::contains($item['route'], '.')
+              ? \Illuminate\Support\Str::beforeLast($item['route'], '.').'.*'
+              : $item['route'];
+            $isActive = request()->routeIs($item['route'], $routeBase);
+          @endphp
+          <a href="{{ route($item['route']) }}" class="sidebar-link{{ $isActive ? ' active' : '' }}" title="{{ $item['label'] }}">
+            <i class="bi bi-{{ $item['icon'] }}"></i>
+            <span class="sidebar-link-text">{{ $item['label'] }}</span>
+          </a>
+        @endforeach
+      @endif
     @endforeach
 
-    @can('viewAny', \App\Models\User::class)
+    @php
+      $visibleAdminItems = collect($adminItems)->filter(fn ($item) => auth()->user()->can($item['permission']));
+    @endphp
+    @if ($visibleAdminItems->isNotEmpty())
       <div class="nav-section-label">Administration</div>
-      @foreach ($adminItems as $item)
+      @foreach ($visibleAdminItems as $item)
         @php
           $routeBase = \Illuminate\Support\Str::contains($item['route'], '.')
             ? \Illuminate\Support\Str::beforeLast($item['route'], '.').'.*'
@@ -77,7 +83,7 @@
           <span class="sidebar-link-text">{{ $item['label'] }}</span>
         </a>
       @endforeach
-    @endcan
+    @endif
   </nav>
 
   <div class="sidebar-footer">

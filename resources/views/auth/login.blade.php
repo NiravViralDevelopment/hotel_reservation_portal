@@ -24,7 +24,7 @@
             id="loginEmail"
             name="email"
             placeholder="name@company.co.uk"
-            value="{{ old('email', 'admin@hotelgroup.co.uk') }}"
+            value="{{ old('email') }}"
             required
             autofocus
             autocomplete="username"
@@ -37,7 +37,7 @@
           @enderror
         </div>
 
-        <div class="form-floating mb-3">
+        <div class="form-floating mb-3 password-field">
           <input
             type="password"
             class="form-control @error('password') is-invalid @enderror"
@@ -49,6 +49,15 @@
             autocomplete="current-password"
           >
           <label for="loginPassword"><i class="bi bi-lock me-1"></i> Password</label>
+          <button
+            type="button"
+            class="password-toggle"
+            data-password-toggle="loginPassword"
+            aria-label="Show password"
+            title="Show password"
+          >
+            <i class="bi bi-eye"></i>
+          </button>
           @error('password')
             <div class="invalid-feedback d-block">{{ $message }}</div>
           @else
@@ -56,29 +65,17 @@
           @enderror
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="mb-4">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="rememberMe" name="remember" value="1" @checked(old('remember', true))>
+            <input class="form-check-input" type="checkbox" id="rememberMe" name="remember" value="1" @checked(old('remember'))>
             <label class="form-check-label small text-secondary" for="rememberMe">Remember me</label>
           </div>
-          <a href="{{ route('password.request') }}" class="small">Forgot password?</a>
         </div>
 
-        <button type="submit" class="btn btn-brand w-100 mb-3">
+        <button type="submit" class="btn btn-brand w-100">
           <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
         </button>
-
-        <div class="text-center">
-          <button type="button" class="btn btn-link btn-sm text-secondary" data-theme-toggle title="Toggle dark/light mode">
-            <i class="bi bi-moon-fill"></i> Toggle Theme
-          </button>
-        </div>
       </form>
-
-      <div class="login-footer">
-        <p class="mb-1">&copy; {{ date('Y') }} Hotel Group Holdings Ltd. All rights reserved.</p>
-        <p class="mb-0">Registered in England &amp; Wales &middot; Company No. 08472931</p>
-      </div>
     </div>
   </div>
 @endsection

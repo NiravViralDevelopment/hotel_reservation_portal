@@ -22,43 +22,109 @@
 
   <div class="card">
     <div class="table-toolbar">
-      <div class="input-group search-input">
-        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
-        <input type="search" class="form-control border-start-0 table-search" placeholder="Search companies…" data-table="companiesTable">
-      </div>
+      <form method="GET" action="{{ route('companies.index') }}" class="d-flex flex-wrap gap-2 align-items-center w-100">
+        <div class="input-group input-group-sm" style="max-width: 260px;">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input
+            type="search"
+            name="q"
+            value="{{ request('q') }}"
+            class="form-control"
+            placeholder="Search name, reg, city…"
+            aria-label="Search companies"
+          >
+        </div>
+
+        <select name="status" class="form-select form-select-sm select2" style="width:auto">
+          <option value="">All statuses</option>
+          <option value="active" @selected(request('status') === 'active')>Active</option>
+          <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
+        </select>
+
+        <select name="country" class="form-select form-select-sm select2" style="width:auto">
+          <option value="">All countries</option>
+          @foreach ($countries as $country)
+            <option value="{{ $country }}" @selected(request('country') === $country)>{{ $country }}</option>
+          @endforeach
+        </select>
+
+        <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
+
+        @if (request()->hasAny(['q', 'status', 'country']))
+          <a href="{{ route('companies.index') }}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-x-circle"></i> Clear
+          </a>
+        @endif
+
+        @if (request('sort'))
+          <input type="hidden" name="sort" value="{{ request('sort') }}">
+        @endif
+        @if (request('dir'))
+          <input type="hidden" name="dir" value="{{ request('dir') }}">
+        @endif
+      </form>
     </div>
+
     <div class="table-wrapper">
-      <table class="table table-hover mb-0" id="companiesTable">
+      <table class="table table-hover mb-0 align-middle">
         <thead>
           <tr>
-            <th>Company name</th>
-            <th>Reg. number</th>
-            <th>City</th>
-            <th>Country</th>
-            <th class="text-center">Hotels</th>
-            <th class="text-center">Contacts</th>
-            <th>Status</th>
-            <th></th>
+            <x-sortable-th column="name" label="Company" />
+            <x-sortable-th column="city" label="Location" />
+            <x-sortable-th column="hotels" label="Hotels" class="text-center" />
+            <x-sortable-th column="contacts" label="Contacts" class="text-center" />
+            <x-sortable-th column="status" label="Status" />
+            <th class="text-end">Actions</th>
           </tr>
         </thead>
         <tbody>
           @forelse ($companies as $company)
             <tr>
-              <td class="fw-semibold"><a href="{{ route('companies.show', $company) }}">{{ $company->name }}</a></td>
-              <td>{{ $company->reg_number ?? '—' }}</td>
-              <td>{{ $company->city ?? '—' }}</td>
-              <td>{{ $company->country ?? '—' }}</td>
+              <td>
+                <div class="fw-semibold"><a href="{{ route('companies.show', $company) }}">{{ $company->name }}</a></div>
+                @if ($company->reg_number)
+                  <div class="small text-secondary">Reg. {{ $company->reg_number }}</div>
+                @endif
+              </td>
+              <td>
+                @if ($company->city || $company->country)
+                  {{ collect([$company->city, $company->country])->filter()->implode(', ') }}
+                @else
+                  <span class="text-secondary">—</span>
+                @endif
+              </td>
               <td class="text-center">{{ $company->hotels_count }}</td>
               <td class="text-center">{{ $company->contacts_count }}</td>
               <td><x-badge-status :status="$company->status" /></td>
-              <td class="text-end">
+              <td class="text-end text-nowrap">
                 @can('update', $company)
-                  <a href="{{ route('companies.edit', $company) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  <a href="{{ route('companies.edit', $company) }}" class="btn btn-sm btn-outline-secondary" title="Edit company">
+                    <i class="bi bi-pencil"></i> Edit
+                  </a>
+                @endcan
+                @can('delete', $company)
+                  <form method="POST" action="{{ route('companies.destroy', $company) }}" class="d-inline" onsubmit="return confirm('Remove {{ $company->name }}?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove company">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
                 @endcan
               </td>
             </tr>
           @empty
-            <tr><td colspan="8" class="text-center text-secondary py-4">No companies found.</td></tr>
+            <tr>
+              <td colspan="6" class="text-center text-secondary py-5">
+                <div class="mb-2"><i class="bi bi-building fs-3"></i></div>
+                <div>No companies match your filters.</div>
+                @if (request()->hasAny(['q', 'status', 'country']))
+                  <a href="{{ route('companies.index') }}" class="btn btn-outline-danger btn-sm mt-2">
+                    <i class="bi bi-x-circle"></i> Clear filters
+                  </a>
+                @endif
+              </td>
+            </tr>
           @endforelse
         </tbody>
       </table>

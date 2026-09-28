@@ -31,11 +31,11 @@
       <table class="table table-hover mb-0" id="documentsTable">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Category</th>
+            <x-sortable-th column="name" label="Name" default="created_at" default-dir="desc" />
+            <x-sortable-th column="category" label="Category" default="created_at" default-dir="desc" />
             <th>Booking</th>
             <th>Uploaded by</th>
-            <th>Date</th>
+            <x-sortable-th column="created_at" label="Date" default="created_at" default-dir="desc" />
             <th></th>
           </tr>
         </thead>

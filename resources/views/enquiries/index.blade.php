@@ -31,14 +31,14 @@
       <table class="table table-hover mb-0" id="enquiriesTable">
         <thead>
           <tr>
-            <th>Ref</th>
-            <th>Date</th>
-            <th>Group</th>
+            <x-sortable-th column="ref" label="Ref" default="enquiry_date" default-dir="desc" />
+            <x-sortable-th column="enquiry_date" label="Date" default="enquiry_date" default-dir="desc" />
+            <x-sortable-th column="group_name" label="Group" default="enquiry_date" default-dir="desc" />
             <th>Agency</th>
             <th>Hotel</th>
-            <th>Nights</th>
-            <th>Revenue</th>
-            <th>Status</th>
+            <x-sortable-th column="nights" label="Nights" default="enquiry_date" default-dir="desc" />
+            <x-sortable-th column="total_revenue" label="Revenue" default="enquiry_date" default-dir="desc" />
+            <x-sortable-th column="status" label="Status" default="enquiry_date" default-dir="desc" />
             <th></th>
           </tr>
         </thead>

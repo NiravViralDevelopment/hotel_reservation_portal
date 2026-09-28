@@ -23,7 +23,7 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label for="report" class="form-label">Report <span class="text-danger">*</span></label>
-            <select name="report" id="report" class="form-select @error('report') is-invalid @enderror" required>
+            <select name="report" id="report" class="form-select select2 @error('report') is-invalid @enderror" required>
               <option value="bookings_by_hotel" @selected(old('report') === 'bookings_by_hotel')>Bookings by hotel</option>
               <option value="arrivals_summary" @selected(old('report') === 'arrivals_summary')>Arrivals summary</option>
               <option value="revenue_by_agency" @selected(old('report') === 'revenue_by_agency')>Revenue by agency</option>
@@ -42,7 +42,7 @@
           </div>
           <div class="col-md-6">
             <label for="hotel_id" class="form-label">Hotel (optional)</label>
-            <select name="hotel_id" id="hotel_id" class="form-select @error('hotel_id') is-invalid @enderror">
+            <select name="hotel_id" id="hotel_id" class="form-select select2 @error('hotel_id') is-invalid @enderror">
               <option value="">All hotels</option>
               @foreach ($hotels as $hotel)
                 <option value="{{ $hotel->id }}" @selected(old('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>

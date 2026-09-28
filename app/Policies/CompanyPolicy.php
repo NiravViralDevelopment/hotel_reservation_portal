@@ -4,14 +4,31 @@ namespace App\Policies;
 
 use App\Models\Company;
 use App\Models\User;
-use App\Policies\Concerns\AllowsAuthenticatedUsers;
 
 class CompanyPolicy
 {
-    use AllowsAuthenticatedUsers;
+    public function viewAny(User $user): bool
+    {
+        return $user->hasPermissionTo('companies.view');
+    }
+
+    public function view(User $user, Company $company): bool
+    {
+        return $user->hasPermissionTo('companies.view');
+    }
+
+    public function create(User $user): bool
+    {
+        return $user->hasPermissionTo('companies.create');
+    }
+
+    public function update(User $user, Company $company): bool
+    {
+        return $user->hasPermissionTo('companies.edit');
+    }
 
     public function delete(User $user, Company $company): bool
     {
-        return true;
+        return $user->hasPermissionTo('companies.delete');
     }
 }

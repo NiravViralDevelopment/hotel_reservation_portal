@@ -27,7 +27,7 @@
           </div>
           <div class="col-md-3">
             <label for="company_id" class="form-label">Company</label>
-            <select name="company_id" id="company_id" class="form-select @error('company_id') is-invalid @enderror">
+            <select name="company_id" id="company_id" class="form-select select2 @error('company_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($companies as $company)
                 <option value="{{ $company->id }}" @selected(old('company_id') == $company->id)>{{ $company->name }}</option>
@@ -37,7 +37,7 @@
           </div>
           <div class="col-md-3">
             <label for="travel_agency_id" class="form-label">Travel agency</label>
-            <select name="travel_agency_id" id="travel_agency_id" class="form-select @error('travel_agency_id') is-invalid @enderror">
+            <select name="travel_agency_id" id="travel_agency_id" class="form-select select2 @error('travel_agency_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($travelAgencies as $agency)
                 <option value="{{ $agency->id }}" @selected(old('travel_agency_id') == $agency->id)>{{ $agency->name }} ({{ $agency->code }})</option>

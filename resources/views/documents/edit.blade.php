@@ -33,7 +33,7 @@
           </div>
           <div class="col-md-12">
             <label for="group_booking_id" class="form-label">Group booking</label>
-            <select name="group_booking_id" id="group_booking_id" class="form-select @error('group_booking_id') is-invalid @enderror">
+            <select name="group_booking_id" id="group_booking_id" class="form-select select2 @error('group_booking_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($groupBookings as $booking)
                 <option value="{{ $booking->id }}" @selected(old('group_booking_id', $document->group_booking_id) == $booking->id)>{{ $booking->block_id }} — {{ $booking->group_name }}</option>

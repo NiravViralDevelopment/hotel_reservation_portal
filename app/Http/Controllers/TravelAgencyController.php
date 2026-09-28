@@ -4,20 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\TravelAgency;
 use App\Support\Audit;
+use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TravelAgencyController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', TravelAgency::class);
 
-        $travelAgencies = TravelAgency::query()
-            ->withCount(['contacts', 'enquiries', 'groupBookings'])
-            ->orderBy('name')
-            ->paginate(20);
+        $query = TravelAgency::query()
+            ->withCount(['contacts', 'enquiries', 'groupBookings']);
+
+        QuerySort::apply($query, $request, [
+            'name' => 'name',
+            'code' => 'code',
+            'city' => 'city',
+            'status' => 'status',
+            'contacts' => 'contacts_count',
+            'enquiries' => 'enquiries_count',
+            'bookings' => 'group_bookings_count',
+        ], 'name');
+
+        $travelAgencies = $query->paginate(20)->withQueryString();
 
         return view('travel-agencies.index', compact('travelAgencies'));
     }

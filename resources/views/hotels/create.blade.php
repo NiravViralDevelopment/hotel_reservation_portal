@@ -32,7 +32,7 @@
           </div>
           <div class="col-md-3">
             <label for="company_id" class="form-label">Company</label>
-            <select name="company_id" id="company_id" class="form-select @error('company_id') is-invalid @enderror">
+            <select name="company_id" id="company_id" class="form-select select2 @error('company_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($companies as $company)
                 <option value="{{ $company->id }}" @selected(old('company_id') == $company->id)>{{ $company->name }}</option>
@@ -56,23 +56,13 @@
             @error('rooms')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="manager_user_id" class="form-label">Manager (user)</label>
-            <select name="manager_user_id" id="manager_user_id" class="form-select @error('manager_user_id') is-invalid @enderror">
-              <option value="">— None —</option>
-              @foreach ($managers as $manager)
-                <option value="{{ $manager->id }}" @selected(old('manager_user_id') == $manager->id)>{{ $manager->name }}</option>
-              @endforeach
-            </select>
-            @error('manager_user_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-4">
-            <label for="manager_name" class="form-label">Manager name (text)</label>
+            <label for="manager_name" class="form-label">Manager</label>
             <input type="text" name="manager_name" id="manager_name" class="form-control @error('manager_name') is-invalid @enderror" value="{{ old('manager_name') }}">
             @error('manager_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror" required>
               <option value="active" @selected(old('status', 'active') === 'active')>Active</option>
               <option value="inactive" @selected(old('status') === 'inactive')>Inactive</option>
             </select>

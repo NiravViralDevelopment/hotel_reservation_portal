@@ -1,16 +1,3 @@
-<div class="offcanvas offcanvas-end" tabindex="-1" id="filtersOffcanvas">
-  <div class="offcanvas-header border-bottom">
-    <h5 class="offcanvas-title"><i class="bi bi-funnel me-2"></i>Advanced Filters</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-  </div>
-  <div class="offcanvas-body" id="globalFiltersBody">
-    <p class="text-secondary small">Page-specific filters will appear here as modules are connected.</p>
-    <div class="d-grid gap-2">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">Close</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="exportModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -21,7 +8,7 @@
       <div class="modal-body">
         <div class="mb-3">
           <label class="form-label fw-semibold">Format</label>
-          <select class="form-select">
+          <select class="form-select select2">
             <option>Excel (.xlsx)</option>
             <option>CSV (.csv)</option>
             <option>PDF</option>

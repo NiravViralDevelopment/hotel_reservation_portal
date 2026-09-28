@@ -11,6 +11,7 @@ use App\Models\GroupBooking;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
 use App\Support\Audit;
+use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -23,11 +24,12 @@ class GroupBookingController extends Controller
         $this->authorize('viewAny', GroupBooking::class);
 
         $query = GroupBooking::query()
+            ->accessibleBy()
             ->with(['hotel', 'travelAgency', 'company'])
-            ->active()
-            ->orderBy('arrival');
+            ->active();
 
         if ($request->filled('hotel_id')) {
+            \App\Support\HotelAccess::ensure(null, $request->integer('hotel_id'));
             $query->where('hotel_id', $request->integer('hotel_id'));
         }
 
@@ -35,8 +37,19 @@ class GroupBookingController extends Controller
             $query->where('status', $request->string('status'));
         }
 
+        QuerySort::apply($query, $request, [
+            'block_id' => 'block_id',
+            'group_name' => 'group_name',
+            'arrival' => 'arrival',
+            'departure' => 'departure',
+            'status' => 'status',
+            'revenue' => 'revenue',
+            'rooms' => 'rooms',
+            'nights' => 'nights',
+        ], 'arrival');
+
         $bookings = $query->paginate(25)->withQueryString();
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
 
         return view('group-bookings.index', compact('bookings', 'hotels'));
     }
@@ -46,7 +59,7 @@ class GroupBookingController extends Controller
         $this->authorize('create', GroupBooking::class);
 
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $contacts = Contact::query()->orderBy('name')->get(['id', 'name']);
         $statuses = BookingStatus::values();
@@ -59,6 +72,7 @@ class GroupBookingController extends Controller
         $this->authorize('create', GroupBooking::class);
 
         $data = $request->validated();
+        \App\Support\HotelAccess::ensure(null, $data['hotel_id'] ?? null);
         $data['created_by'] = auth()->id();
         $data = $this->applyDateMeta($data);
 
@@ -91,7 +105,7 @@ class GroupBookingController extends Controller
         $this->authorize('update', $groupBooking);
 
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $contacts = Contact::query()->orderBy('name')->get(['id', 'name']);
         $statuses = BookingStatus::values();
@@ -104,6 +118,7 @@ class GroupBookingController extends Controller
         $this->authorize('update', $groupBooking);
 
         $data = $this->applyDateMeta($request->validated());
+        \App\Support\HotelAccess::ensure(null, $data['hotel_id'] ?? $groupBooking->hotel_id);
         $groupBooking->update($data);
         Audit::log('updated', 'group_bookings', $groupBooking->block_id, $groupBooking);
 

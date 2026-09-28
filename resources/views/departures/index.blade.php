@@ -19,25 +19,31 @@
     <div class="table-toolbar">
       <form method="GET" action="{{ route('departures.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
         <input type="date" name="date" class="form-control form-control-sm" style="width:auto" value="{{ $date }}">
-        <select name="hotel_id" class="form-select form-select-sm" style="width:auto">
+        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
             <option value="{{ $hotel->id }}" @selected(request('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
         <button type="submit" class="btn btn-outline-secondary btn-sm">Apply</button>
+        @if (request('sort'))
+          <input type="hidden" name="sort" value="{{ request('sort') }}">
+        @endif
+        @if (request('dir'))
+          <input type="hidden" name="dir" value="{{ request('dir') }}">
+        @endif
       </form>
     </div>
     <div class="table-wrapper">
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Block ID</th>
-            <th>Group</th>
+            <x-sortable-th column="block_id" label="Block ID" default="group_name" />
+            <x-sortable-th column="group_name" label="Group" default="group_name" />
             <th>Hotel</th>
             <th>Agency</th>
-            <th>Nights</th>
-            <th>Status</th>
+            <x-sortable-th column="nights" label="Nights" default="group_name" />
+            <x-sortable-th column="status" label="Status" default="group_name" />
           </tr>
         </thead>
         <tbody>

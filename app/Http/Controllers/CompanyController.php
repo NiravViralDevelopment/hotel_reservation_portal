@@ -4,22 +4,57 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Support\Audit;
+use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CompanyController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Company::class);
 
-        $companies = Company::query()
-            ->withCount(['hotels', 'contacts'])
-            ->orderBy('name')
-            ->paginate(20);
+        $query = Company::query()
+            ->withCount(['hotels', 'contacts']);
 
-        return view('companies.index', compact('companies'));
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('reg_number', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('country', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('country')) {
+            $query->where('country', $request->string('country'));
+        }
+
+        QuerySort::apply($query, $request, [
+            'name' => 'name',
+            'reg_number' => 'reg_number',
+            'city' => 'city',
+            'country' => 'country',
+            'hotels' => 'hotels_count',
+            'contacts' => 'contacts_count',
+            'status' => 'status',
+        ], 'name');
+
+        $companies = $query->paginate(20)->withQueryString();
+        $countries = Company::query()
+            ->whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country');
+
+        return view('companies.index', compact('companies', 'countries'));
     }
 
     public function create(): View

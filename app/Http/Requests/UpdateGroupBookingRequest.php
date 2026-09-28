@@ -25,7 +25,7 @@ class UpdateGroupBookingRequest extends FormRequest
             'block_id' => ['required', 'string', 'max:255', Rule::unique('group_bookings', 'block_id')->ignore($bookingId)],
             'enquiry_id' => ['nullable', 'integer', 'exists:enquiries,id'],
             'company_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'hotel_id' => ['nullable', 'integer', 'exists:hotels,id'],
+            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
             'contact_id' => ['nullable', 'integer', 'exists:contacts,id'],
             'group_name' => ['required', 'string', 'max:255'],

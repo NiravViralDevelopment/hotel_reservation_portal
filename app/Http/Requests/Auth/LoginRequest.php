@@ -31,21 +31,21 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt([
+            ...$this->only('email', 'password'),
+            'status' => 'active',
+        ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
-            throw ValidationException::withMessages([
-                'email' => __('These credentials do not match our records.'),
-            ]);
-        }
-
-        $user = Auth::user();
-
-        if ($user && $user->status === 'inactive') {
-            Auth::logout();
+            $inactive = \App\Models\User::query()
+                ->where('email', $this->string('email'))
+                ->where('status', 'inactive')
+                ->exists();
 
             throw ValidationException::withMessages([
-                'email' => __('Your account is inactive. Please contact an administrator.'),
+                'email' => $inactive
+                    ? __('Your account is inactive. Please contact an administrator.')
+                    : __('These credentials do not match our records.'),
             ]);
         }
 

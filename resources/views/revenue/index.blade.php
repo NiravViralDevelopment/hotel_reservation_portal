@@ -16,7 +16,7 @@
       <p class="page-subtitle">Year total: <strong>£{{ number_format((float) $yearTotal, 2) }}</strong></p>
     </div>
     <form method="GET" action="{{ route('revenue.index') }}" class="d-flex gap-2">
-      <select name="year" class="form-select form-select-sm" style="width:auto">
+      <select name="year" class="form-select form-select-sm select2" style="width:auto">
         @for ($y = (int) date('Y') + 1; $y >= 2020; $y--)
           <option value="{{ $y }}" @selected($year == $y)>{{ $y }}</option>
         @endfor

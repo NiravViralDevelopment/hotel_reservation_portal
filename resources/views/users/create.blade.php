@@ -45,26 +45,31 @@
             @error('job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="department" class="form-label">Department</label>
-            <input type="text" name="department" id="department" class="form-control @error('department') is-invalid @enderror" value="{{ old('department') }}">
-            @error('department')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-4">
             <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror" required>
               <option value="active" @selected(old('status', 'active') === 'active')>Active</option>
               <option value="inactive" @selected(old('status') === 'inactive')>Inactive</option>
             </select>
             @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-            <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" required>
-            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="password-field">
+              <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" required autocomplete="new-password">
+              <button type="button" class="password-toggle" data-password-toggle="password" aria-label="Show password" title="Show password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label for="password_confirmation" class="form-label">Confirm password <span class="text-danger">*</span></label>
-            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
+            <div class="password-field">
+              <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required autocomplete="new-password">
+              <button type="button" class="password-toggle" data-password-toggle="password_confirmation" aria-label="Show password" title="Show password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -30,7 +30,7 @@
       <form method="GET" action="{{ route('calendar.index') }}" class="d-flex gap-2">
         <input type="hidden" name="month" value="{{ $month }}">
         <input type="hidden" name="year" value="{{ $year }}">
-        <select name="hotel_id" class="form-select form-select-sm" style="width:auto">
+        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
             <option value="{{ $hotel->id }}" @selected(request('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>

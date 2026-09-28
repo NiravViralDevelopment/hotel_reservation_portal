@@ -11,21 +11,33 @@ use App\Models\Hotel;
 use App\Models\TravelAgency;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class EnquiryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Enquiry::class);
 
-        $enquiries = Enquiry::query()
-            ->with(['travelAgency', 'hotel', 'contact', 'assignedTo'])
-            ->latest('enquiry_date')
-            ->paginate(20);
+        $query = Enquiry::query()
+            ->accessibleBy()
+            ->with(['travelAgency', 'hotel', 'contact', 'assignedTo']);
+
+        QuerySort::apply($query, $request, [
+            'ref' => 'ref',
+            'group_name' => 'group_name',
+            'enquiry_date' => 'enquiry_date',
+            'status' => 'status',
+            'total_revenue' => 'total_revenue',
+            'nights' => 'nights',
+        ], 'enquiry_date', 'desc');
+
+        $enquiries = $query->paginate(20)->withQueryString();
 
         return view('enquiries.index', compact('enquiries'));
     }
@@ -35,7 +47,7 @@ class EnquiryController extends Controller
         $this->authorize('create', Enquiry::class);
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $users = User::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']);
         $statuses = EnquiryStatus::values();
 
@@ -47,6 +59,7 @@ class EnquiryController extends Controller
         $this->authorize('create', Enquiry::class);
 
         $data = $request->validated();
+        \App\Support\HotelAccess::ensure(null, $data['hotel_id'] ?? null);
         if (! empty($data['enquiry_date'])) {
             $data['day'] = Carbon::parse($data['enquiry_date'])->format('l');
         }
@@ -74,7 +87,7 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $users = User::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']);
         $statuses = EnquiryStatus::values();
 
@@ -91,7 +104,7 @@ class EnquiryController extends Controller
             'enquiry_date' => ['nullable', 'date'],
             'group_name' => ['required', 'string', 'max:255'],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
-            'hotel_id' => ['nullable', 'integer', 'exists:hotels,id'],
+            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
             'contact_id' => ['nullable', 'integer', 'exists:contacts,id'],
             'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
             'nights' => ['nullable', 'integer', 'min:1'],

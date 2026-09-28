@@ -33,33 +33,41 @@
           @enderror
         </div>
 
-        <div class="form-floating mb-3">
+        <div class="form-floating mb-3 password-field">
           <input
             type="password"
             class="form-control @error('password') is-invalid @enderror"
             id="password"
             name="password"
+            placeholder="Password"
             required
             minlength="6"
             autocomplete="new-password"
           >
           <label for="password"><i class="bi bi-lock me-1"></i> New Password</label>
+          <button type="button" class="password-toggle" data-password-toggle="password" aria-label="Show password" title="Show password">
+            <i class="bi bi-eye"></i>
+          </button>
           @error('password')
             <div class="invalid-feedback d-block">{{ $message }}</div>
           @enderror
         </div>
 
-        <div class="form-floating mb-4">
+        <div class="form-floating mb-4 password-field">
           <input
             type="password"
             class="form-control"
             id="password_confirmation"
             name="password_confirmation"
+            placeholder="Confirm password"
             required
             minlength="6"
             autocomplete="new-password"
           >
           <label for="password_confirmation"><i class="bi bi-lock-fill me-1"></i> Confirm Password</label>
+          <button type="button" class="password-toggle" data-password-toggle="password_confirmation" aria-label="Show password" title="Show password">
+            <i class="bi bi-eye"></i>
+          </button>
         </div>
 
         <button type="submit" class="btn btn-brand w-100 mb-3">

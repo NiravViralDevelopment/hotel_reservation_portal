@@ -31,12 +31,12 @@
       <table class="table table-hover mb-0" id="contactsTable">
         <thead>
           <tr>
-            <th>Name</th>
+            <x-sortable-th column="name" label="Name" />
             <th>Company</th>
             <th>Agency</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Position</th>
+            <x-sortable-th column="email" label="Email" />
+            <x-sortable-th column="phone" label="Phone" />
+            <x-sortable-th column="position" label="Position" />
             <th></th>
           </tr>
         </thead>

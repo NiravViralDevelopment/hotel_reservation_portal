@@ -11,20 +11,29 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartureController;
-use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\GroupBookingController;
+use App\Http\Controllers\HotelContextController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TravelAgencyController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
+
+
+Route::get('/test-url', function () {
+    return [
+        'app_url' => config('app.url'),
+        'login_url' => url('/login'),
+        'route_login' => route('login'),
+    ];
+});
+
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
@@ -38,10 +47,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::post('/hotel-context', [HotelContextController::class, 'switch'])->name('hotel-context.switch');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     Route::resource('companies', CompanyController::class);
     Route::resource('hotels', HotelController::class);
@@ -59,19 +68,28 @@ Route::middleware('auth')->group(function () {
     Route::get('departures', [DepartureController::class, 'index'])->name('departures.index');
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
-    Route::resource('documents', DocumentController::class);
-    Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    // Documents module temporarily hidden
+    Route::any('documents/{any?}', fn () => redirect()->route('dashboard'))
+        ->where('any', '.*')
+        ->name('documents.hidden');
 
     Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::post('reports/run', [ReportController::class, 'run'])->name('reports.run');
 
     Route::resource('users', UserController::class)->except(['show']);
+    Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('roles', [RoleController::class, 'store'])->name('roles.store');
     Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
     Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+    Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-    Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
-    Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Settings module temporarily hidden
+    Route::any('settings/{any?}', fn () => redirect()->route('dashboard'))
+        ->where('any', '.*')
+        ->name('settings.hidden');
 });

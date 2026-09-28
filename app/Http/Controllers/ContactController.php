@@ -6,20 +6,28 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\TravelAgency;
 use App\Support\Audit;
+use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ContactController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Contact::class);
 
-        $contacts = Contact::query()
-            ->with(['company', 'travelAgency'])
-            ->orderBy('name')
-            ->paginate(20);
+        $query = Contact::query()
+            ->with(['company', 'travelAgency']);
+
+        QuerySort::apply($query, $request, [
+            'name' => 'name',
+            'email' => 'email',
+            'phone' => 'phone',
+            'position' => 'position',
+        ], 'name');
+
+        $contacts = $query->paginate(20)->withQueryString();
 
         return view('contacts.index', compact('contacts'));
     }

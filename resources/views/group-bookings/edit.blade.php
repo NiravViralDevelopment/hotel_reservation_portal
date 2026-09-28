@@ -34,7 +34,7 @@
           </div>
           <div class="col-md-3">
             <label for="hotel_id" class="form-label">Hotel</label>
-            <select name="hotel_id" id="hotel_id" class="form-select @error('hotel_id') is-invalid @enderror">
+            <select name="hotel_id" id="hotel_id" class="form-select select2 @error('hotel_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($hotels as $hotel)
                 <option value="{{ $hotel->id }}" @selected(old('hotel_id', $b->hotel_id) == $hotel->id)>{{ $hotel->name }}</option>
@@ -44,7 +44,7 @@
           </div>
           <div class="col-md-3">
             <label for="company_id" class="form-label">Company</label>
-            <select name="company_id" id="company_id" class="form-select @error('company_id') is-invalid @enderror">
+            <select name="company_id" id="company_id" class="form-select select2 @error('company_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($companies as $company)
                 <option value="{{ $company->id }}" @selected(old('company_id', $b->company_id) == $company->id)>{{ $company->name }}</option>
@@ -54,7 +54,7 @@
           </div>
           <div class="col-md-3">
             <label for="travel_agency_id" class="form-label">Travel agency</label>
-            <select name="travel_agency_id" id="travel_agency_id" class="form-select @error('travel_agency_id') is-invalid @enderror">
+            <select name="travel_agency_id" id="travel_agency_id" class="form-select select2 @error('travel_agency_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($travelAgencies as $agency)
                 <option value="{{ $agency->id }}" @selected(old('travel_agency_id', $b->travel_agency_id) == $agency->id)>{{ $agency->name }}</option>
@@ -64,7 +64,7 @@
           </div>
           <div class="col-md-3">
             <label for="contact_id" class="form-label">Contact</label>
-            <select name="contact_id" id="contact_id" class="form-select @error('contact_id') is-invalid @enderror">
+            <select name="contact_id" id="contact_id" class="form-select select2 @error('contact_id') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach ($contacts as $contact)
                 <option value="{{ $contact->id }}" @selected(old('contact_id', $b->contact_id) == $contact->id)>{{ $contact->name }}</option>
@@ -89,7 +89,7 @@
           </div>
           <div class="col-md-3">
             <label for="status" class="form-label">Status</label>
-            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
+            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror">
               @foreach ($statuses as $status)
                 <option value="{{ $status }}" @selected(old('status', $b->status?->value ?? $b->status) === $status)>{{ $status }}</option>
               @endforeach
@@ -98,7 +98,7 @@
           </div>
           <div class="col-md-3">
             <label for="payment_status_display" class="form-label">Payment display</label>
-            <select name="payment_status_display" id="payment_status_display" class="form-select @error('payment_status_display') is-invalid @enderror">
+            <select name="payment_status_display" id="payment_status_display" class="form-select select2 @error('payment_status_display') is-invalid @enderror">
               <option value="">— None —</option>
               @foreach (\App\Enums\PaymentDisplayStatus::values() as $ps)
                 <option value="{{ $ps }}" @selected(old('payment_status_display', $b->payment_status_display?->value ?? $b->payment_status_display) === $ps)>{{ $ps }}</option>

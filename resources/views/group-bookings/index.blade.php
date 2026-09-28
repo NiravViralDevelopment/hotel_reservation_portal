@@ -23,13 +23,13 @@
   <div class="card">
     <div class="table-toolbar">
       <form method="GET" action="{{ route('group-bookings.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
-        <select name="hotel_id" class="form-select form-select-sm" style="width:auto">
+        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
             <option value="{{ $hotel->id }}" @selected(request('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
-        <select name="status" class="form-select form-select-sm" style="width:auto">
+        <select name="status" class="form-select form-select-sm select2" style="width:auto">
           <option value="">All statuses</option>
           @foreach (\App\Enums\BookingStatus::values() as $status)
             <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
@@ -37,7 +37,15 @@
         </select>
         <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
         @if (request()->hasAny(['hotel_id', 'status']))
-          <a href="{{ route('group-bookings.index') }}" class="btn btn-link btn-sm">Clear</a>
+          <a href="{{ route('group-bookings.index') }}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-x-circle"></i> Clear
+          </a>
+        @endif
+        @if (request('sort'))
+          <input type="hidden" name="sort" value="{{ request('sort') }}">
+        @endif
+        @if (request('dir'))
+          <input type="hidden" name="dir" value="{{ request('dir') }}">
         @endif
       </form>
     </div>
@@ -45,14 +53,14 @@
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Block ID</th>
-            <th>Group</th>
+            <x-sortable-th column="block_id" label="Block ID" default="arrival" />
+            <x-sortable-th column="group_name" label="Group" default="arrival" />
             <th>Hotel</th>
             <th>Agency</th>
-            <th>Arrival</th>
-            <th>Nights</th>
-            <th>Revenue</th>
-            <th>Status</th>
+            <x-sortable-th column="arrival" label="Arrival" default="arrival" />
+            <x-sortable-th column="nights" label="Nights" default="arrival" />
+            <x-sortable-th column="revenue" label="Revenue" default="arrival" />
+            <x-sortable-th column="status" label="Status" default="arrival" />
             <th></th>
           </tr>
         </thead>

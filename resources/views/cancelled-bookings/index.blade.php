@@ -18,25 +18,31 @@
   <div class="card">
     <div class="table-toolbar">
       <form method="GET" action="{{ route('cancelled-bookings.index') }}" class="d-flex gap-2 align-items-center">
-        <select name="hotel_id" class="form-select form-select-sm" style="width:auto">
+        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
             <option value="{{ $hotel->id }}" @selected(request('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
         <button type="submit" class="btn btn-outline-secondary btn-sm">Filter</button>
+        @if (request('sort'))
+          <input type="hidden" name="sort" value="{{ request('sort') }}">
+        @endif
+        @if (request('dir'))
+          <input type="hidden" name="dir" value="{{ request('dir') }}">
+        @endif
       </form>
     </div>
     <div class="table-wrapper">
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Block ID</th>
-            <th>Group</th>
+            <x-sortable-th column="block_id" label="Block ID" default="cancelled_at" default-dir="desc" />
+            <x-sortable-th column="group_name" label="Group" default="cancelled_at" default-dir="desc" />
             <th>Hotel</th>
-            <th>Cancelled</th>
-            <th>Revenue lost</th>
-            <th>Reason</th>
+            <x-sortable-th column="cancelled_at" label="Cancelled" default="cancelled_at" default-dir="desc" />
+            <x-sortable-th column="revenue" label="Revenue lost" default="cancelled_at" default-dir="desc" />
+            <x-sortable-th column="reason" label="Reason" default="cancelled_at" default-dir="desc" />
           </tr>
         </thead>
         <tbody>

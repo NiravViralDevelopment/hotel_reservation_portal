@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\EnquiryStatus;
+use App\Support\HotelAccess;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -84,5 +86,19 @@ class Enquiry extends Model
     public function convertedBooking(): BelongsTo
     {
         return $this->belongsTo(GroupBooking::class, 'converted_booking_id');
+    }
+
+    /**
+     * @param  Builder<Enquiry>  $query
+     * @return Builder<Enquiry>
+     */
+    public function scopeAccessibleBy(Builder $query, ?User $user = null): Builder
+    {
+        $ids = HotelAccess::hotelIds($user);
+        if ($ids === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIn($query->getModel()->getTable().'.hotel_id', $ids);
     }
 }

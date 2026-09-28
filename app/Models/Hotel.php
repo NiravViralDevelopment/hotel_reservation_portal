@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\HotelAccess;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -60,5 +62,35 @@ class Hotel extends Model
     public function enquiries(): HasMany
     {
         return $this->hasMany(Enquiry::class);
+    }
+
+    /**
+     * Hotels assigned to users cannot be deleted.
+     */
+    public function canBeDeleted(): bool
+    {
+        if ($this->relationLoaded('users')) {
+            return $this->users->isEmpty();
+        }
+
+        if (isset($this->users_count)) {
+            return (int) $this->users_count === 0;
+        }
+
+        return ! $this->users()->exists();
+    }
+
+    /**
+     * @param  Builder<Hotel>  $query
+     * @return Builder<Hotel>
+     */
+    public function scopeAccessibleBy(Builder $query, ?User $user = null): Builder
+    {
+        $ids = HotelAccess::hotelIds($user);
+        if ($ids === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIn($query->getModel()->getTable().'.id', $ids);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Audit;
+use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,19 +12,73 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $roles = Role::query()
-            ->withCount('users')
-            ->with('permissions')
-            ->orderBy('name')
-            ->get();
+        $this->authorize('roles.view');
 
-        return view('roles.index', compact('roles'));
+        $query = Role::query()
+            ->withCount('users')
+            ->with('permissions');
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('permissions', fn ($pq) => $pq->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($request->filled('permission')) {
+            $permission = $request->string('permission')->toString();
+            $query->whereHas('permissions', fn ($q) => $q->where('name', $permission));
+        }
+
+        QuerySort::apply($query, $request, [
+            'name' => 'name',
+            'users' => 'users_count',
+        ], 'name');
+
+        $roles = $query->paginate(20)->withQueryString();
+        $permissions = Permission::query()->orderBy('name')->get(['id', 'name']);
+
+        return view('roles.index', compact('roles', 'permissions'));
+    }
+
+    public function create(): View
+    {
+        $this->authorize('roles.edit');
+
+        $permissions = Permission::query()->orderBy('name')->get();
+
+        return view('roles.create', compact('permissions'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $this->authorize('roles.edit');
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:125', Rule::unique('roles', 'name')->where(fn ($q) => $q->where('guard_name', 'web'))],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['string', 'exists:permissions,name'],
+        ]);
+
+        $role = Role::create([
+            'name' => $validated['name'],
+            'guard_name' => 'web',
+        ]);
+
+        $role->syncPermissions($validated['permissions'] ?? []);
+
+        Audit::log('created', 'roles', $role->name, $role);
+
+        return redirect()->route('roles.index')->with('success', 'Role created.');
     }
 
     public function edit(Role $role): View
     {
+        $this->authorize('roles.edit');
+
         $permissions = Permission::query()->orderBy('name')->get();
         $role->load('permissions');
 
@@ -32,15 +87,45 @@ class RoleController extends Controller
 
     public function update(Request $request, Role $role): RedirectResponse
     {
+        $this->authorize('roles.edit');
+
         $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:125',
+                Rule::unique('roles', 'name')
+                    ->ignore($role->id)
+                    ->where(fn ($q) => $q->where('guard_name', 'web')),
+            ],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
+        $role->update(['name' => $validated['name']]);
         $role->syncPermissions($validated['permissions'] ?? []);
 
-        Audit::log('updated', 'roles', $role->name);
+        Audit::log('updated', 'roles', $role->name, $role);
 
-        return redirect()->route('roles.index')->with('success', 'Role permissions updated.');
+        return redirect()->route('roles.index')->with('success', 'Role updated.');
+    }
+
+    public function destroy(Role $role): RedirectResponse
+    {
+        $this->authorize('roles.edit');
+
+        if ($role->name === 'Administrator') {
+            return redirect()->route('roles.index')->with('error', 'The Administrator role cannot be removed.');
+        }
+
+        if ($role->users()->count() > 0) {
+            return redirect()->route('roles.index')->with('error', 'Remove this role from all users before deleting it.');
+        }
+
+        $name = $role->name;
+        $role->delete();
+        Audit::log('deleted', 'roles', $name);
+
+        return redirect()->route('roles.index')->with('success', 'Role removed.');
     }
 }

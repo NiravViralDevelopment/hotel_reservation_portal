@@ -23,7 +23,6 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20'],
             'job_title' => ['nullable', 'string', 'max:255'],
-            'department' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'password' => ['required', 'confirmed', Password::defaults()],
             'roles' => ['nullable', 'array'],

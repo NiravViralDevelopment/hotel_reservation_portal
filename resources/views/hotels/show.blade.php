@@ -34,7 +34,7 @@
     <div class="card">
       <div class="card-header">Contact</div>
       <div class="card-body">
-        <div class="info-card mb-3"><div class="info-card-label">Manager</div><div class="info-card-value">{{ $hotel->managerUser?->name ?? $hotel->manager_name ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Manager</div><div class="info-card-value">{{ $hotel->manager_name ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Phone</div><div class="info-card-value">{{ $hotel->phone ?? '—' }}</div></div>
         <div class="info-card"><div class="info-card-label">Email</div><div class="info-card-value">@if($hotel->email)<a href="mailto:{{ $hotel->email }}">{{ $hotel->email }}</a>@else — @endif</div></div>
       </div>

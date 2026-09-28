@@ -31,13 +31,13 @@
       <table class="table table-hover mb-0" id="agenciesTable">
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Name</th>
+            <x-sortable-th column="code" label="Code" />
+            <x-sortable-th column="name" label="Name" />
             <th>Contact</th>
-            <th>City</th>
-            <th class="text-center">Enquiries</th>
-            <th class="text-center">Bookings</th>
-            <th>Status</th>
+            <x-sortable-th column="city" label="City" />
+            <x-sortable-th column="enquiries" label="Enquiries" class="text-center" />
+            <x-sortable-th column="bookings" label="Bookings" class="text-center" />
+            <x-sortable-th column="status" label="Status" />
             <th></th>
           </tr>
         </thead>
