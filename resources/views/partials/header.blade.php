@@ -6,20 +6,6 @@
   <div class="header-spacer flex-grow-1"></div>
 
   <div class="header-actions">
-    @if (isset($accessibleHotels) && $accessibleHotels->isNotEmpty())
-      <form method="POST" action="{{ route('hotel-context.switch') }}" class="d-flex align-items-center gap-2 me-2">
-        @csrf
-        <label for="current_hotel_id" class="form-label mb-0 small text-secondary text-nowrap">Current Hotel</label>
-        <select name="hotel_id" id="current_hotel_id" class="form-select form-select-sm select2" style="min-width: 180px; width:auto" data-width="style">
-          @foreach ($accessibleHotels as $hotel)
-            <option value="{{ $hotel->id }}" @selected((int) $currentHotelId === (int) $hotel->id)>
-              {{ $hotel->name }}
-            </option>
-          @endforeach
-        </select>
-      </form>
-    @endif
-
     <div class="dropdown">
       <button class="header-action-btn" data-bs-toggle="dropdown" aria-label="Notifications" type="button">
         <i class="bi bi-bell"></i>

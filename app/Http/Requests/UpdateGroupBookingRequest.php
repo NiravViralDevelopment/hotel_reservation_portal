@@ -37,12 +37,21 @@ class UpdateGroupBookingRequest extends FormRequest
             'departure' => ['required', 'date', 'after:arrival'],
             'nights' => ['nullable', 'integer', 'min:1'],
             'status' => ['nullable', Rule::in(BookingStatus::values())],
+            'payment_term' => ['nullable', 'string', 'max:255'],
+            'due_date' => ['nullable', 'date'],
+            'payment_status' => ['nullable', 'string', 'max:255'],
             'payment_status_display' => ['nullable', Rule::in(PaymentDisplayStatus::values())],
+            'cxl_policy' => ['nullable', 'string', 'max:255'],
+            'cxl_due_date' => ['nullable', 'date'],
+            'cxl_date' => ['nullable', 'date'],
+            'commission' => ['nullable', 'numeric', 'min:0'],
             'revenue' => ['nullable', 'numeric', 'min:0'],
             'rooms' => ['nullable', 'integer', 'min:0'],
             'pax' => ['nullable', 'integer', 'min:0'],
             'internal_notes' => ['nullable', 'string'],
             'update_notes' => ['nullable', 'string'],
+            'document_name' => ['nullable', 'string', 'max:255'],
+            'document_file' => ['nullable', 'file', 'max:10240'],
         ];
     }
 }

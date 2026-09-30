@@ -16,7 +16,6 @@
   @stack('styles')
 </head>
 <body data-page="@yield('page', '')">
-  @include('partials.loader')
   <div class="app-wrapper">
     @include('partials.sidebar')
 

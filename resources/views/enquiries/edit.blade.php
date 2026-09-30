@@ -42,10 +42,31 @@
             <label for="status" class="form-label">Status</label>
             <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror">
               @foreach ($statuses as $status)
-                <option value="{{ $status }}" @selected(old('status', $e->status) === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
+                <option value="{{ $status }}" @selected(old('status', $e->status?->value ?? $e->status) === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
               @endforeach
             </select>
             @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-12">
+            <label class="form-label d-block">Booking action</label>
+            <div class="d-flex flex-wrap gap-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="confirm_booking" id="confirm_booking" value="1" @checked(old('confirm_booking'))>
+                <label class="form-check-label" for="confirm_booking">Confirm booking</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="cancel_booking" id="cancel_booking" value="1" @checked(old('cancel_booking'))>
+                <label class="form-check-label" for="cancel_booking">Cancel</label>
+              </div>
+            </div>
+            <div class="form-text">Select one action. Confirm moves to Group Bookings; Cancel moves to Cancelled Bookings.</div>
+            @error('confirm_booking')<div class="text-danger small">{{ $message }}</div>@enderror
+            @error('cancel_booking')<div class="text-danger small">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-12" id="cancellationReasonWrap" style="{{ old('cancel_booking') ? '' : 'display:none;' }}">
+            <label for="cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
+            <textarea name="cancellation_reason" id="cancellation_reason" rows="2" class="form-control @error('cancellation_reason') is-invalid @enderror" placeholder="Required when Cancel is checked">{{ old('cancellation_reason') }}</textarea>
+            @error('cancellation_reason')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
             <label for="group_name" class="form-label">Group name <span class="text-danger">*</span></label>
@@ -78,44 +99,30 @@
             @error('hotel_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="assigned_to" class="form-label">Assigned to</label>
-            <select name="assigned_to" id="assigned_to" class="form-select select2 @error('assigned_to') is-invalid @enderror">
-              <option value="">— None —</option>
-              @foreach ($users as $user)
-                <option value="{{ $user->id }}" @selected(old('assigned_to', $e->assigned_to) == $user->id)>{{ $user->name }}</option>
-              @endforeach
-            </select>
-            @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-3">
-            <label for="contact_id" class="form-label">Contact ID</label>
-            <input type="number" name="contact_id" id="contact_id" class="form-control @error('contact_id') is-invalid @enderror" value="{{ old('contact_id', $e->contact_id) }}">
-            @error('contact_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-3">
             <label for="option_date" class="form-label">Option date</label>
             <input type="date" name="option_date" id="option_date" class="form-control @error('option_date') is-invalid @enderror" value="{{ old('option_date', $e->option_date?->format('Y-m-d')) }}">
             @error('option_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="cxl_policy" class="form-label">Cancellation policy</label>
             <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ old('cxl_policy', $e->cxl_policy) }}">
             @error('cxl_policy')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="nights" class="form-label">Nights</label>
-            <input type="number" name="nights" id="nights" min="1" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights', $e->nights) }}">
+            <input type="number" name="nights" id="nights" min="1" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights', $e->nights ?? 1) }}">
             @error('nights')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="rooms_per_night" class="form-label">Rooms per night</label>
-            <input type="number" name="rooms_per_night" id="rooms_per_night" class="form-control @error('rooms_per_night') is-invalid @enderror" value="{{ old('rooms_per_night', $e->rooms_per_night) }}">
+            <input type="number" name="rooms_per_night" id="rooms_per_night" class="form-control @error('rooms_per_night') is-invalid @enderror" value="{{ old('rooms_per_night', $e->rooms_per_night) }}" readonly>
             @error('rooms_per_night')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="total_revenue" class="form-label">Total revenue (£)</label>
-            <input type="number" step="0.01" name="total_revenue" id="total_revenue" class="form-control @error('total_revenue') is-invalid @enderror" value="{{ old('total_revenue', $e->total_revenue) }}">
+            <input type="number" step="0.01" name="total_revenue" id="total_revenue" class="form-control @error('total_revenue') is-invalid @enderror" value="{{ old('total_revenue', $e->total_revenue) }}" readonly>
             @error('total_revenue')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="form-text">Auto-calculated from rooms × rates × nights</div>
           </div>
         </div>
       </div>
@@ -126,12 +133,12 @@
         <div class="row g-3">
           @foreach (['single', 'double', 'triple'] as $type)
             <div class="col-md-2">
-              <label class="form-label">{{ ucfirst($type) }} rooms</label>
-              <input type="number" name="{{ $type }}_rooms" min="0" class="form-control @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms', $e->{$type.'_rooms'}) }}">
+              <label for="{{ $type }}_rooms" class="form-label">{{ ucfirst($type) }} rooms</label>
+              <input type="number" name="{{ $type }}_rooms" id="{{ $type }}_rooms" min="0" class="form-control enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms', $e->{$type.'_rooms'}) }}">
             </div>
             <div class="col-md-2">
-              <label class="form-label">{{ ucfirst($type) }} rate (£)</label>
-              <input type="number" step="0.01" name="{{ $type }}_rate" min="0" class="form-control @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate', $e->{$type.'_rate'}) }}">
+              <label for="{{ $type }}_rate" class="form-label">{{ ucfirst($type) }} rate (£)</label>
+              <input type="number" step="0.01" name="{{ $type }}_rate" id="{{ $type }}_rate" min="0" class="form-control enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate', $e->{$type.'_rate'}) }}">
             </div>
           @endforeach
           <div class="col-12">
@@ -148,3 +155,73 @@
     </div>
   </form>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+  function num(id) {
+    var el = document.getElementById(id);
+    if (!el) return 0;
+    var v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function recalcEnquiryTotals() {
+    var singleRooms = num('single_rooms');
+    var doubleRooms = num('double_rooms');
+    var tripleRooms = num('triple_rooms');
+    var nights = num('nights') || 1;
+
+    var roomsPerNight = singleRooms + doubleRooms + tripleRooms;
+    var nightly = (singleRooms * num('single_rate'))
+      + (doubleRooms * num('double_rate'))
+      + (tripleRooms * num('triple_rate'));
+    var total = nightly * nights;
+
+    var roomsEl = document.getElementById('rooms_per_night');
+    var totalEl = document.getElementById('total_revenue');
+    if (roomsEl) roomsEl.value = roomsPerNight;
+    if (totalEl) totalEl.value = total.toFixed(2);
+  }
+
+  function toggleActionPanels() {
+    var confirmEl = document.getElementById('confirm_booking');
+    var cancelEl = document.getElementById('cancel_booking');
+    var cancelWrap = document.getElementById('cancellationReasonWrap');
+    var reasonEl = document.getElementById('cancellation_reason');
+    var isCancel = !!(cancelEl && cancelEl.checked);
+
+    if (cancelWrap) cancelWrap.style.display = isCancel ? '' : 'none';
+    if (reasonEl) {
+      reasonEl.required = isCancel;
+      if (!isCancel) reasonEl.value = reasonEl.value;
+    }
+  }
+
+  document.querySelectorAll('.enquiry-calc, #nights').forEach(function (el) {
+    el.addEventListener('input', recalcEnquiryTotals);
+    el.addEventListener('change', recalcEnquiryTotals);
+  });
+
+  var confirmEl = document.getElementById('confirm_booking');
+  var cancelEl = document.getElementById('cancel_booking');
+
+  if (confirmEl) {
+    confirmEl.addEventListener('change', function () {
+      if (confirmEl.checked && cancelEl) cancelEl.checked = false;
+      toggleActionPanels();
+    });
+  }
+
+  if (cancelEl) {
+    cancelEl.addEventListener('change', function () {
+      if (cancelEl.checked && confirmEl) confirmEl.checked = false;
+      toggleActionPanels();
+    });
+  }
+
+  recalcEnquiryTotals();
+  toggleActionPanels();
+})();
+</script>
+@endpush

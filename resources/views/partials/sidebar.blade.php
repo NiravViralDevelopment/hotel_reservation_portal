@@ -85,16 +85,4 @@
       @endforeach
     @endif
   </nav>
-
-  <div class="sidebar-footer">
-    <a href="{{ route('profile.edit') }}" class="sidebar-link{{ request()->routeIs('profile.*') ? ' active' : '' }}" title="Profile">
-      <i class="bi bi-person-circle"></i><span class="sidebar-link-text">Profile</span>
-    </a>
-    <form method="POST" action="{{ route('logout') }}" class="m-0">
-      @csrf
-      <button type="submit" class="sidebar-link border-0 bg-transparent w-100 text-start">
-        <i class="bi bi-box-arrow-left"></i><span class="sidebar-link-text">Logout</span>
-      </button>
-    </form>
-  </div>
 </aside>

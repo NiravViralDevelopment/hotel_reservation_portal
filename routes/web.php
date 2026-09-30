@@ -13,7 +13,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartureController;
 use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\GroupBookingController;
-use App\Http\Controllers\HotelContextController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -47,7 +46,6 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
-    Route::post('/hotel-context', [HotelContextController::class, 'switch'])->name('hotel-context.switch');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -62,6 +60,8 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('group-bookings', GroupBookingController::class);
     Route::post('group-bookings/{group_booking}/cancel', [GroupBookingController::class, 'cancel'])->name('group-bookings.cancel');
+    Route::get('group-bookings/{group_booking}/documents/{document}/download', [GroupBookingController::class, 'downloadDocument'])->name('group-bookings.documents.download');
+    Route::delete('group-bookings/{group_booking}/documents/{document}', [GroupBookingController::class, 'destroyDocument'])->name('group-bookings.documents.destroy');
 
     Route::get('cancelled-bookings', [CancelledBookingController::class, 'index'])->name('cancelled-bookings.index');
     Route::get('arrivals', [ArrivalController::class, 'index'])->name('arrivals.index');

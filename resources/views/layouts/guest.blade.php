@@ -14,7 +14,6 @@
   @stack('styles')
 </head>
 <body @yield('body_attrs')>
-  @include('partials.loader')
   @yield('content')
 
   @include('partials.toaster')

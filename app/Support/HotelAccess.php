@@ -22,11 +22,12 @@ class HotelAccess
     }
 
     /**
-     * All hotels the user is allowed to switch between (dropdown options).
+     * Hotel IDs the user can access for listing / filtering.
+     * Administrators get every hotel; others get their assigned hotels.
      *
      * @return list<int>
      */
-    public static function assignedHotelIds(?User $user = null): array
+    public static function hotelIds(?User $user = null): array
     {
         $user = self::user($user);
         if ($user === null) {
@@ -41,31 +42,18 @@ class HotelAccess
     }
 
     /**
-     * Hotel IDs used for data filtering (current selected hotel only).
+     * @deprecated Use hotelIds() — kept for any leftover callers.
      *
      * @return list<int>
      */
-    public static function hotelIds(?User $user = null): array
+    public static function assignedHotelIds(?User $user = null): array
     {
-        $assigned = self::assignedHotelIds($user);
-        if ($assigned === []) {
-            return [];
-        }
-
-        $current = self::currentHotelId($user);
-        if ($current === null) {
-            return [];
-        }
-
-        return [$current];
+        return self::hotelIds($user);
     }
 
-    /**
-     * Hotels shown in the Current Hotel selector.
-     */
     public static function hotels(?User $user = null): Collection
     {
-        $ids = self::assignedHotelIds($user);
+        $ids = self::hotelIds($user);
         if ($ids === []) {
             return collect();
         }
@@ -84,7 +72,7 @@ class HotelAccess
             return false;
         }
 
-        return in_array((int) $hotelId, self::assignedHotelIds($user), true);
+        return in_array((int) $hotelId, self::hotelIds($user), true);
     }
 
     public static function ensure(?User $user, int|string|null $hotelId): void
@@ -92,29 +80,5 @@ class HotelAccess
         if (! self::allows($user, $hotelId)) {
             abort(403, 'You do not have access to this hotel.');
         }
-    }
-
-    public static function currentHotelId(?User $user = null): ?int
-    {
-        $assigned = self::assignedHotelIds($user);
-        if ($assigned === []) {
-            return null;
-        }
-
-        $sessionId = session('current_hotel_id');
-        if ($sessionId && in_array((int) $sessionId, $assigned, true)) {
-            return (int) $sessionId;
-        }
-
-        // Persist default so filtering is consistent across requests.
-        session(['current_hotel_id' => $assigned[0]]);
-
-        return $assigned[0];
-    }
-
-    public static function setCurrentHotelId(int $hotelId, ?User $user = null): void
-    {
-        self::ensure($user, $hotelId);
-        session(['current_hotel_id' => $hotelId]);
     }
 }

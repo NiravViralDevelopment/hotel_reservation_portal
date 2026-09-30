@@ -56,6 +56,63 @@
     </div>
   </div>
 
+  <div class="detail-grid-3 mb-4">
+    <div class="card">
+      <div class="card-header">Payment Terms and Conditions</div>
+      <div class="card-body">
+        <div class="info-card mb-3"><div class="info-card-label">Payment Term</div><div class="info-card-value">{{ $b->payment_term ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Due Date</div><div class="info-card-value">{{ $b->due_date?->format('d M Y') ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Payment Status</div><div class="info-card-value">{{ $b->payment_status ?? '—' }}</div></div>
+        <div class="info-card"><div class="info-card-label">Payment display</div><div class="info-card-value">{{ $b->payment_status_display?->value ?? $b->payment_status_display ?? '—' }}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">CXL Policy</div>
+      <div class="card-body">
+        <div class="info-card mb-3"><div class="info-card-label">CXL Policy</div><div class="info-card-value">{{ $b->cxl_policy ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">CXL Due Date</div><div class="info-card-value">{{ $b->cxl_due_date?->format('d M Y') ?? '—' }}</div></div>
+        <div class="info-card"><div class="info-card-label">CXL Date</div><div class="info-card-value">{{ $b->cxl_date?->format('d M Y') ?? '—' }}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Commercial</div>
+      <div class="card-body">
+        <div class="info-card mb-3"><div class="info-card-label">Commission</div><div class="info-card-value">£{{ number_format((float) ($b->commission ?? 0), 2) }}</div></div>
+        <div class="info-card"><div class="info-card-label">Revenue</div><div class="info-card-value">£{{ number_format((float) ($b->revenue ?? 0), 2) }}</div></div>
+      </div>
+    </div>
+  </div>
+
+  @if ($b->documents->isNotEmpty())
+    <div class="card mb-4">
+      <div class="card-header">Documents</div>
+      <div class="table-wrapper">
+        <table class="table table-sm table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Uploaded by</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach ($b->documents as $document)
+              <tr>
+                <td>{{ $document->name }}</td>
+                <td>{{ $document->uploadedBy?->name ?? '—' }}</td>
+                <td>{{ $document->created_at?->format('d M Y') ?? '—' }}</td>
+                <td class="text-end">
+                  <a href="{{ route('group-bookings.documents.download', [$b, $document]) }}" class="btn btn-sm btn-outline-secondary">Download</a>
+                </td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </div>
+  @endif
+
   @if ($b->dailyRows->isNotEmpty())
     <div class="card mb-4">
       <div class="card-header">Daily rows ({{ $b->dailyRows->count() }})</div>

@@ -77,34 +77,20 @@
             @error('hotel_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="assigned_to" class="form-label">Assigned to</label>
-            <select name="assigned_to" id="assigned_to" class="form-select select2 @error('assigned_to') is-invalid @enderror">
-              <option value="">— None —</option>
-              @foreach ($users as $user)
-                <option value="{{ $user->id }}" @selected(old('assigned_to') == $user->id)>{{ $user->name }}</option>
-              @endforeach
-            </select>
-            @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-3">
-            <label for="contact_id" class="form-label">Contact ID</label>
-            <input type="number" name="contact_id" id="contact_id" class="form-control @error('contact_id') is-invalid @enderror" value="{{ old('contact_id') }}">
-            @error('contact_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-3">
             <label for="nights" class="form-label">Nights</label>
-            <input type="number" name="nights" id="nights" min="1" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights') }}">
+            <input type="number" name="nights" id="nights" min="1" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights', 1) }}">
             @error('nights')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="rooms_per_night" class="form-label">Rooms per night</label>
-            <input type="number" name="rooms_per_night" id="rooms_per_night" min="0" class="form-control @error('rooms_per_night') is-invalid @enderror" value="{{ old('rooms_per_night') }}">
+            <input type="number" name="rooms_per_night" id="rooms_per_night" min="0" class="form-control @error('rooms_per_night') is-invalid @enderror" value="{{ old('rooms_per_night') }}" readonly>
             @error('rooms_per_night')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="total_revenue" class="form-label">Total revenue (£)</label>
-            <input type="number" step="0.01" name="total_revenue" id="total_revenue" min="0" class="form-control @error('total_revenue') is-invalid @enderror" value="{{ old('total_revenue') }}">
+            <input type="number" step="0.01" name="total_revenue" id="total_revenue" min="0" class="form-control @error('total_revenue') is-invalid @enderror" value="{{ old('total_revenue', 0) }}" readonly>
             @error('total_revenue')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="form-text">Auto-calculated from rooms × rates × nights</div>
           </div>
         </div>
       </div>
@@ -116,12 +102,12 @@
           @foreach (['single', 'double', 'triple'] as $type)
             <div class="col-md-2">
               <label for="{{ $type }}_rooms" class="form-label">{{ ucfirst($type) }} rooms</label>
-              <input type="number" name="{{ $type }}_rooms" id="{{ $type }}_rooms" min="0" class="form-control @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms') }}">
+              <input type="number" name="{{ $type }}_rooms" id="{{ $type }}_rooms" min="0" class="form-control enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms', 0) }}">
               @error($type.'_rooms')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-2">
               <label for="{{ $type }}_rate" class="form-label">{{ ucfirst($type) }} rate (£)</label>
-              <input type="number" step="0.01" name="{{ $type }}_rate" id="{{ $type }}_rate" min="0" class="form-control @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate') }}">
+              <input type="number" step="0.01" name="{{ $type }}_rate" id="{{ $type }}_rate" min="0" class="form-control enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate', 0) }}">
               @error($type.'_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
           @endforeach
@@ -139,3 +125,41 @@
     </div>
   </form>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+  function num(id) {
+    var el = document.getElementById(id);
+    if (!el) return 0;
+    var v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function recalcEnquiryTotals() {
+    var singleRooms = num('single_rooms');
+    var doubleRooms = num('double_rooms');
+    var tripleRooms = num('triple_rooms');
+    var nights = num('nights') || 1;
+
+    var roomsPerNight = singleRooms + doubleRooms + tripleRooms;
+    var nightly = (singleRooms * num('single_rate'))
+      + (doubleRooms * num('double_rate'))
+      + (tripleRooms * num('triple_rate'));
+    var total = nightly * nights;
+
+    var roomsEl = document.getElementById('rooms_per_night');
+    var totalEl = document.getElementById('total_revenue');
+    if (roomsEl) roomsEl.value = roomsPerNight;
+    if (totalEl) totalEl.value = total.toFixed(2);
+  }
+
+  document.querySelectorAll('.enquiry-calc, #nights').forEach(function (el) {
+    el.addEventListener('input', recalcEnquiryTotals);
+    el.addEventListener('change', recalcEnquiryTotals);
+  });
+
+  recalcEnquiryTotals();
+})();
+</script>
+@endpush

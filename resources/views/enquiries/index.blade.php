@@ -53,9 +53,25 @@
               <td>{{ $enquiry->nights ?? '—' }}</td>
               <td>£{{ number_format((float) ($enquiry->total_revenue ?? 0), 2) }}</td>
               <td><x-badge-status :status="$enquiry->status" /></td>
-              <td class="text-end">
+              <td class="text-end text-nowrap">
+                @can('view', $enquiry)
+                  <a href="{{ route('enquiries.show', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                    <i class="bi bi-eye"></i> View
+                  </a>
+                @endcan
                 @can('update', $enquiry)
-                  <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i> Edit
+                  </a>
+                @endcan
+                @can('delete', $enquiry)
+                  <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" onsubmit="return confirm('Delete this enquiry?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="bi bi-trash"></i> Delete
+                    </button>
+                  </form>
                 @endcan
               </td>
             </tr>

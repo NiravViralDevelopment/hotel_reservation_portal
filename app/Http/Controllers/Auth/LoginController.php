@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Support\HotelAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,13 +21,9 @@ class LoginController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
-        $request->session()->forget('current_hotel_id');
 
         $user = Auth::user();
         $user->forceFill(['last_login_at' => now()])->save();
-
-        // Lock session to the user's first assigned hotel (or keep admin default).
-        HotelAccess::currentHotelId($user);
 
         return redirect()->intended(route('dashboard'));
     }

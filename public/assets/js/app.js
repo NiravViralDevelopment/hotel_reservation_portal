@@ -1,6 +1,6 @@
 /**
  * Hotel Group Booking Management System — Shared UI Logic
- * Minimal JS for layout, theme, sidebar, and table interactions.
+ * Minimal JS for layout, sidebar, and table interactions.
  * Backend-ready: replace dummy handlers with API calls later.
  */
 
@@ -10,30 +10,10 @@
   const STORAGE_KEY_THEME = 'hgbms_theme';
   const STORAGE_KEY_SIDEBAR = 'hgbms_sidebar_collapsed';
 
-  /* ---- Theme Toggle ---- */
+  /* ---- Theme (light only) ---- */
   function initTheme() {
-    const saved = localStorage.getItem(STORAGE_KEY_THEME);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = saved || (prefersDark ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
-    updateThemeIcon(theme);
-  }
-
-  function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme') || 'light';
-    const next = current === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem(STORAGE_KEY_THEME, next);
-    updateThemeIcon(next);
-  }
-
-  function updateThemeIcon(theme) {
-    document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
-      const icon = btn.querySelector('i');
-      if (icon) {
-        icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-      }
-    });
+    localStorage.removeItem(STORAGE_KEY_THEME);
+    document.documentElement.setAttribute('data-theme', 'light');
   }
 
   /* ---- Sidebar ---- */
@@ -354,90 +334,6 @@
     });
   }
 
-  /* ---- Page loader (refresh + navigation) ---- */
-  function getPageLoader() {
-    return document.getElementById('hgbmsPageLoader');
-  }
-
-  function showPageLoader(message) {
-    var loader = getPageLoader();
-    if (!loader) return;
-    if (message) {
-      var text = loader.querySelector('.hgbms-loader-text');
-      if (text) text.textContent = message;
-    }
-    loader.classList.remove('is-hidden');
-    loader.setAttribute('aria-busy', 'true');
-  }
-
-  function hidePageLoader() {
-    var loader = getPageLoader();
-    if (!loader) return;
-    loader.classList.add('is-hidden');
-    loader.setAttribute('aria-busy', 'false');
-  }
-
-  function shouldSkipLoaderLink(anchor) {
-    if (!anchor) return true;
-    if (anchor.hasAttribute('download')) return true;
-    if (anchor.target && anchor.target !== '_self') return true;
-    if (anchor.hasAttribute('data-bs-toggle') || anchor.hasAttribute('data-bs-target')) return true;
-    if (anchor.getAttribute('href') === '#' || (anchor.getAttribute('href') || '').indexOf('#') === 0) return true;
-    if (anchor.classList.contains('disabled') || anchor.getAttribute('aria-disabled') === 'true') return true;
-    var href = anchor.getAttribute('href') || '';
-    if (/^(mailto:|tel:|javascript:)/i.test(href)) return true;
-    try {
-      var url = new URL(anchor.href, window.location.origin);
-      if (url.origin !== window.location.origin) return true;
-    } catch (e) {
-      return true;
-    }
-    return false;
-  }
-
-  function initPageLoader() {
-    window.HGBMS = window.HGBMS || {};
-    window.HGBMS.showLoader = showPageLoader;
-    window.HGBMS.hideLoader = hidePageLoader;
-
-    // Hide after first paint / full load
-    window.addEventListener('load', function () {
-      setTimeout(hidePageLoader, 180);
-    });
-
-    // Fallback if load already fired
-    if (document.readyState === 'complete') {
-      setTimeout(hidePageLoader, 180);
-    } else {
-      document.addEventListener('DOMContentLoaded', function () {
-        setTimeout(hidePageLoader, 350);
-      });
-    }
-
-    // Back/forward cache restore
-    window.addEventListener('pageshow', function (event) {
-      if (event.persisted) hidePageLoader();
-    });
-
-    // Show on internal link navigation
-    document.addEventListener('click', function (event) {
-      var anchor = event.target.closest('a[href]');
-      if (!anchor || shouldSkipLoaderLink(anchor)) return;
-      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      showPageLoader('Loading');
-    });
-
-    // Show on form submit (POST/PUT navigation)
-    document.addEventListener('submit', function (event) {
-      var form = event.target;
-      if (!form || form.hasAttribute('data-no-loader')) return;
-      if (form.target && form.target !== '_self') return;
-      showPageLoader('Saving');
-    });
-  }
-
-  initPageLoader();
-
   /* ---- Select2 ---- */
   function sortSelectOptions($el) {
     const el = $el[0];
@@ -517,12 +413,6 @@
           : jQuery(document.body),
         minimumResultsForSearch: 0,
       });
-
-      if ($el.attr('id') === 'current_hotel_id') {
-        $el.off('change.hgbmsHotel').on('change.hgbmsHotel', function () {
-          if (this.form) this.form.submit();
-        });
-      }
     });
   }
 
@@ -534,9 +424,6 @@
     initNotifications();
     initFlashToasts();
     initSelect2();
-    document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
-      btn.addEventListener('click', toggleTheme);
-    });
     if (document.getElementById('hgbms-root')) {
       document.addEventListener('hgbms:layout-ready', function () {
         initSidebar();
