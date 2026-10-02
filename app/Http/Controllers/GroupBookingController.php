@@ -28,7 +28,7 @@ class GroupBookingController extends Controller
 
         $query = GroupBooking::query()
             ->accessibleBy()
-            ->with(['hotel', 'travelAgency', 'company'])
+            ->with(['hotel', 'travelAgency', 'company', 'contact', 'createdBy'])
             ->active();
 
         if ($request->filled('q')) {

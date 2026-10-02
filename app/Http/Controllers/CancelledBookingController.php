@@ -17,7 +17,7 @@ class CancelledBookingController extends Controller
 
         $query = GroupBooking::query()
             ->accessibleBy()
-            ->with(['hotel', 'travelAgency'])
+            ->with(['hotel', 'travelAgency', 'company', 'contact', 'createdBy'])
             ->cancelled();
 
         if ($request->filled('hotel_id')) {

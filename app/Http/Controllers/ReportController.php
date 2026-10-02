@@ -137,7 +137,7 @@ class ReportController extends Controller
         return match ($validated['report']) {
             'group_bookings' => GroupBooking::query()
                 ->accessibleBy()
-                ->with(['hotel', 'travelAgency'])
+                ->with(['hotel', 'travelAgency', 'company', 'contact', 'createdBy'])
                 ->active()
                 ->whereDate('arrival', '>=', $from)
                 ->whereDate('arrival', '<=', $to)
@@ -145,7 +145,7 @@ class ReportController extends Controller
                 ->get(),
             'enquiries' => Enquiry::query()
                 ->accessibleBy()
-                ->with(['hotel', 'travelAgency'])
+                ->with(['hotel', 'travelAgency', 'contact', 'assignedTo'])
                 ->whereNotIn('status', ['confirmed', 'cancelled'])
                 ->whereNull('converted_booking_id')
                 ->whereDate('enquiry_date', '>=', $from)
@@ -154,7 +154,7 @@ class ReportController extends Controller
                 ->get(),
             'cancelled_bookings' => GroupBooking::query()
                 ->accessibleBy()
-                ->with(['hotel', 'travelAgency'])
+                ->with(['hotel', 'travelAgency', 'company', 'contact', 'createdBy'])
                 ->cancelled()
                 ->where(function ($query) use ($from, $to) {
                     $query->where(function ($dated) use ($from, $to) {
