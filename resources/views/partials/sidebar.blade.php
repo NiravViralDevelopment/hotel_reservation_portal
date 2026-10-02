@@ -25,7 +25,15 @@
       'section' => 'Finance',
       'items' => [
         ['route' => 'revenue.index', 'icon' => 'currency-pound', 'label' => 'Revenue', 'permission' => 'revenue.view'],
-        ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports', 'permission' => 'reports.view'],
+        ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports', 'permission' => 'reports.view', 'exact' => true],
+      ],
+    ],
+    [
+      'section' => 'Reports',
+      'items' => [
+        ['route' => 'reports.module', 'params' => ['report' => 'group-bookings'], 'icon' => 'journal-check', 'label' => 'Group bookings report', 'permission' => 'reports.view'],
+        ['route' => 'reports.module', 'params' => ['report' => 'enquiries'], 'icon' => 'inbox', 'label' => 'Enquiries report', 'permission' => 'reports.view'],
+        ['route' => 'reports.module', 'params' => ['report' => 'cancelled-bookings'], 'icon' => 'x-circle', 'label' => 'Cancelled bookings report', 'permission' => 'reports.view'],
       ],
     ],
   ];
@@ -53,12 +61,20 @@
         <div class="nav-section-label">{{ $group['section'] }}</div>
         @foreach ($visibleItems as $item)
           @php
-            $routeBase = \Illuminate\Support\Str::contains($item['route'], '.')
-              ? \Illuminate\Support\Str::beforeLast($item['route'], '.').'.*'
-              : $item['route'];
-            $isActive = request()->routeIs($item['route'], $routeBase);
+            $params = $item['params'] ?? [];
+            if ($params !== []) {
+              $isActive = request()->routeIs($item['route'])
+                && collect($params)->every(fn ($value, $key) => (string) request()->route($key) === (string) $value);
+            } elseif (! empty($item['exact'])) {
+              $isActive = request()->routeIs($item['route']);
+            } else {
+              $routeBase = \Illuminate\Support\Str::contains($item['route'], '.')
+                ? \Illuminate\Support\Str::beforeLast($item['route'], '.').'.*'
+                : $item['route'];
+              $isActive = request()->routeIs($item['route'], $routeBase);
+            }
           @endphp
-          <a href="{{ route($item['route']) }}" class="sidebar-link{{ $isActive ? ' active' : '' }}" title="{{ $item['label'] }}">
+          <a href="{{ route($item['route'], $params) }}" class="sidebar-link{{ $isActive ? ' active' : '' }}" title="{{ $item['label'] }}">
             <i class="bi bi-{{ $item['icon'] }}"></i>
             <span class="sidebar-link-text">{{ $item['label'] }}</span>
           </a>

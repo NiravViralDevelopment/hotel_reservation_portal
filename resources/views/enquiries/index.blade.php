@@ -33,6 +33,7 @@
           <tr>
             <x-sortable-th column="ref" label="Ref" default="enquiry_date" default-dir="desc" />
             <x-sortable-th column="enquiry_date" label="Date" default="enquiry_date" default-dir="desc" />
+            <x-sortable-th column="response_date" label="Response date" default="enquiry_date" default-dir="desc" />
             <x-sortable-th column="group_name" label="Group" default="enquiry_date" default-dir="desc" />
             <th>Agency</th>
             <th>Hotel</th>
@@ -47,6 +48,13 @@
             <tr>
               <td class="fw-semibold"><a href="{{ route('enquiries.show', $enquiry) }}">{{ $enquiry->ref }}</a></td>
               <td>{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</td>
+              <td>
+                @if ($enquiry->response_date)
+                  {{ $enquiry->response_date->format('d M Y') }}
+                @else
+                  <span class="text-secondary">Awaiting</span>
+                @endif
+              </td>
               <td>{{ $enquiry->group_name }}</td>
               <td>{{ $enquiry->travelAgency?->name ?? '—' }}</td>
               <td>{{ $enquiry->hotel?->code ?? '—' }}</td>
@@ -60,6 +68,9 @@
                   </a>
                 @endcan
                 @can('update', $enquiry)
+                  <a href="{{ route('enquiries.show', $enquiry) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
+                    <i class="bi bi-chat-left-text"></i> Response
+                  </a>
                   <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
                     <i class="bi bi-pencil"></i> Edit
                   </a>
@@ -76,7 +87,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="9" class="text-center text-secondary py-4">No enquiries found.</td></tr>
+            <tr><td colspan="10" class="text-center text-secondary py-4">No enquiries found.</td></tr>
           @endforelse
         </tbody>
       </table>

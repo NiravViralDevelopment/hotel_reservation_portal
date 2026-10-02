@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('contacts', ContactController::class);
 
     Route::resource('enquiries', EnquiryController::class);
+    Route::post('enquiries/{enquiry}/response', [EnquiryController::class, 'storeResponse'])->name('enquiries.response');
     Route::post('enquiries/{enquiry}/convert', [EnquiryController::class, 'convert'])->name('enquiries.convert');
 
     Route::resource('group-bookings', GroupBookingController::class);
@@ -77,6 +78,9 @@ Route::middleware('auth')->group(function () {
     Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::post('reports/run', [ReportController::class, 'run'])->name('reports.run');
+    Route::get('reports/{report}', [ReportController::class, 'module'])
+        ->whereIn('report', ['group-bookings', 'enquiries', 'cancelled-bookings'])
+        ->name('reports.module');
 
     Route::resource('users', UserController::class)->except(['show']);
     Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');

@@ -12,11 +12,49 @@
       </ol>
     </nav>
     <h1 class="page-title">Reports</h1>
-    <p class="page-subtitle">Run operational and revenue reports.</p>
+    <p class="page-subtitle">Choose a start date and an end date for each report.</p>
+  </div>
+
+  <div class="row g-4 mb-4">
+    @foreach ([
+      'group_bookings' => ['Group bookings', 'Arrivals in the dates you choose.', 'bi-journal-check'],
+      'enquiries' => ['Enquiries', 'Enquiries received in the dates you choose.', 'bi-inbox'],
+      'cancelled_bookings' => ['Cancelled bookings', 'Cancellations in the dates you choose.', 'bi-x-circle'],
+    ] as $report => [$label, $help, $icon])
+      <div class="col-lg-4">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi {{ $icon }} me-2"></i>{{ $label }}</div>
+          <div class="card-body">
+            <p class="text-secondary small">{{ $help }}</p>
+            <form method="POST" action="{{ route('reports.run') }}" class="row g-3">
+              @csrf
+              <input type="hidden" name="report" value="{{ $report }}">
+              <div class="col-12">
+                <label for="{{ $report }}_from" class="form-label">Start date <span class="text-danger">*</span></label>
+                <div class="date-placeholder-wrap">
+                  <input type="date" name="date_from" id="{{ $report }}_from" class="form-control @error('date_from') is-invalid @enderror" value="{{ old('report') === $report ? old('date_from') : $defaultFrom }}" placeholder="DD/MM/YYYY" required>
+                  <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+                </div>
+              </div>
+              <div class="col-12">
+                <label for="{{ $report }}_to" class="form-label">End date <span class="text-danger">*</span></label>
+                <div class="date-placeholder-wrap">
+                  <input type="date" name="date_to" id="{{ $report }}_to" class="form-control @error('date_to') is-invalid @enderror" value="{{ old('report') === $report ? old('date_to') : $defaultTo }}" placeholder="DD/MM/YYYY" required>
+                  <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+                </div>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-accent btn-sm">Run report</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    @endforeach
   </div>
 
   <div class="card">
-    <div class="card-header">Report parameters</div>
+    <div class="card-header">Other reports</div>
     <div class="card-body">
       <form method="POST" action="{{ route('reports.run') }}">
         @csrf
