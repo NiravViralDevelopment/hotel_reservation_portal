@@ -39,6 +39,7 @@
   ];
 
   $adminItems = [
+    ['route' => 'status-masters.index', 'icon' => 'list-check', 'label' => 'Status Master', 'permission' => 'statuses.view'],
     ['route' => 'users.index', 'icon' => 'people', 'label' => 'Users', 'permission' => 'users.view'],
     ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Roles', 'permission' => 'roles.view'],
     ['route' => 'audit-logs.index', 'icon' => 'journal-text', 'label' => 'Audit Logs', 'permission' => 'audit.view'],

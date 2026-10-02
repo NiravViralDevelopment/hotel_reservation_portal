@@ -121,7 +121,7 @@
             </select>
             @error('hotel_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label for="check_in" class="form-label">Check-in</label>
             <div class="date-placeholder-wrap">
               <input type="date" name="check_in" id="check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ old('check_in') }}" placeholder="DD/MM/YYYY">
@@ -129,7 +129,12 @@
             </div>
             @error('check_in')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
+            <label for="check_in_day" class="form-label">Day</label>
+            <input type="text" name="check_in_day" id="check_in_day" class="form-control @error('check_in_day') is-invalid @enderror" value="{{ old('check_in_day') }}" placeholder="Auto from check-in" readonly>
+            @error('check_in_day')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-3">
             <label for="check_out" class="form-label">Check-out</label>
             <div class="date-placeholder-wrap">
               <input type="date" name="check_out" id="check_out" class="form-control @error('check_out') is-invalid @enderror" value="{{ old('check_out') }}" placeholder="DD/MM/YYYY">
@@ -137,7 +142,7 @@
             </div>
             @error('check_out')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label for="nights" class="form-label">Nights</label>
             <input type="text" name="nights" id="nights" inputmode="numeric" class="form-control js-digits @error('nights') is-invalid @enderror" value="{{ old('nights', 1) }}" placeholder="Auto from dates" readonly>
             <div class="form-text">Auto-calculated from check-in and check-out.</div>
@@ -285,10 +290,25 @@
     return isNaN(v) ? 0 : v;
   }
 
+  function dayNameFromDate(value) {
+    if (!value) return '';
+    var date = new Date(value + 'T00:00:00');
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('en-GB', { weekday: 'long' });
+  }
+
+  function updateCheckInDay() {
+    var checkInEl = document.getElementById('check_in');
+    var dayEl = document.getElementById('check_in_day');
+    if (!checkInEl || !dayEl) return;
+    dayEl.value = dayNameFromDate(checkInEl.value);
+  }
+
   function nightsFromDates() {
     var checkInEl = document.getElementById('check_in');
     var checkOutEl = document.getElementById('check_out');
     var nightsEl = document.getElementById('nights');
+    updateCheckInDay();
     if (!checkInEl || !checkOutEl || !nightsEl) return;
 
     var checkIn = checkInEl.value;

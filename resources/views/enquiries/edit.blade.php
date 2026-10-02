@@ -50,7 +50,7 @@
             <label for="status" class="form-label">Status</label>
             <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror">
               @foreach ($statuses as $status)
-                <option value="{{ $status }}" @selected(old('status', $e->status?->value ?? $e->status) === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
+                <option value="{{ $status }}" @selected(old('status', $e->status) === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
               @endforeach
             </select>
             @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -107,7 +107,7 @@
             </select>
             @error('hotel_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label for="check_in" class="form-label">Check-in</label>
             <div class="date-placeholder-wrap">
               <input type="date" name="check_in" id="check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ old('check_in', $e->check_in?->format('Y-m-d')) }}" placeholder="DD/MM/YYYY">
@@ -115,7 +115,12 @@
             </div>
             @error('check_in')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
+            <label for="check_in_day" class="form-label">Day</label>
+            <input type="text" name="check_in_day" id="check_in_day" class="form-control @error('check_in_day') is-invalid @enderror" value="{{ old('check_in_day', $e->check_in_day) }}" placeholder="Auto from check-in" readonly>
+            @error('check_in_day')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-3">
             <label for="check_out" class="form-label">Check-out</label>
             <div class="date-placeholder-wrap">
               <input type="date" name="check_out" id="check_out" class="form-control @error('check_out') is-invalid @enderror" value="{{ old('check_out', $e->check_out?->format('Y-m-d')) }}" placeholder="DD/MM/YYYY">
@@ -210,10 +215,25 @@
     return isNaN(v) ? 0 : v;
   }
 
+  function dayNameFromDate(value) {
+    if (!value) return '';
+    var date = new Date(value + 'T00:00:00');
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('en-GB', { weekday: 'long' });
+  }
+
+  function updateCheckInDay() {
+    var checkInEl = document.getElementById('check_in');
+    var dayEl = document.getElementById('check_in_day');
+    if (!checkInEl || !dayEl) return;
+    dayEl.value = dayNameFromDate(checkInEl.value);
+  }
+
   function nightsFromDates() {
     var checkInEl = document.getElementById('check_in');
     var checkOutEl = document.getElementById('check_out');
     var nightsEl = document.getElementById('nights');
+    updateCheckInDay();
     if (!checkInEl || !checkOutEl || !nightsEl) return;
 
     var checkIn = checkInEl.value;

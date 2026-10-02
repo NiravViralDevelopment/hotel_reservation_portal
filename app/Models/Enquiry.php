@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\EnquiryStatus;
 use App\Support\HotelAccess;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +20,7 @@ class Enquiry extends Model
         'response_date',
         'day',
         'check_in',
+        'check_in_day',
         'check_out',
         'nights',
         'group_name',
@@ -73,7 +73,6 @@ class Enquiry extends Model
             'has_tax' => 'boolean',
             'tax_percentage' => 'decimal:2',
             'tax_revenue' => 'decimal:2',
-            'status' => EnquiryStatus::class,
         ];
     }
 

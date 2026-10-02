@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BookingStatus;
-use App\Enums\EnquiryStatus;
 use App\Http\Requests\StoreEnquiryRequest;
 use App\Models\Enquiry;
 use App\Models\GroupBooking;
 use App\Models\Hotel;
+use App\Models\StatusMaster;
 use App\Models\TravelAgency;
 use App\Support\Audit;
 use App\Support\QuerySort;
@@ -26,10 +26,7 @@ class EnquiryController extends Controller
         $query = Enquiry::query()
             ->accessibleBy()
             ->with(['travelAgency', 'hotel', 'contact', 'assignedTo'])
-            ->whereNotIn('status', [
-                EnquiryStatus::Confirmed->value,
-                EnquiryStatus::Cancelled->value,
-            ])
+            ->whereNotIn('status', ['confirmed', 'cancelled'])
             ->whereNull('converted_booking_id');
 
         if ($request->filled('q')) {
@@ -83,12 +80,11 @@ class EnquiryController extends Controller
 
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $statuses = [
-            EnquiryStatus::New->value,
-            EnquiryStatus::FollowUp->value,
-            EnquiryStatus::Quoted->value,
-            EnquiryStatus::Lost->value,
-        ];
+        $statuses = StatusMaster::query()
+            ->active()
+            ->whereNotIn('title', ['confirmed', 'cancelled'])
+            ->orderBy('title')
+            ->pluck('title');
 
         return view('enquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'statuses'));
     }
@@ -99,7 +95,7 @@ class EnquiryController extends Controller
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
-        $statuses = EnquiryStatus::values();
+        $statuses = StatusMaster::query()->active()->orderBy('title')->pluck('title');
 
         return view('enquiries.create', compact('travelAgencies', 'hotels', 'statuses'));
     }
@@ -149,7 +145,7 @@ class EnquiryController extends Controller
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
-        $statuses = EnquiryStatus::values();
+        $statuses = StatusMaster::query()->active()->orderBy('title')->pluck('title');
 
         return view('enquiries.edit', compact('enquiry', 'travelAgencies', 'hotels', 'statuses'));
     }
@@ -162,8 +158,13 @@ class EnquiryController extends Controller
             'ref' => ['required', 'string', 'max:255', 'unique:enquiries,ref,'.$enquiry->id],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
-            'response_date' => ['nullable', 'date'],
+            'response_date' => [
+                'nullable',
+                'date',
+                Rule::when($request->filled('enquiry_date'), ['after_or_equal:enquiry_date']),
+            ],
             'check_in' => ['nullable', 'date'],
+            'check_in_day' => ['nullable', 'string', 'max:20'],
             'check_out' => ['nullable', 'date', 'after:check_in'],
             'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($enquiry->id)],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
@@ -180,7 +181,7 @@ class EnquiryController extends Controller
             'has_tax' => ['sometimes', 'boolean'],
             'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_tax,1,true'],
             'tax_revenue' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', 'in:'.implode(',', EnquiryStatus::values())],
+            'status' => ['nullable', 'string', 'max:255', Rule::exists('status_masters', 'title')],
             'email' => ['nullable', 'email', 'max:255'],
             'remarks' => ['nullable', 'string'],
             'cxl_policy' => ['nullable', 'string', 'max:255'],
@@ -191,6 +192,7 @@ class EnquiryController extends Controller
         ], [
             'group_name.unique' => 'This group name is already used. Enter a different name.',
             'check_out.after' => 'Check-out must be after check-in.',
+            'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'tax_percentage.required_if' => 'Enter the tax percentage.',
         ]);
 
@@ -212,9 +214,9 @@ class EnquiryController extends Controller
         }
 
         if ($confirmBooking) {
-            $data['status'] = EnquiryStatus::Confirmed->value;
+            $data['status'] = 'confirmed';
         } elseif ($cancelBooking) {
-            $data['status'] = EnquiryStatus::Cancelled->value;
+            $data['status'] = 'cancelled';
         }
 
         if (! empty($data['enquiry_date'])) {
@@ -267,10 +269,18 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         $data = $request->validate([
-            'response_date' => ['required', 'date'],
+            'response_date' => [
+                'required',
+                'date',
+                Rule::when(
+                    $enquiry->enquiry_date,
+                    ['after_or_equal:'.$enquiry->enquiry_date->format('Y-m-d')]
+                ),
+            ],
             'client_response' => ['required', 'string', 'max:2000'],
         ], [
             'response_date.required' => 'Enter the date the client responded.',
+            'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'client_response.required' => 'Enter the client response for this enquiry.',
         ]);
 
@@ -306,7 +316,7 @@ class EnquiryController extends Controller
             'status' => BookingStatus::Confirmed->value,
         ]);
 
-        $enquiry->update(['status' => EnquiryStatus::Confirmed->value]);
+        $enquiry->update(['status' => 'confirmed']);
 
         return redirect()
             ->route('group-bookings.show', $booking)
@@ -378,17 +388,26 @@ class EnquiryController extends Controller
      */
     private function applyStayDates(array $data): array
     {
+        $result = [];
+
+        if (! empty($data['check_in'])) {
+            $checkIn = Carbon::parse($data['check_in'])->startOfDay();
+            $result['check_in_day'] = $checkIn->format('l');
+        } else {
+            $result['check_in_day'] = null;
+        }
+
         if (empty($data['check_in']) || empty($data['check_out'])) {
-            return [];
+            return $result;
         }
 
         $checkIn = Carbon::parse($data['check_in'])->startOfDay();
         $checkOut = Carbon::parse($data['check_out'])->startOfDay();
         $nights = $checkIn->diffInDays($checkOut);
 
-        return [
-            'nights' => max(1, $nights),
-        ];
+        $result['nights'] = max(1, $nights);
+
+        return $result;
     }
 
     private function nextEnquiryRef(?int $year = null): string

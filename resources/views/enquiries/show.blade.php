@@ -58,6 +58,7 @@
       <div class="card-header">Commercial</div>
       <div class="card-body">
         <div class="info-card mb-3"><div class="info-card-label">Check-in</div><div class="info-card-value">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Check-in day</div><div class="info-card-value">{{ $enquiry->check_in_day ?: '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Check-out</div><div class="info-card-value">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Nights</div><div class="info-card-value">{{ $enquiry->nights ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Rooms / night</div><div class="info-card-value">{{ $enquiry->rooms_per_night ?? '—' }}</div></div>
@@ -108,7 +109,18 @@
           </div>
           <div class="col-md-4">
             <label for="response_date" class="form-label">Response date <span class="text-danger">*</span></label>
-            <input type="date" name="response_date" id="response_date" class="form-control @error('response_date') is-invalid @enderror" value="{{ old('response_date') }}">
+            <input
+              type="date"
+              name="response_date"
+              id="response_date"
+              class="form-control @error('response_date') is-invalid @enderror"
+              value="{{ old('response_date') }}"
+              @if ($enquiry->enquiry_date)
+                min="{{ $enquiry->enquiry_date->format('Y-m-d') }}"
+                data-min-date="{{ $enquiry->enquiry_date->format('Y-m-d') }}"
+                data-min-date-fixed="1"
+              @endif
+            >
             @error('response_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">

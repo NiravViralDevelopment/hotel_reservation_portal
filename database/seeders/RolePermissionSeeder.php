@@ -25,6 +25,7 @@ class RolePermissionSeeder extends Seeder
             'revenue.view', 'reports.view', 'reports.generate',
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'roles.view', 'roles.edit',
+            'statuses.view', 'statuses.create', 'statuses.edit', 'statuses.delete',
             'settings.manage', 'audit.view',
         ];
 

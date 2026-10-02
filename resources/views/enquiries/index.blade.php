@@ -87,6 +87,7 @@
             <th>Agency</th>
             <th>Hotel</th>
             <th>Check-in</th>
+            <th>Check-in day</th>
             <th>Check-out</th>
             <x-sortable-th column="nights" label="Nights" default="enquiry_date" default-dir="desc" />
             <th>Rooms / night</th>
@@ -127,6 +128,7 @@
               <td class="text-nowrap">{{ $enquiry->travelAgency?->name ?? '—' }}</td>
               <td class="text-nowrap">{{ $enquiry->hotel?->code ?? '—' }}</td>
               <td class="text-nowrap">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</td>
+              <td class="text-nowrap">{{ $enquiry->check_in_day ?: '—' }}</td>
               <td class="text-nowrap">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</td>
               <td>{{ $enquiry->nights ?? '—' }}</td>
               <td>{{ $enquiry->rooms_per_night ?? '—' }}</td>
@@ -171,7 +173,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="29" class="text-center text-secondary py-4">No enquiries found.</td></tr>
+            <tr><td colspan="30" class="text-center text-secondary py-4">No enquiries found.</td></tr>
           @endforelse
         </tbody>
       </table>

@@ -137,6 +137,21 @@
       }
     }
 
+    if (rules.afterOrEqualField || rules.afterOrEqualAttr) {
+      var afterForm = el.form;
+      var afterOther = (rules.afterOrEqualField && afterForm)
+        ? afterForm.querySelector('[name="' + rules.afterOrEqualField + '"]')
+        : null;
+      var afterOtherVal = afterOther ? trim(afterOther.value) : '';
+      if (!afterOtherVal && rules.afterOrEqualAttr) {
+        afterOtherVal = trim(el.getAttribute(rules.afterOrEqualAttr) || '');
+      }
+      if (afterOtherVal && value < afterOtherVal) {
+        setError(el, rules.afterOrEqualMessage || 'Must be on or after the related date.');
+        return false;
+      }
+    }
+
     clearError(el);
     return true;
   }
@@ -182,7 +197,16 @@
         requiredMessage: 'Enter a cancellation reason.'
       },
       client_response: { required: true, max: 2000, requiredMessage: 'Enter the client response.' },
-      response_date: { required: true, requiredMessage: 'Enter the response date.' }
+      enquiry_date: {},
+      response_date: {
+        required: function () {
+          return !!form.querySelector('[name="client_response"]');
+        },
+        requiredMessage: 'Enter the response date.',
+        afterOrEqualField: 'enquiry_date',
+        afterOrEqualAttr: 'data-min-date',
+        afterOrEqualMessage: 'Response date cannot be before enquiry date.'
+      }
     };
   }
 
@@ -235,6 +259,28 @@
         var checkOut = form.querySelector('#check_out');
         if (checkOut && checkOut.value) runField(checkOut);
       });
+    }
+
+    var enquiryDateEl = form.querySelector('#enquiry_date');
+    var responseDateEl = form.querySelector('#response_date');
+    function syncResponseDateMin() {
+      if (!enquiryDateEl || !responseDateEl) return;
+      if (enquiryDateEl.value) {
+        responseDateEl.setAttribute('min', enquiryDateEl.value);
+        responseDateEl.setAttribute('data-min-date', enquiryDateEl.value);
+      } else {
+        responseDateEl.removeAttribute('min');
+        if (!responseDateEl.getAttribute('data-min-date-fixed')) {
+          responseDateEl.removeAttribute('data-min-date');
+        }
+      }
+      if (responseDateEl.value) runField(responseDateEl);
+    }
+    if (enquiryDateEl) {
+      ['change', 'input'].forEach(function (evt) {
+        enquiryDateEl.addEventListener(evt, syncResponseDateMin);
+      });
+      syncResponseDateMin();
     }
 
     form.addEventListener('submit', function (e) {

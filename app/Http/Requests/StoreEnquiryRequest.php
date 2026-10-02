@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\EnquiryStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -33,8 +32,13 @@ class StoreEnquiryRequest extends FormRequest
             'ref' => ['nullable', 'string', 'max:255', 'unique:enquiries,ref'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
-            'response_date' => ['nullable', 'date'],
+            'response_date' => [
+                'nullable',
+                'date',
+                Rule::when($this->filled('enquiry_date'), ['after_or_equal:enquiry_date']),
+            ],
             'check_in' => ['nullable', 'date'],
+            'check_in_day' => ['nullable', 'string', 'max:20'],
             'check_out' => ['nullable', 'date', 'after:check_in'],
             'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
@@ -51,7 +55,12 @@ class StoreEnquiryRequest extends FormRequest
             'has_tax' => ['sometimes', 'boolean'],
             'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_tax,1,true'],
             'tax_revenue' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', Rule::in(EnquiryStatus::values())],
+            'status' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::exists('status_masters', 'title')->where(fn ($query) => $query->where('status', 'active')),
+            ],
             'email' => ['nullable', 'email', 'max:255'],
             'remarks' => ['nullable', 'string'],
         ];
@@ -65,7 +74,9 @@ class StoreEnquiryRequest extends FormRequest
         return [
             'group_name.unique' => 'This group name is already used. Enter a different name.',
             'check_out.after' => 'Check-out must be after check-in.',
+            'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'tax_percentage.required_if' => 'Enter the tax percentage.',
+            'status.exists' => 'Select a valid active status.',
         ];
     }
 }

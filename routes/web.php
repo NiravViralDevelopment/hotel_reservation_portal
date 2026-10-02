@@ -18,6 +18,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\StatusMasterController;
 use App\Http\Controllers\TravelAgencyController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('hotels', HotelController::class);
     Route::resource('travel-agencies', TravelAgencyController::class);
     Route::resource('contacts', ContactController::class);
+    Route::resource('status-masters', StatusMasterController::class)->except(['show']);
 
     Route::resource('enquiries', EnquiryController::class);
     Route::post('enquiries/{enquiry}/response', [EnquiryController::class, 'storeResponse'])->name('enquiries.response');

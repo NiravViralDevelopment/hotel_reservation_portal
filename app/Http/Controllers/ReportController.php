@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\EnquiryStatus;
 use App\Models\Enquiry;
 use App\Models\GroupBooking;
 use App\Models\Hotel;
@@ -147,10 +146,7 @@ class ReportController extends Controller
             'enquiries' => Enquiry::query()
                 ->accessibleBy()
                 ->with(['hotel', 'travelAgency'])
-                ->whereNotIn('status', [
-                    EnquiryStatus::Confirmed->value,
-                    EnquiryStatus::Cancelled->value,
-                ])
+                ->whereNotIn('status', ['confirmed', 'cancelled'])
                 ->whereNull('converted_booking_id')
                 ->whereDate('enquiry_date', '>=', $from)
                 ->whereDate('enquiry_date', '<=', $to)
