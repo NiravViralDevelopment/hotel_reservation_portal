@@ -6,6 +6,55 @@
   <div class="header-spacer flex-grow-1"></div>
 
   <div class="header-actions">
+    @if (! empty($accessibleHotels) && $accessibleHotels->isNotEmpty())
+      <div class="dropdown me-2">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-building"></i>
+          <span class="text-truncate" style="max-width: 180px;">
+            {{ ! empty($currentHotel) ? $currentHotel->name : 'All hotels' }}
+          </span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><h6 class="dropdown-header">Switch hotel</h6></li>
+          @foreach ($accessibleHotels as $hotel)
+            <li>
+              <form method="POST" action="{{ route('hotel-context.switch') }}">
+                @csrf
+                <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
+                <button type="submit" class="dropdown-item {{ ! empty($currentHotel) && (int) $hotel->id === (int) $currentHotel->id ? 'active' : '' }}">
+                  {{ $hotel->name }}
+                  @if ($hotel->code)
+                    <span class="text-secondary small">({{ $hotel->code }})</span>
+                  @endif
+                </button>
+              </form>
+            </li>
+          @endforeach
+          @if (auth()->user()?->hasRole('Administrator'))
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="POST" action="{{ route('hotel-context.clear') }}">
+                @csrf
+                <button type="submit" class="dropdown-item {{ empty($currentHotel) ? 'active' : '' }}">
+                  <i class="bi bi-grid"></i> All hotels
+                </button>
+              </form>
+            </li>
+          @elseif (! empty($currentHotel))
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="POST" action="{{ route('hotel-context.clear') }}">
+                @csrf
+                <button type="submit" class="dropdown-item">
+                  <i class="bi bi-grid"></i> Change hotel
+                </button>
+              </form>
+            </li>
+          @endif
+        </ul>
+      </div>
+    @endif
+
     <div class="dropdown">
       <button class="header-action-btn" data-bs-toggle="dropdown" aria-label="Notifications" type="button">
         <i class="bi bi-bell"></i>

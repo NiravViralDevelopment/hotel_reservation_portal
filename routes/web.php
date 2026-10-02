@@ -8,11 +8,11 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CancelledBookingController;
 use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartureController;
 use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\GroupBookingController;
+use App\Http\Controllers\HotelContextController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -47,6 +47,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::post('/hotel-context', [HotelContextController::class, 'switch'])->name('hotel-context.switch');
+    Route::post('/hotel-context/clear', [HotelContextController::class, 'clear'])->name('hotel-context.clear');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -55,8 +57,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('companies', CompanyController::class);
     Route::resource('hotels', HotelController::class);
     Route::resource('travel-agencies', TravelAgencyController::class);
-    Route::resource('contacts', ContactController::class);
-    Route::resource('status-masters', StatusMasterController::class)->except(['show']);
+
+    // Contacts module removed
+    Route::any('contacts/{any?}', fn () => redirect()->route('dashboard'))
+        ->where('any', '.*')
+        ->name('contacts.hidden');
 
     Route::resource('enquiries', EnquiryController::class);
     Route::post('enquiries/{enquiry}/response', [EnquiryController::class, 'storeResponse'])->name('enquiries.response');
@@ -83,6 +88,8 @@ Route::middleware('auth')->group(function () {
     Route::get('reports/{report}', [ReportController::class, 'module'])
         ->whereIn('report', ['group-bookings', 'enquiries', 'cancelled-bookings'])
         ->name('reports.module');
+
+    Route::resource('status-masters', StatusMasterController::class)->except(['show']);
 
     Route::resource('users', UserController::class)->except(['show']);
     Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');

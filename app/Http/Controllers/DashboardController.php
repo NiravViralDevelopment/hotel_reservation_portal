@@ -16,6 +16,14 @@ class DashboardController extends Controller
     {
         $this->authorize('dashboard.view');
 
+        $allocatedHotels = HotelAccess::hotels();
+        $currentHotel = HotelAccess::currentHotel();
+
+        // Non-admin users must pick a hotel first. Administrators can use all hotels.
+        if ($currentHotel === null && ! HotelAccess::canAccessAllHotels()) {
+            return view('dashboard.select-hotel', compact('allocatedHotels'));
+        }
+
         $hotelIds = HotelAccess::hotelIds();
         $hotelsQuery = Hotel::query()->accessibleBy()->where('status', 'active');
         $bookingsQuery = GroupBooking::query()->accessibleBy();
@@ -49,6 +57,6 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard.index', compact('stats', 'upcomingArrivals'));
+        return view('dashboard.index', compact('stats', 'upcomingArrivals', 'currentHotel', 'allocatedHotels'));
     }
 }

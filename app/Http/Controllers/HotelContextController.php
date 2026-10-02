@@ -17,6 +17,17 @@ class HotelContextController extends Controller
 
         HotelAccess::setCurrentHotelId((int) $validated['hotel_id']);
 
-        return redirect()->route('dashboard')->with('success', 'Active hotel updated. Showing data for the selected hotel only.');
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Working in '.HotelAccess::currentHotel()?->name.'.');
+    }
+
+    public function clear(): RedirectResponse
+    {
+        HotelAccess::clearCurrentHotel();
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Select a hotel to continue.');
     }
 }

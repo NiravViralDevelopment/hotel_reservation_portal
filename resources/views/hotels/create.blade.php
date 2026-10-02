@@ -46,13 +46,13 @@
             @error('city')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="country" class="form-label">Country</label>
-            <input type="text" name="country" id="country" class="form-control @error('country') is-invalid @enderror" value="{{ old('country') }}" placeholder="Enter country">
+            <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+            <input type="text" name="country" id="country" class="form-control @error('country') is-invalid @enderror" value="{{ old('country', 'United Kingdom') }}" required>
             @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="rooms" class="form-label">Rooms</label>
-            <input type="number" name="rooms" id="rooms" min="0" class="form-control @error('rooms') is-invalid @enderror" value="{{ old('rooms') }}" placeholder="Enter rooms">
+            <label for="rooms" class="form-label">Rooms <span class="text-danger">*</span></label>
+            <input type="number" name="rooms" id="rooms" min="0" class="form-control @error('rooms') is-invalid @enderror" value="{{ old('rooms') }}" required>
             @error('rooms')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">

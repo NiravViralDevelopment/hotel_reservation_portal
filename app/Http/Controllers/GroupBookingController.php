@@ -6,7 +6,6 @@ use App\Enums\BookingStatus;
 use App\Http\Requests\StoreGroupBookingRequest;
 use App\Http\Requests\UpdateGroupBookingRequest;
 use App\Models\Company;
-use App\Models\Contact;
 use App\Models\Document;
 use App\Models\GroupBooking;
 use App\Models\Hotel;
@@ -89,10 +88,9 @@ class GroupBookingController extends Controller
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $contacts = Contact::query()->orderBy('name')->get(['id', 'name']);
         $statuses = BookingStatus::values();
 
-        return view('group-bookings.create', compact('companies', 'hotels', 'travelAgencies', 'contacts', 'statuses'));
+        return view('group-bookings.create', compact('companies', 'hotels', 'travelAgencies', 'statuses'));
     }
 
     public function store(StoreGroupBookingRequest $request): RedirectResponse
@@ -118,7 +116,6 @@ class GroupBookingController extends Controller
             'hotel',
             'company',
             'travelAgency',
-            'contact',
             'enquiry',
             'createdBy',
             'dailyRows',
@@ -136,10 +133,9 @@ class GroupBookingController extends Controller
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $contacts = Contact::query()->orderBy('name')->get(['id', 'name']);
         $statuses = BookingStatus::values();
 
-        return view('group-bookings.edit', compact('groupBooking', 'companies', 'hotels', 'travelAgencies', 'contacts', 'statuses'));
+        return view('group-bookings.edit', compact('groupBooking', 'companies', 'hotels', 'travelAgencies', 'statuses'));
     }
 
     public function update(UpdateGroupBookingRequest $request, GroupBooking $groupBooking): RedirectResponse

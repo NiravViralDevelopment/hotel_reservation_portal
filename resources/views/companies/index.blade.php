@@ -72,7 +72,6 @@
             <x-sortable-th column="name" label="Company" />
             <x-sortable-th column="city" label="Location" />
             <x-sortable-th column="hotels" label="Hotels" class="text-center" />
-            <x-sortable-th column="contacts" label="Contacts" class="text-center" />
             <x-sortable-th column="status" label="Status" />
             <th class="text-end">Actions</th>
           </tr>
@@ -94,7 +93,6 @@
                 @endif
               </td>
               <td class="text-center">{{ $company->hotels_count }}</td>
-              <td class="text-center">{{ $company->contacts_count }}</td>
               <td><x-badge-status :status="$company->status" /></td>
               <td class="text-end text-nowrap">
                 @can('view', $company)
@@ -120,7 +118,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="6" class="text-center text-secondary py-5">
+              <td colspan="5" class="text-center text-secondary py-5">
                 <div class="mb-2"><i class="bi bi-building fs-3"></i></div>
                 <div>No companies match your filters.</div>
                 @if (request()->hasAny(['q', 'status', 'country']))

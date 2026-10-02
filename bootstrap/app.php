@@ -19,10 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
+            'hotel.selected' => \App\Http\Middleware\EnsureHotelSelected::class,
         ]);
 
         $middleware->appendToGroup('auth', [
             \App\Http\Middleware\EnsureUserIsActive::class,
+            \App\Http\Middleware\EnsureHotelSelected::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

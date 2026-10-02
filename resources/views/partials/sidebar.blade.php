@@ -7,7 +7,6 @@
         ['route' => 'hotels.index', 'icon' => 'building', 'label' => 'Hotels', 'permission' => 'hotels.view'],
         ['route' => 'companies.index', 'icon' => 'briefcase', 'label' => 'Companies', 'permission' => 'companies.view'],
         ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies', 'permission' => 'agencies.view'],
-        ['route' => 'contacts.index', 'icon' => 'person-lines-fill', 'label' => 'Contacts', 'permission' => 'contacts.view'],
       ],
     ],
     [

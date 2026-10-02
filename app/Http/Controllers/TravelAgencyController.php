@@ -17,7 +17,7 @@ class TravelAgencyController extends Controller
         $this->authorize('viewAny', TravelAgency::class);
 
         $query = TravelAgency::query()
-            ->withCount(['contacts', 'enquiries', 'groupBookings']);
+            ->withCount(['enquiries', 'groupBookings']);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->trim()->toString();
@@ -44,7 +44,6 @@ class TravelAgencyController extends Controller
             'code' => 'code',
             'city' => 'city',
             'status' => 'status',
-            'contacts' => 'contacts_count',
             'enquiries' => 'enquiries_count',
             'bookings' => 'group_bookings_count',
         ], 'name');
@@ -105,7 +104,7 @@ class TravelAgencyController extends Controller
     {
         $this->authorize('view', $travelAgency);
 
-        $travelAgency->load(['contacts', 'enquiries', 'groupBookings']);
+        $travelAgency->load(['enquiries', 'groupBookings']);
 
         return view('travel-agencies.show', compact('travelAgency'));
     }

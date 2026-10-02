@@ -54,7 +54,6 @@ After login, users land on the **Dashboard**.
 | **Hotels** | Property list (name, code, location, rooms, manager, status). Search and filter supported |
 | **Companies** | Parent / hotel-group companies linked to properties |
 | **Travel Agencies** | Agency partners that send group business |
-| **Contacts** | Contact directory for companies and agencies |
 
 ### 4.2 Bookings
 
@@ -111,7 +110,7 @@ Enquiry (pipeline)
 
 For each booking you can manage:
 
-- Block ID, group name, hotel, company, agency, contact  
+- Block ID, group name, hotel, company, agency  
 - Arrival / departure / nights / rooms / pax / status / revenue  
 - **Payment Terms and Conditions**  
   - Payment Term  
@@ -149,7 +148,7 @@ For each booking you can manage:
 | Area | Main records |
 |------|----------------|
 | Organisation | Companies → Hotels → Users (via hotel assignment) |
-| Partners | Travel Agencies, Contacts |
+| Partners | Travel Agencies |
 | Pipeline | Enquiries → (optional) Group Bookings |
 | Operations | Arrivals, Departures, Calendar |
 | Commercial | Revenue, Payment terms, Commission, CXL fields |
@@ -192,7 +191,6 @@ The design/prototype pack includes screens such as:
 | Hotels / Hotel detail | `html/hotels.html`, `html/hotel-detail.html` |
 | Companies / Company detail | `html/companies.html`, `html/company-detail.html` |
 | Travel agencies | `html/travel-agencies.html` |
-| Contacts | `html/contacts.html` |
 | Enquiries | `html/enquiries.html` |
 | Group bookings / Detail | `html/group-bookings.html`, `html/group-booking-detail.html` |
 | Cancelled bookings | `html/cancelled-bookings.html` |

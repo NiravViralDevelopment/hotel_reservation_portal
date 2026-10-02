@@ -92,14 +92,22 @@ class HotelController extends Controller
             'code' => ['required', 'string', 'max:20', 'unique:hotels,code'],
             'name' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
-            'rooms' => ['nullable', 'integer', 'min:0'],
+            'country' => ['required', 'string', 'max:255'],
+            'rooms' => ['required', 'integer', 'min:0'],
             'manager_name' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:255'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string'],
+        ], [
+            'rooms.required' => 'Please enter the number of rooms.',
+            'country.required' => 'Please enter the country.',
+            'city.required' => 'Please enter the city.',
+            'code.required' => 'Please enter the hotel code.',
+            'name.required' => 'Please enter the hotel name.',
         ]);
+
+        $data = $this->normalizeHotelData($data);
 
         $hotel = Hotel::query()->create($data);
         Audit::log('created', 'hotels', $hotel->code, $hotel);
@@ -137,14 +145,22 @@ class HotelController extends Controller
             'code' => ['required', 'string', 'max:20', 'unique:hotels,code,'.$hotel->id],
             'name' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
-            'rooms' => ['nullable', 'integer', 'min:0'],
+            'country' => ['required', 'string', 'max:255'],
+            'rooms' => ['required', 'integer', 'min:0'],
             'manager_name' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:255'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string'],
+        ], [
+            'rooms.required' => 'Please enter the number of rooms.',
+            'country.required' => 'Please enter the country.',
+            'city.required' => 'Please enter the city.',
+            'code.required' => 'Please enter the hotel code.',
+            'name.required' => 'Please enter the hotel name.',
         ]);
+
+        $data = $this->normalizeHotelData($data);
 
         $hotel->update($data);
         Audit::log('updated', 'hotels', $hotel->code, $hotel);
@@ -157,17 +173,37 @@ class HotelController extends Controller
         $this->authorize('delete', $hotel);
         HotelAccess::ensure(null, $hotel->id);
 
-        if (! $hotel->canBeDeleted()) {
-            return redirect()->route('hotels.index')->with(
-                'error',
-                'This hotel cannot be deleted because users are assigned to it. Remove user access first, or set the hotel to inactive.'
-            );
-        }
-
         $code = $hotel->code;
+        $name = $hotel->name;
+
+        // Detach users first; pivot cascade also covers this on delete.
+        $hotel->users()->detach();
         $hotel->delete();
+
         Audit::log('deleted', 'hotels', $code);
 
-        return redirect()->route('hotels.index')->with('success', 'Hotel deleted.');
+        return redirect()->route('hotels.index')->with('success', $name.' deleted.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeHotelData(array $data): array
+    {
+        if (($data['company_id'] ?? null) === '' || ($data['company_id'] ?? null) === null) {
+            $data['company_id'] = null;
+        }
+
+        $data['rooms'] = (int) ($data['rooms'] ?? 0);
+        $data['country'] = trim((string) ($data['country'] ?? '')) ?: 'United Kingdom';
+
+        foreach (['manager_name', 'phone', 'email', 'notes'] as $field) {
+            if (array_key_exists($field, $data) && $data[$field] === '') {
+                $data[$field] = null;
+            }
+        }
+
+        return $data;
     }
 }

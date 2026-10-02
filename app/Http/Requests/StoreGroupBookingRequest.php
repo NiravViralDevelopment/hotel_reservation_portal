@@ -25,7 +25,6 @@ class StoreGroupBookingRequest extends FormRequest
             'company_id' => ['nullable', 'integer', 'exists:companies,id'],
             'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
-            'contact_id' => ['nullable', 'integer', 'exists:contacts,id'],
             'group_name' => ['required', 'string', 'max:255'],
             'client' => ['nullable', 'string', 'max:255'],
             'agency_name' => ['nullable', 'string', 'max:255'],

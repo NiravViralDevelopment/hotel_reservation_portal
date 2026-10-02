@@ -39,9 +39,9 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><i class="bi bi-person me-2"></i>Contact</div>
+      <div class="card-header"><i class="bi bi-person me-2"></i>Client details</div>
       <div class="card-body">
-        <div class="info-card mb-3"><div class="info-card-label">Contact</div><div class="info-card-value">{{ $b->contact?->name ?? $b->contact_name ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Contact name</div><div class="info-card-value">{{ $b->contact_name ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Email</div><div class="info-card-value">{{ $b->email ?? '—' }}</div></div>
         <div class="info-card"><div class="info-card-label">Client</div><div class="info-card-value">{{ $b->client ?? '—' }}</div></div>
       </div>

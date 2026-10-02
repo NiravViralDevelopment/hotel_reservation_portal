@@ -63,8 +63,8 @@
           <div class="info-card-value">{{ $company->hotels->count() }}</div>
         </div>
         <div class="info-card mb-3">
-          <div class="info-card-label">Contacts</div>
-          <div class="info-card-value">{{ $company->contacts->count() }}</div>
+          <div class="info-card-label">Group bookings</div>
+          <div class="info-card-value">{{ $company->groupBookings->count() }}</div>
         </div>
         <div class="info-card">
           <div class="info-card-label">Status</div>
@@ -107,35 +107,6 @@
       </table>
     </div>
   </div>
-
-  <div class="card mb-4">
-    <div class="card-header">Contacts ({{ $company->contacts->count() }})</div>
-    <div class="table-wrapper">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Position</th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse ($company->contacts as $contact)
-            <tr>
-              <td class="fw-semibold"><a href="{{ route('contacts.show', $contact) }}">{{ $contact->name }}</a></td>
-              <td>{{ $contact->email ?? '—' }}</td>
-              <td>{{ $contact->phone ?? '—' }}</td>
-              <td>{{ $contact->position ?? '—' }}</td>
-            </tr>
-          @empty
-            <tr><td colspan="4" class="text-center text-secondary py-3">No contacts linked.</td></tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
-  </div>
-
   <div class="card">
     <div class="card-header">Recent group bookings ({{ $company->groupBookings->count() }})</div>
     <div class="table-wrapper">

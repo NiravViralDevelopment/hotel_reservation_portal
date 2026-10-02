@@ -86,7 +86,8 @@ class Hotel extends Model
      */
     public function scopeAccessibleBy(Builder $query, ?User $user = null): Builder
     {
-        $ids = HotelAccess::hotelIds($user);
+        // Hotel list uses assigned hotels (Administrator = all hotels).
+        $ids = HotelAccess::assignedHotelIds($user);
         if ($ids === []) {
             return $query->whereRaw('1 = 0');
         }

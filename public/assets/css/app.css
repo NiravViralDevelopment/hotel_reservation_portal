@@ -653,6 +653,16 @@ a:hover {
 .stat-card-icon.info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
 .stat-card-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
 
+.hotel-select-card {
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+
+.hotel-select-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--brand-accent);
+}
+
 .stat-card-value {
   font-size: 1.5rem;
   font-weight: 700;

@@ -110,19 +110,13 @@
                   </a>
                 @endcan
                 @can('delete', $hotel)
-                  @if ($hotel->canBeDeleted())
-                    <form method="POST" action="{{ route('hotels.destroy', $hotel) }}" class="d-inline" onsubmit="return confirm('Remove {{ $hotel->name }}?');">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove hotel">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
-                  @else
-                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Cannot delete: users are assigned to this hotel">
-                      <i class="bi bi-trash"></i>
+                  <form method="POST" action="{{ route('hotels.destroy', $hotel) }}" class="d-inline" onsubmit="return confirm('Delete {{ $hotel->name }}? This cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete hotel">
+                      <i class="bi bi-trash"></i> Delete
                     </button>
-                  @endif
+                  </form>
                 @endcan
               </td>
             </tr>

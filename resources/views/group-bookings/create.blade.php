@@ -30,7 +30,7 @@
             <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name') }}" placeholder="Enter group name" required>
             @error('group_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="hotel_id" class="form-label">Hotel</label>
             <select name="hotel_id" id="hotel_id" class="form-select select2 @error('hotel_id') is-invalid @enderror">
               <option value="">— None —</option>
@@ -40,7 +40,7 @@
             </select>
             @error('hotel_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="company_id" class="form-label">Company</label>
             <select name="company_id" id="company_id" class="form-select select2 @error('company_id') is-invalid @enderror">
               <option value="">— None —</option>
@@ -50,7 +50,7 @@
             </select>
             @error('company_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="travel_agency_id" class="form-label">Travel agency</label>
             <select name="travel_agency_id" id="travel_agency_id" class="form-select select2 @error('travel_agency_id') is-invalid @enderror">
               <option value="">— None —</option>
@@ -59,16 +59,6 @@
               @endforeach
             </select>
             @error('travel_agency_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-3">
-            <label for="contact_id" class="form-label">Contact</label>
-            <select name="contact_id" id="contact_id" class="form-select select2 @error('contact_id') is-invalid @enderror">
-              <option value="">— None —</option>
-              @foreach ($contacts as $contact)
-                <option value="{{ $contact->id }}" @selected(old('contact_id') == $contact->id)>{{ $contact->name }}</option>
-              @endforeach
-            </select>
-            @error('contact_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="arrival" class="form-label">Arrival <span class="text-danger">*</span></label>

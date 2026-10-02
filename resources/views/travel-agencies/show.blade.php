@@ -34,23 +34,7 @@
   </div>
 
   <div class="row g-4">
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header">Contacts</div>
-        <div class="table-wrapper">
-          <table class="table table-sm table-hover mb-0">
-            <tbody>
-              @forelse ($travelAgency->contacts as $contact)
-                <tr><td><a href="{{ route('contacts.show', $contact) }}">{{ $contact->name }}</a></td></tr>
-              @empty
-                <tr><td class="text-secondary py-3">No contacts.</td></tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
+    <div class="col-lg-12">
       <div class="card">
         <div class="card-header">Recent enquiries</div>
         <div class="table-wrapper">

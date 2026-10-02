@@ -12,9 +12,41 @@
         </ol>
       </nav>
       <h1 class="page-title">Dashboard</h1>
-      <p class="page-subtitle">Welcome back, {{ auth()->user()->name }}.</p>
+      <p class="page-subtitle">
+        Welcome back, {{ auth()->user()->name }}.
+        @if (! empty($currentHotel))
+          Working in <strong>{{ $currentHotel->name }}</strong>.
+        @else
+          Viewing <strong>all hotels</strong>.
+        @endif
+      </p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+      @if (! empty($currentHotel))
+        <form method="POST" action="{{ route('hotel-context.clear') }}" class="m-0">
+          @csrf
+          <button type="submit" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-building"></i> All hotels
+          </button>
+        </form>
+      @elseif (! empty($allocatedHotels) && $allocatedHotels->isNotEmpty())
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-building"></i> Filter by hotel
+          </button>
+          <ul class="dropdown-menu">
+            @foreach ($allocatedHotels as $hotel)
+              <li>
+                <form method="POST" action="{{ route('hotel-context.switch') }}">
+                  @csrf
+                  <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
+                  <button type="submit" class="dropdown-item">{{ $hotel->name }}</button>
+                </form>
+              </li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
       <a href="{{ route('arrivals.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-in-right"></i> Today&apos;s arrivals</a>
       <a href="{{ route('group-bookings.create') }}" class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> New booking</a>
     </div>

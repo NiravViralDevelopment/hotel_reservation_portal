@@ -16,7 +16,7 @@ class CompanyController extends Controller
         $this->authorize('viewAny', Company::class);
 
         $query = Company::query()
-            ->withCount(['hotels', 'contacts']);
+            ->withCount(['hotels']);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->trim()->toString();
@@ -42,7 +42,6 @@ class CompanyController extends Controller
             'city' => 'city',
             'country' => 'country',
             'hotels' => 'hotels_count',
-            'contacts' => 'contacts_count',
             'status' => 'status',
         ], 'name');
 
@@ -90,7 +89,6 @@ class CompanyController extends Controller
 
         $company->load([
             'hotels' => fn ($q) => $q->orderBy('name'),
-            'contacts' => fn ($q) => $q->orderBy('name'),
             'groupBookings' => fn ($q) => $q->with('hotel:id,code,name')->latest('arrival')->limit(15),
         ]);
 
