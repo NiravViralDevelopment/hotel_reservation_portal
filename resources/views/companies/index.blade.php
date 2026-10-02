@@ -97,16 +97,21 @@
               <td class="text-center">{{ $company->contacts_count }}</td>
               <td><x-badge-status :status="$company->status" /></td>
               <td class="text-end text-nowrap">
+                @can('view', $company)
+                  <a href="{{ route('companies.show', $company) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                @endcan
                 @can('update', $company)
-                  <a href="{{ route('companies.edit', $company) }}" class="btn btn-sm btn-outline-secondary" title="Edit company">
-                    <i class="bi bi-pencil"></i> Edit
+                  <a href="{{ route('companies.edit', $company) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i>
                   </a>
                 @endcan
                 @can('delete', $company)
                   <form method="POST" action="{{ route('companies.destroy', $company) }}" class="d-inline" onsubmit="return confirm('Remove {{ $company->name }}?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove company">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                       <i class="bi bi-trash"></i>
                     </button>
                   </form>

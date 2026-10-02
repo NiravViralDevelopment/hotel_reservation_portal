@@ -196,7 +196,7 @@
         max: 500,
         requiredMessage: 'Enter a cancellation reason.'
       },
-      client_response: { required: true, max: 2000, requiredMessage: 'Enter the client response.' },
+      client_response: { required: true, max: 2000, requiredMessage: 'Enter the remark.' },
       enquiry_date: {},
       response_date: {
         required: function () {

@@ -88,7 +88,11 @@ class CompanyController extends Controller
     {
         $this->authorize('view', $company);
 
-        $company->load(['hotels', 'contacts']);
+        $company->load([
+            'hotels' => fn ($q) => $q->orderBy('name'),
+            'contacts' => fn ($q) => $q->orderBy('name'),
+            'groupBookings' => fn ($q) => $q->with('hotel:id,code,name')->latest('arrival')->limit(15),
+        ]);
 
         return view('companies.show', compact('company'));
     }

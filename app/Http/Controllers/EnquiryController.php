@@ -281,7 +281,7 @@ class EnquiryController extends Controller
         ], [
             'response_date.required' => 'Enter the date the client responded.',
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
-            'client_response.required' => 'Enter the client response for this enquiry.',
+            'client_response.required' => 'Enter the remark for this enquiry.',
         ]);
 
         $enquiry->responses()->create([
@@ -290,11 +290,11 @@ class EnquiryController extends Controller
             'client_response' => $data['client_response'],
         ]);
         $enquiry->update($data);
-        Audit::log('updated', 'enquiries', $enquiry->ref.' client response', $enquiry);
+        Audit::log('updated', 'enquiries', $enquiry->ref.' remark', $enquiry);
 
         return redirect()
             ->route('enquiries.show', $enquiry)
-            ->with('success', 'Client response saved for '.$enquiry->group_name.'.');
+            ->with('success', 'Remark saved for '.$enquiry->group_name.'.');
     }
 
     public function destroy(Enquiry $enquiry): RedirectResponse
