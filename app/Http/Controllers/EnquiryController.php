@@ -77,6 +77,7 @@ class EnquiryController extends Controller
             );
         }
 
+        $data = array_merge($data, $this->applyStayDates($data));
         $data = array_merge($data, $this->calculateRoomTotals($data));
 
         $enquiry = Enquiry::query()->create($data);
@@ -114,6 +115,8 @@ class EnquiryController extends Controller
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
             'response_date' => ['nullable', 'date'],
+            'check_in' => ['nullable', 'date'],
+            'check_out' => ['nullable', 'date', 'after:check_in'],
             'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($enquiry->id)],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
             'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
@@ -136,6 +139,7 @@ class EnquiryController extends Controller
             'cancellation_reason' => ['nullable', 'string', 'max:500'],
         ], [
             'group_name.unique' => 'This group name is already used. Enter a different name.',
+            'check_out.after' => 'Check-out must be after check-in.',
         ]);
 
         $confirmBooking = $request->boolean('confirm_booking');
@@ -163,6 +167,7 @@ class EnquiryController extends Controller
             $data['day'] = Carbon::parse($data['enquiry_date'])->format('l');
         }
 
+        $data = array_merge($data, $this->applyStayDates($data));
         $data = array_merge($data, $this->calculateRoomTotals($data));
         $cancellationReason = $cancelBooking
             ? $request->string('cancellation_reason')->toString()
@@ -267,11 +272,18 @@ class EnquiryController extends Controller
             }
         }
 
-        $arrival = $enquiry->option_date
-            ? Carbon::parse($enquiry->option_date)->startOfDay()
-            : now()->addMonth()->startOfDay();
+        $arrival = $enquiry->check_in
+            ? Carbon::parse($enquiry->check_in)->startOfDay()
+            : ($enquiry->option_date
+                ? Carbon::parse($enquiry->option_date)->startOfDay()
+                : now()->addMonth()->startOfDay());
         $nights = max(1, (int) $enquiry->nights);
-        $departure = $arrival->copy()->addDays($nights);
+        $departure = $enquiry->check_out
+            ? Carbon::parse($enquiry->check_out)->startOfDay()
+            : $arrival->copy()->addDays($nights);
+        if ($enquiry->check_in && $enquiry->check_out) {
+            $nights = max(1, $arrival->diffInDays($departure));
+        }
 
         $booking = GroupBooking::query()->create(array_merge([
             'block_id' => 'ENQ-'.$enquiry->ref,
@@ -302,6 +314,25 @@ class EnquiryController extends Controller
         Audit::log('converted', 'enquiries', $enquiry->ref.' → '.$booking->block_id, $booking);
 
         return $booking;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array{nights?: int}
+     */
+    private function applyStayDates(array $data): array
+    {
+        if (empty($data['check_in']) || empty($data['check_out'])) {
+            return [];
+        }
+
+        $checkIn = Carbon::parse($data['check_in'])->startOfDay();
+        $checkOut = Carbon::parse($data['check_out'])->startOfDay();
+        $nights = $checkIn->diffInDays($checkOut);
+
+        return [
+            'nights' => max(1, $nights),
+        ];
     }
 
     private function nextEnquiryRef(?int $year = null): string

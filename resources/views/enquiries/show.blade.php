@@ -57,6 +57,8 @@
     <div class="card">
       <div class="card-header">Commercial</div>
       <div class="card-body">
+        <div class="info-card mb-3"><div class="info-card-label">Check-in</div><div class="info-card-value">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Check-out</div><div class="info-card-value">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Nights</div><div class="info-card-value">{{ $enquiry->nights ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Rooms / night</div><div class="info-card-value">{{ $enquiry->rooms_per_night ?? '—' }}</div></div>
         <div class="info-card"><div class="info-card-label">Total revenue</div><div class="info-card-value">£{{ number_format((float) ($enquiry->total_revenue ?? 0), 2) }}</div></div>

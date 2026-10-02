@@ -123,6 +123,16 @@
       }
     }
 
+    if (rules.afterField) {
+      var form = el.form;
+      var other = form ? form.querySelector('[name="' + rules.afterField + '"]') : null;
+      var otherVal = other ? trim(other.value) : '';
+      if (otherVal && value <= otherVal) {
+        setError(el, rules.afterMessage || 'Must be after the related date.');
+        return false;
+      }
+    }
+
     clearError(el);
     return true;
   }
@@ -144,6 +154,11 @@
       total_revenue: { decimal: true, min: 0 },
       remarks: { max: 5000 },
       cxl_policy: { max: 255 },
+      check_in: {},
+      check_out: {
+        afterField: 'check_in',
+        afterMessage: 'Check-out must be after check-in.'
+      },
       cancellation_reason: {
         required: function () {
           var cancel = form.querySelector('#cancel_booking');
@@ -189,6 +204,14 @@
       cancelEl.addEventListener('change', function () {
         var reason = form.querySelector('#cancellation_reason');
         if (reason) runField(reason);
+      });
+    }
+
+    var checkInEl = form.querySelector('#check_in');
+    if (checkInEl) {
+      checkInEl.addEventListener('change', function () {
+        var checkOut = form.querySelector('#check_out');
+        if (checkOut && checkOut.value) runField(checkOut);
       });
     }
 

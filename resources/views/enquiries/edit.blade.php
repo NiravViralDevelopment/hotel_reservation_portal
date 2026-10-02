@@ -108,6 +108,22 @@
             @error('hotel_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
+            <label for="check_in" class="form-label">Check-in</label>
+            <div class="date-placeholder-wrap">
+              <input type="date" name="check_in" id="check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ old('check_in', $e->check_in?->format('Y-m-d')) }}" placeholder="DD/MM/YYYY">
+              <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+            </div>
+            @error('check_in')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-4">
+            <label for="check_out" class="form-label">Check-out</label>
+            <div class="date-placeholder-wrap">
+              <input type="date" name="check_out" id="check_out" class="form-control @error('check_out') is-invalid @enderror" value="{{ old('check_out', $e->check_out?->format('Y-m-d')) }}" placeholder="DD/MM/YYYY">
+              <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+            </div>
+            @error('check_out')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-4">
             <label for="option_date" class="form-label">Option date</label>
             <input type="date" name="option_date" id="option_date" class="form-control @error('option_date') is-invalid @enderror" value="{{ old('option_date', $e->option_date?->format('Y-m-d')) }}">
             @error('option_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -119,8 +135,9 @@
           </div>
           <div class="col-md-4">
             <label for="nights" class="form-label">Nights</label>
-            <input type="number" name="nights" id="nights" min="1" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights', $e->nights ?? 1) }}">
-            @error('nights')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <input type="number" name="nights" id="nights" min="1" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights', $e->nights ?? 1) }}" readonly>
+            <div class="form-text">Auto-calculated from check-in and check-out.</div>
+            @error('nights')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="rooms_per_night" class="form-label">Rooms per night</label>
@@ -176,6 +193,30 @@
     return isNaN(v) ? 0 : v;
   }
 
+  function nightsFromDates() {
+    var checkInEl = document.getElementById('check_in');
+    var checkOutEl = document.getElementById('check_out');
+    var nightsEl = document.getElementById('nights');
+    if (!checkInEl || !checkOutEl || !nightsEl) return;
+
+    var checkIn = checkInEl.value;
+    var checkOut = checkOutEl.value;
+    if (!checkIn || !checkOut) return;
+
+    var start = new Date(checkIn + 'T00:00:00');
+    var end = new Date(checkOut + 'T00:00:00');
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
+
+    var diff = Math.round((end - start) / 86400000);
+    if (diff < 1) {
+      nightsEl.value = '';
+      return;
+    }
+
+    nightsEl.value = String(diff);
+    recalcEnquiryTotals();
+  }
+
   function recalcEnquiryTotals() {
     var singleRooms = num('single_rooms');
     var doubleRooms = num('double_rooms');
@@ -207,6 +248,13 @@
     }
   }
 
+  ['check_in', 'check_out'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', nightsFromDates);
+    el.addEventListener('input', nightsFromDates);
+  });
+
   document.querySelectorAll('.enquiry-calc, #nights').forEach(function (el) {
     el.addEventListener('input', recalcEnquiryTotals);
     el.addEventListener('change', recalcEnquiryTotals);
@@ -229,6 +277,7 @@
     });
   }
 
+  nightsFromDates();
   recalcEnquiryTotals();
   toggleActionPanels();
 })();

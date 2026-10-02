@@ -20,6 +20,8 @@ class Enquiry extends Model
         'enquiry_date',
         'response_date',
         'day',
+        'check_in',
+        'check_out',
         'nights',
         'group_name',
         'travel_agency_id',
@@ -52,6 +54,8 @@ class Enquiry extends Model
         return [
             'enquiry_date' => 'date',
             'response_date' => 'date',
+            'check_in' => 'date',
+            'check_out' => 'date',
             'option_date' => 'date',
             'year' => 'integer',
             'nights' => 'integer',

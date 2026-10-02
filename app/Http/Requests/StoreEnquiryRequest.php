@@ -30,6 +30,8 @@ class StoreEnquiryRequest extends FormRequest
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
             'response_date' => ['nullable', 'date'],
+            'check_in' => ['nullable', 'date'],
+            'check_out' => ['nullable', 'date', 'after:check_in'],
             'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
             'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
@@ -55,6 +57,7 @@ class StoreEnquiryRequest extends FormRequest
     {
         return [
             'group_name.unique' => 'This group name is already used. Enter a different name.',
+            'check_out.after' => 'Check-out must be after check-in.',
         ];
     }
 }
