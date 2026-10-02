@@ -32,7 +32,7 @@ class StatusMasterController extends Controller
             'status' => 'status',
         ], 'title');
 
-        $statusMasters = $query->paginate(20)->withQueryString();
+        $statusMasters = $query->paginate(10)->withQueryString();
 
         return view('status-masters.index', compact('statusMasters'));
     }

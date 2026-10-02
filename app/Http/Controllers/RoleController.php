@@ -38,7 +38,7 @@ class RoleController extends Controller
             'users' => 'users_count',
         ], 'name');
 
-        $roles = $query->paginate(20)->withQueryString();
+        $roles = $query->paginate(10)->withQueryString();
         $permissions = Permission::query()->orderBy('name')->get(['id', 'name']);
 
         return view('roles.index', compact('roles', 'permissions'));

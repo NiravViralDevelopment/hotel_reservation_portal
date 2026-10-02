@@ -30,7 +30,7 @@ class AuditLogController extends Controller
             'module' => 'module',
         ], 'created_at', 'desc');
 
-        $logs = $query->paginate(50)->withQueryString();
+        $logs = $query->paginate(10)->withQueryString();
         $modules = AuditLog::query()->distinct()->orderBy('module')->pluck('module');
 
         return view('audit-logs.index', compact('logs', 'modules'));

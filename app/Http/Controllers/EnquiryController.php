@@ -76,7 +76,7 @@ class EnquiryController extends Controller
             'nights' => 'nights',
         ], 'enquiry_date', 'desc');
 
-        $enquiries = $query->paginate(20)->withQueryString();
+        $enquiries = $query->paginate(10)->withQueryString();
 
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);

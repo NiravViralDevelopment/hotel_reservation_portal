@@ -33,7 +33,7 @@ class DocumentController extends Controller
             'created_at' => 'created_at',
         ], 'created_at', 'desc');
 
-        $documents = $query->paginate(25)->withQueryString();
+        $documents = $query->paginate(10)->withQueryString();
 
         return view('documents.index', compact('documents'));
     }

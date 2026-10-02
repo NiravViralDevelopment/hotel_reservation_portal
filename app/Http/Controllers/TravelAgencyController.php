@@ -19,6 +19,26 @@ class TravelAgencyController extends Controller
         $query = TravelAgency::query()
             ->withCount(['contacts', 'enquiries', 'groupBookings']);
 
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($builder) use ($search) {
+                $builder->where('code', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('contact_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('country', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('country')) {
+            $query->where('country', $request->string('country'));
+        }
+
         QuerySort::apply($query, $request, [
             'name' => 'name',
             'code' => 'code',
@@ -29,9 +49,15 @@ class TravelAgencyController extends Controller
             'bookings' => 'group_bookings_count',
         ], 'name');
 
-        $travelAgencies = $query->paginate(20)->withQueryString();
+        $travelAgencies = $query->paginate(10)->withQueryString();
+        $countries = TravelAgency::query()
+            ->whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country');
 
-        return view('travel-agencies.index', compact('travelAgencies'));
+        return view('travel-agencies.index', compact('travelAgencies', 'countries'));
     }
 
     public function create(): View

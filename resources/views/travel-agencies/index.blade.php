@@ -22,13 +22,51 @@
 
   <div class="card">
     <div class="table-toolbar">
-      <div class="input-group search-input">
-        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
-        <input type="search" class="form-control border-start-0 table-search" placeholder="Search agencies…" data-table="agenciesTable">
-      </div>
+      <form method="GET" action="{{ route('travel-agencies.index') }}" class="d-flex flex-wrap gap-2 align-items-center w-100">
+        <div class="input-group input-group-sm" style="width: 260px; flex-shrink: 0;">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input
+            type="search"
+            name="q"
+            value="{{ request('q') }}"
+            class="form-control"
+            placeholder="Search code, name, city…"
+            aria-label="Search travel agencies"
+          >
+        </div>
+
+        <select name="status" class="form-select form-select-sm select2" style="width:auto; min-width: 130px;">
+          <option value="">All statuses</option>
+          <option value="active" @selected(request('status') === 'active')>Active</option>
+          <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
+        </select>
+
+        <select name="country" class="form-select form-select-sm select2" style="width:auto; min-width: 150px;">
+          <option value="">All countries</option>
+          @foreach ($countries as $country)
+            <option value="{{ $country }}" @selected(request('country') === $country)>{{ $country }}</option>
+          @endforeach
+        </select>
+
+        <button type="submit" class="btn btn-outline-secondary btn-sm flex-shrink-0"><i class="bi bi-funnel"></i> Filter</button>
+
+        @if (request()->hasAny(['q', 'status', 'country']))
+          <a href="{{ route('travel-agencies.index') }}" class="btn btn-outline-danger btn-sm flex-shrink-0">
+            <i class="bi bi-x-circle"></i> Clear
+          </a>
+        @endif
+
+        @if (request('sort'))
+          <input type="hidden" name="sort" value="{{ request('sort') }}">
+        @endif
+        @if (request('dir'))
+          <input type="hidden" name="dir" value="{{ request('dir') }}">
+        @endif
+      </form>
     </div>
+
     <div class="table-wrapper">
-      <table class="table table-hover mb-0" id="agenciesTable">
+      <table class="table table-hover mb-0 align-middle">
         <thead>
           <tr>
             <x-sortable-th column="code" label="Code" />
@@ -38,7 +76,7 @@
             <x-sortable-th column="enquiries" label="Enquiries" class="text-center" />
             <x-sortable-th column="bookings" label="Bookings" class="text-center" />
             <x-sortable-th column="status" label="Status" />
-            <th></th>
+            <th class="text-end">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -51,14 +89,40 @@
               <td class="text-center">{{ $travelAgency->enquiries_count }}</td>
               <td class="text-center">{{ $travelAgency->group_bookings_count }}</td>
               <td><x-badge-status :status="$travelAgency->status" /></td>
-              <td class="text-end">
+              <td class="text-end text-nowrap">
+                @can('view', $travelAgency)
+                  <a href="{{ route('travel-agencies.show', $travelAgency) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                @endcan
                 @can('update', $travelAgency)
-                  <a href="{{ route('travel-agencies.edit', $travelAgency) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  <a href="{{ route('travel-agencies.edit', $travelAgency) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                @endcan
+                @can('delete', $travelAgency)
+                  <form method="POST" action="{{ route('travel-agencies.destroy', $travelAgency) }}" class="d-inline" onsubmit="return confirm('Delete {{ $travelAgency->name }}?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
                 @endcan
               </td>
             </tr>
           @empty
-            <tr><td colspan="8" class="text-center text-secondary py-4">No travel agencies found.</td></tr>
+            <tr>
+              <td colspan="8" class="text-center text-secondary py-5">
+                <div class="mb-2"><i class="bi bi-airplane fs-3"></i></div>
+                <div>No travel agencies match your filters.</div>
+                @if (request()->hasAny(['q', 'status', 'country']))
+                  <a href="{{ route('travel-agencies.index') }}" class="btn btn-outline-danger btn-sm mt-2">
+                    <i class="bi bi-x-circle"></i> Clear filters
+                  </a>
+                @endif
+              </td>
+            </tr>
           @endforelse
         </tbody>
       </table>

@@ -53,7 +53,7 @@ class UserController extends Controller
             'status' => 'status',
         ], 'name');
 
-        $users = $query->paginate(20)->withQueryString();
+        $users = $query->paginate(10)->withQueryString();
         $roles = Role::query()->orderBy('name')->get(['id', 'name']);
         $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
 

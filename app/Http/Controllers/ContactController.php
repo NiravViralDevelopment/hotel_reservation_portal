@@ -27,7 +27,7 @@ class ContactController extends Controller
             'position' => 'position',
         ], 'name');
 
-        $contacts = $query->paginate(20)->withQueryString();
+        $contacts = $query->paginate(10)->withQueryString();
 
         return view('contacts.index', compact('contacts'));
     }

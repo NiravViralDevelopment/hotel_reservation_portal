@@ -46,7 +46,7 @@ class CompanyController extends Controller
             'status' => 'status',
         ], 'name');
 
-        $companies = $query->paginate(20)->withQueryString();
+        $companies = $query->paginate(10)->withQueryString();
         $countries = Company::query()
             ->whereNotNull('country')
             ->where('country', '!=', '')

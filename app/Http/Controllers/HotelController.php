@@ -56,7 +56,7 @@ class HotelController extends Controller
             'status' => 'status',
         ], 'name');
 
-        $hotels = $query->paginate(20)->withQueryString();
+        $hotels = $query->paginate(10)->withQueryString();
 
         $companies = Company::query()
             ->whereHas('hotels', fn ($q) => $q->accessibleBy())

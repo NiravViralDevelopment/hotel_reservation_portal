@@ -74,7 +74,7 @@ class GroupBookingController extends Controller
             'nights' => 'nights',
         ], 'arrival');
 
-        $bookings = $query->paginate(25)->withQueryString();
+        $bookings = $query->paginate(10)->withQueryString();
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = BookingStatus::values();
