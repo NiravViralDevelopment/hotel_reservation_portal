@@ -22,7 +22,8 @@ class StoreEnquiryRequest extends FormRequest
             'ref' => ['required', 'string', 'max:255', 'unique:enquiries,ref'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
-            'group_name' => ['required', 'string', 'max:255'],
+            'response_date' => ['nullable', 'date'],
+            'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
             'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
             'nights' => ['nullable', 'integer', 'min:1'],
@@ -37,6 +38,16 @@ class StoreEnquiryRequest extends FormRequest
             'status' => ['nullable', Rule::in(EnquiryStatus::values())],
             'email' => ['nullable', 'email', 'max:255'],
             'remarks' => ['nullable', 'string'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'group_name.unique' => 'This group name is already used. Enter a different name.',
         ];
     }
 }

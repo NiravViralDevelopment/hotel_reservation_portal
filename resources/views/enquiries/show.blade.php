@@ -41,6 +41,8 @@
       <div class="card-header">Enquiry</div>
       <div class="card-body">
         <div class="info-card mb-3"><div class="info-card-label">Date</div><div class="info-card-value">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }} {{ $enquiry->day ? "({$enquiry->day})" : '' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Response date</div><div class="info-card-value">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Client response</div><div class="info-card-value">{{ $enquiry->client_response ?: '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Year</div><div class="info-card-value">{{ $enquiry->year ?? '—' }}</div></div>
         <div class="info-card"><div class="info-card-label">Email</div><div class="info-card-value">{{ $enquiry->email ?? '—' }}</div></div>
       </div>
@@ -88,6 +90,66 @@
       @endif
     </div>
   @endif
+
+  @can('update', $enquiry)
+    <div class="card mb-4" id="client-response">
+      <div class="card-header">Client response</div>
+      <div class="card-body">
+        <form method="POST" action="{{ route('enquiries.response', $enquiry) }}" class="row g-3">
+          @csrf
+          <div class="col-md-8">
+            <label for="enquiry_name" class="form-label">Enquiry name</label>
+            <input type="text" id="enquiry_name" class="form-control" value="{{ $enquiry->group_name }}" readonly>
+            <div class="form-text">{{ $enquiry->ref }}. Each reply is kept in this enquiry’s history.</div>
+          </div>
+          <div class="col-md-4">
+            <label for="response_date" class="form-label">Response date <span class="text-danger">*</span></label>
+            <input type="date" name="response_date" id="response_date" class="form-control @error('response_date') is-invalid @enderror" value="{{ old('response_date') }}" required>
+            @error('response_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-12">
+            <label for="client_response" class="form-label">Client response <span class="text-danger">*</span></label>
+            <textarea name="client_response" id="client_response" rows="3" class="form-control @error('client_response') is-invalid @enderror" placeholder="What did the client say?" required maxlength="2000">{{ old('client_response') }}</textarea>
+            @error('client_response')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-accent btn-sm">Save response</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  @endcan
+
+  <div class="card mb-4">
+    <div class="card-header">Response history — {{ $enquiry->group_name }}</div>
+    <div class="table-wrapper">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Response date</th>
+            <th>Client response</th>
+            <th>Recorded</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse ($enquiry->responses as $response)
+            <tr>
+              <td class="text-nowrap">{{ $response->response_date?->format('d M Y') ?? '—' }}</td>
+              <td>{{ $response->client_response }}</td>
+              <td class="text-nowrap">
+                {{ $response->user?->name ?? '—' }}
+                <div class="small text-secondary">{{ $response->created_at?->format('d M Y H:i') }}</div>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="3" class="text-center text-secondary py-4">No responses yet for this enquiry.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   @if ($enquiry->remarks)
     <div class="card mb-4">

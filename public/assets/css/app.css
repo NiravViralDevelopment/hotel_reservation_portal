@@ -833,6 +833,34 @@ a:hover {
   color: var(--brand-accent);
 }
 
+.card.is-table-loading .table-wrapper {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.date-placeholder-wrap {
+  position: relative;
+}
+
+.date-placeholder-wrap .date-placeholder {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  pointer-events: none;
+}
+
+.date-placeholder-wrap.has-value .date-placeholder,
+.date-placeholder-wrap input:focus + .date-placeholder {
+  display: none;
+}
+
+.date-placeholder-wrap:not(.has-value) input[type="date"]:not(:focus)::-webkit-datetime-edit {
+  color: transparent;
+}
+
 .table tbody td {
   padding: 0.75rem 1rem;
   vertical-align: middle;

@@ -34,6 +34,14 @@
             @error('enquiry_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
+            <label for="response_date" class="form-label">Response date</label>
+            <div class="date-placeholder-wrap">
+              <input type="date" name="response_date" id="response_date" class="form-control @error('response_date') is-invalid @enderror" value="{{ old('response_date', $e->response_date?->format('Y-m-d')) }}" placeholder="DD/MM/YYYY">
+              <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+            </div>
+            @error('response_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-3">
             <label for="year" class="form-label">Year</label>
             <input type="number" name="year" id="year" class="form-control @error('year') is-invalid @enderror" value="{{ old('year', $e->year) }}">
             @error('year')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -70,7 +78,8 @@
           </div>
           <div class="col-md-6">
             <label for="group_name" class="form-label">Group name <span class="text-danger">*</span></label>
-            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $e->group_name) }}" required>
+            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $e->group_name) }}" placeholder="e.g. Smith wedding party" required>
+            <div class="form-text">Each group name can be used only once.</div>
             @error('group_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">

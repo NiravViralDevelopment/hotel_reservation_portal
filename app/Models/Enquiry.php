@@ -7,6 +7,7 @@ use App\Support\HotelAccess;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Enquiry extends Model
 {
@@ -17,6 +18,7 @@ class Enquiry extends Model
         'ref',
         'year',
         'enquiry_date',
+        'response_date',
         'day',
         'nights',
         'group_name',
@@ -37,6 +39,7 @@ class Enquiry extends Model
         'option_date',
         'email',
         'remarks',
+        'client_response',
         'status',
         'converted_booking_id',
     ];
@@ -48,6 +51,7 @@ class Enquiry extends Model
     {
         return [
             'enquiry_date' => 'date',
+            'response_date' => 'date',
             'option_date' => 'date',
             'year' => 'integer',
             'nights' => 'integer',
@@ -81,6 +85,11 @@ class Enquiry extends Model
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function responses(): HasMany
+    {
+        return $this->hasMany(EnquiryResponse::class)->latest();
     }
 
     public function convertedBooking(): BelongsTo

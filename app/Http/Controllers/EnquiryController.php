@@ -36,6 +36,7 @@ class EnquiryController extends Controller
             'ref' => 'ref',
             'group_name' => 'group_name',
             'enquiry_date' => 'enquiry_date',
+            'response_date' => 'response_date',
             'status' => 'status',
             'total_revenue' => 'total_revenue',
             'nights' => 'nights',
@@ -83,7 +84,7 @@ class EnquiryController extends Controller
     {
         $this->authorize('view', $enquiry);
 
-        $enquiry->load(['travelAgency', 'hotel', 'contact', 'assignedTo', 'convertedBooking']);
+        $enquiry->load(['travelAgency', 'hotel', 'contact', 'assignedTo', 'convertedBooking', 'responses.user']);
 
         return view('enquiries.show', compact('enquiry'));
     }
@@ -107,7 +108,8 @@ class EnquiryController extends Controller
             'ref' => ['required', 'string', 'max:255', 'unique:enquiries,ref,'.$enquiry->id],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
-            'group_name' => ['required', 'string', 'max:255'],
+            'response_date' => ['nullable', 'date'],
+            'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($enquiry->id)],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
             'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
             'nights' => ['nullable', 'integer', 'min:1'],
@@ -127,6 +129,8 @@ class EnquiryController extends Controller
             'confirm_booking' => ['nullable', 'boolean'],
             'cancel_booking' => ['nullable', 'boolean'],
             'cancellation_reason' => ['nullable', 'string', 'max:500'],
+        ], [
+            'group_name.unique' => 'This group name is already used. Enter a different name.',
         ]);
 
         $confirmBooking = $request->boolean('confirm_booking');
@@ -190,6 +194,31 @@ class EnquiryController extends Controller
         }
 
         return redirect()->route('enquiries.index')->with('success', 'Enquiry updated.');
+    }
+
+    public function storeResponse(Request $request, Enquiry $enquiry): RedirectResponse
+    {
+        $this->authorize('update', $enquiry);
+
+        $data = $request->validate([
+            'response_date' => ['required', 'date'],
+            'client_response' => ['required', 'string', 'max:2000'],
+        ], [
+            'response_date.required' => 'Enter the date the client responded.',
+            'client_response.required' => 'Enter the client response for this enquiry.',
+        ]);
+
+        $enquiry->responses()->create([
+            'user_id' => $request->user()?->id,
+            'response_date' => $data['response_date'],
+            'client_response' => $data['client_response'],
+        ]);
+        $enquiry->update($data);
+        Audit::log('updated', 'enquiries', $enquiry->ref.' client response', $enquiry);
+
+        return redirect()
+            ->route('enquiries.show', $enquiry)
+            ->with('success', 'Client response saved for '.$enquiry->group_name.'.');
     }
 
     public function destroy(Enquiry $enquiry): RedirectResponse
@@ -280,14 +309,21 @@ class EnquiryController extends Controller
         $doubleRooms = (int) ($data['double_rooms'] ?? 0);
         $tripleRooms = (int) ($data['triple_rooms'] ?? 0);
         $nights = max(1, (int) ($data['nights'] ?? 1));
+        $fromBreakdown = $singleRooms + $doubleRooms + $tripleRooms;
 
         $nightly = ($singleRooms * (float) ($data['single_rate'] ?? 0))
             + ($doubleRooms * (float) ($data['double_rate'] ?? 0))
             + ($tripleRooms * (float) ($data['triple_rate'] ?? 0));
 
+        $enteredRooms = isset($data['rooms_per_night']) && $data['rooms_per_night'] !== ''
+            ? (int) $data['rooms_per_night']
+            : null;
+
         return [
-            'rooms_per_night' => $singleRooms + $doubleRooms + $tripleRooms,
-            'total_revenue' => round($nightly * $nights, 2),
+            'rooms_per_night' => $enteredRooms ?? $fromBreakdown,
+            'total_revenue' => $nightly > 0
+                ? round($nightly * $nights, 2)
+                : round((float) ($data['total_revenue'] ?? 0), 2),
         ];
     }
 }
