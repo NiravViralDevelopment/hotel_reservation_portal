@@ -16,7 +16,7 @@
     <h1 class="page-title">Edit enquiry</h1>
   </div>
 
-  <form method="POST" action="{{ route('enquiries.update', $e) }}">
+  <form method="POST" action="{{ route('enquiries.update', $e) }}" class="enquiry-form" novalidate>
     @csrf
     @method('PUT')
     <div class="card mb-4">
@@ -25,7 +25,7 @@
         <div class="row g-3">
           <div class="col-md-3">
             <label for="ref" class="form-label">Reference <span class="text-danger">*</span></label>
-            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref', $e->ref) }}" required>
+            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref', $e->ref) }}">
             @error('ref')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
@@ -78,7 +78,7 @@
           </div>
           <div class="col-md-6">
             <label for="group_name" class="form-label">Group name <span class="text-danger">*</span></label>
-            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $e->group_name) }}" placeholder="e.g. Smith wedding party" required>
+            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $e->group_name) }}" placeholder="e.g. Smith wedding party">
             <div class="form-text">Each group name can be used only once.</div>
             @error('group_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
@@ -166,6 +166,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/enquiry-validation.js') }}?v={{ @filemtime(public_path('assets/js/enquiry-validation.js')) }}"></script>
 <script>
 (function () {
   function num(id) {
@@ -202,7 +203,6 @@
 
     if (cancelWrap) cancelWrap.style.display = isCancel ? '' : 'none';
     if (reasonEl) {
-      reasonEl.required = isCancel;
       if (!isCancel) reasonEl.value = reasonEl.value;
     }
   }

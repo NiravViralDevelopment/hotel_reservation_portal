@@ -16,7 +16,7 @@
     <p class="page-subtitle mb-0">Fields marked <span class="text-danger">*</span> are required.</p>
   </div>
 
-  <form method="POST" action="{{ route('enquiries.store') }}" class="enquiry-form">
+  <form method="POST" action="{{ route('enquiries.store') }}" class="enquiry-form" novalidate>
     @csrf
     <div class="card mb-4">
       <div class="card-header">Group</div>
@@ -24,13 +24,13 @@
         <div class="row g-3">
           <div class="col-md-8">
             <label for="group_name" class="form-label">Group name <span class="text-danger">*</span></label>
-            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name') }}" placeholder="e.g. Smith wedding party" required>
+            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name') }}" placeholder="e.g. Smith wedding party" maxlength="255">
             <div class="form-text">Each group name can be used only once.</div>
             @error('group_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="name@company.co.uk">
+            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="name@company.co.uk" maxlength="255">
             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
@@ -47,8 +47,9 @@
       <div class="card-body">
         <div class="row g-3">
           <div class="col-md-4">
-            <label for="ref" class="form-label">Reference <span class="text-danger">*</span></label>
-            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref') }}" placeholder="e.g. ENQ-2026-014" required>
+            <label for="ref" class="form-label">Reference</label>
+            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref') }}" placeholder="e.g. ENQ-2026-014">
+            <div class="form-text">Optional. Leave blank to auto-generate.</div>
             @error('ref')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
@@ -93,13 +94,22 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label for="travel_agency_id" class="form-label">Travel agency</label>
-            <select name="travel_agency_id" id="travel_agency_id" class="form-select select2 @error('travel_agency_id') is-invalid @enderror" data-placeholder="Select a travel agency">
-              <option value="">Select a travel agency</option>
-              @foreach ($travelAgencies as $agency)
-                <option value="{{ $agency->id }}" @selected(old('travel_agency_id') == $agency->id)>{{ $agency->name }}</option>
-              @endforeach
-            </select>
-            @error('travel_agency_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="d-flex gap-2 align-items-start">
+              <div class="flex-grow-1">
+                <select name="travel_agency_id" id="travel_agency_id" class="form-select select2 @error('travel_agency_id') is-invalid @enderror" data-placeholder="Select a travel agency">
+                  <option value="">Select a travel agency</option>
+                  @foreach ($travelAgencies as $agency)
+                    <option value="{{ $agency->id }}" @selected(old('travel_agency_id') == $agency->id)>{{ $agency->name }}</option>
+                  @endforeach
+                </select>
+                @error('travel_agency_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+              </div>
+              @can('create', App\Models\TravelAgency::class)
+                <button type="button" class="btn btn-outline-secondary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#quickTravelAgencyModal" title="Add travel agency">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              @endcan
+            </div>
           </div>
           <div class="col-md-6">
             <label for="hotel_id" class="form-label">Hotel</label>
@@ -155,9 +165,69 @@
       <a href="{{ route('enquiries.index') }}" class="btn btn-outline-secondary">Cancel</a>
     </div>
   </form>
+
+  @can('create', App\Models\TravelAgency::class)
+  <div class="modal fade" id="quickTravelAgencyModal" tabindex="-1" aria-labelledby="quickTravelAgencyLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="quickTravelAgencyLabel">Add travel agency</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="quickTravelAgencyForm" novalidate>
+          <div class="modal-body">
+            <div id="quickTravelAgencyErrors" class="alert alert-danger d-none" role="alert"></div>
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="qa_code" class="form-label">Code <span class="text-danger">*</span></label>
+                <input type="text" name="code" id="qa_code" class="form-control" maxlength="20">
+              </div>
+              <div class="col-md-9">
+                <label for="qa_name" class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" id="qa_name" class="form-control" maxlength="255">
+              </div>
+              <div class="col-md-4">
+                <label for="qa_contact_name" class="form-label">Contact name</label>
+                <input type="text" name="contact_name" id="qa_contact_name" class="form-control" maxlength="255">
+              </div>
+              <div class="col-md-4">
+                <label for="qa_email" class="form-label">Email</label>
+                <input type="email" name="email" id="qa_email" class="form-control" maxlength="255">
+              </div>
+              <div class="col-md-4">
+                <label for="qa_phone" class="form-label">Phone</label>
+                <input type="text" name="phone" id="qa_phone" class="form-control" maxlength="30">
+              </div>
+              <div class="col-md-4">
+                <label for="qa_city" class="form-label">City</label>
+                <input type="text" name="city" id="qa_city" class="form-control" maxlength="255">
+              </div>
+              <div class="col-md-4">
+                <label for="qa_country" class="form-label">Country</label>
+                <input type="text" name="country" id="qa_country" class="form-control" maxlength="255">
+              </div>
+              <div class="col-md-4">
+                <label for="qa_status" class="form-label">Status <span class="text-danger">*</span></label>
+                <select name="status" id="qa_status" class="form-select">
+                  <option value="active" selected>Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-accent" id="quickTravelAgencySubmit">Save agency</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  @endcan
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/enquiry-validation.js') }}?v={{ @filemtime(public_path('assets/js/enquiry-validation.js')) }}"></script>
 <script>
 (function () {
   document.querySelectorAll('.js-digits').forEach(function (el) {
@@ -208,6 +278,140 @@
     el.addEventListener('input', recalcEnquiryTotals);
     el.addEventListener('change', recalcEnquiryTotals);
   });
+
+  var agencyForm = document.getElementById('quickTravelAgencyForm');
+  if (agencyForm) {
+    var agencyModalEl = document.getElementById('quickTravelAgencyModal');
+    var errorBox = document.getElementById('quickTravelAgencyErrors');
+    var submitBtn = document.getElementById('quickTravelAgencySubmit');
+    var csrf = document.querySelector('meta[name="csrf-token"]');
+
+    function setAgencyFieldError(el, message) {
+      el.classList.add('is-invalid');
+      var feedback = el.parentElement.querySelector('.js-client-error');
+      if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback js-client-error d-block';
+        el.insertAdjacentElement('afterend', feedback);
+      }
+      feedback.textContent = message;
+      feedback.style.display = 'block';
+    }
+
+    function clearAgencyFieldError(el) {
+      el.classList.remove('is-invalid');
+      var feedback = el.parentElement.querySelector('.js-client-error');
+      if (feedback) {
+        feedback.textContent = '';
+        feedback.style.display = 'none';
+      }
+    }
+
+    function validateAgencyField(el) {
+      var name = el.getAttribute('name');
+      var value = (el.value || '').trim();
+      if ((name === 'code' || name === 'name' || name === 'status') && !value) {
+        setAgencyFieldError(el, name === 'code' ? 'Code is required.' : (name === 'name' ? 'Name is required.' : 'Status is required.'));
+        return false;
+      }
+      if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        setAgencyFieldError(el, 'Enter a valid email address.');
+        return false;
+      }
+      clearAgencyFieldError(el);
+      return true;
+    }
+
+    agencyModalEl.addEventListener('hidden.bs.modal', function () {
+      agencyForm.reset();
+      document.getElementById('qa_status').value = 'active';
+      errorBox.classList.add('d-none');
+      errorBox.innerHTML = '';
+      agencyForm.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+      agencyForm.querySelectorAll('.js-client-error').forEach(function (el) { el.remove(); });
+    });
+
+    agencyForm.querySelectorAll('input, select').forEach(function (el) {
+      ['keyup', 'input', 'change', 'blur'].forEach(function (evt) {
+        el.addEventListener(evt, function () { validateAgencyField(el); });
+      });
+    });
+
+    agencyForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      errorBox.classList.add('d-none');
+      errorBox.innerHTML = '';
+
+      var firstInvalid = null;
+      agencyForm.querySelectorAll('input, select').forEach(function (el) {
+        if (!validateAgencyField(el) && !firstInvalid) firstInvalid = el;
+      });
+      if (firstInvalid) {
+        firstInvalid.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      var formData = new FormData(agencyForm);
+
+      fetch(@json(route('travel-agencies.store')), {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf ? csrf.content : ''
+        },
+        body: formData
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, status: res.status, data: data };
+        });
+      }).then(function (result) {
+        if (!result.ok) {
+          var messages = [];
+          if (result.data && result.data.errors) {
+            Object.keys(result.data.errors).forEach(function (key) {
+              messages = messages.concat(result.data.errors[key]);
+              var field = agencyForm.querySelector('[name="' + key + '"]');
+              if (field) setAgencyFieldError(field, result.data.errors[key][0]);
+            });
+          } else if (result.data && result.data.message) {
+            messages.push(result.data.message);
+          } else {
+            messages.push('Could not save travel agency.');
+          }
+          errorBox.innerHTML = '<ul class="mb-0">' + messages.map(function (m) {
+            return '<li>' + m + '</li>';
+          }).join('') + '</ul>';
+          errorBox.classList.remove('d-none');
+          return;
+        }
+
+        var select = document.getElementById('travel_agency_id');
+        var label = result.data.name;
+        if (window.jQuery && jQuery.fn.select2) {
+          var $select = jQuery(select);
+          var option = new Option(label, result.data.id, true, true);
+          $select.append(option).trigger('change');
+        } else {
+          var opt = document.createElement('option');
+          opt.value = result.data.id;
+          opt.textContent = label;
+          opt.selected = true;
+          select.appendChild(opt);
+        }
+
+        var modal = bootstrap.Modal.getInstance(agencyModalEl);
+        if (modal) modal.hide();
+      }).catch(function () {
+        errorBox.innerHTML = '<ul class="mb-0"><li>Could not save travel agency.</li></ul>';
+        errorBox.classList.remove('d-none');
+      }).finally(function () {
+        submitBtn.disabled = false;
+      });
+    });
+  }
 })();
 </script>
 @endpush

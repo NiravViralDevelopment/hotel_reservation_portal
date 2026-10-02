@@ -1,0 +1,219 @@
+/**
+ * Enquiry module client-side validation.
+ * Shows messages immediately on keyup / input / change / blur, and blocks submit if invalid.
+ */
+(function (window, document) {
+  'use strict';
+
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function trim(value) {
+    return String(value == null ? '' : value).trim();
+  }
+
+  function ensureFeedback(el) {
+    var wrap = el.closest('.date-placeholder-wrap');
+    var host = wrap ? wrap.parentElement : el.parentElement;
+    if (!host) return null;
+
+    var feedback = host.querySelector(':scope > .js-client-error');
+    if (feedback) return feedback;
+
+    feedback = document.createElement('div');
+    feedback.className = 'invalid-feedback js-client-error d-block';
+    feedback.style.display = 'none';
+
+    if (wrap) {
+      wrap.insertAdjacentElement('afterend', feedback);
+    } else {
+      el.insertAdjacentElement('afterend', feedback);
+    }
+
+    return feedback;
+  }
+
+  function setError(el, message) {
+    el.classList.add('is-invalid');
+    el.setAttribute('aria-invalid', 'true');
+
+    var feedback = ensureFeedback(el);
+    if (feedback) {
+      feedback.textContent = message;
+      feedback.style.display = 'block';
+    }
+  }
+
+  function clearError(el) {
+    el.classList.remove('is-invalid');
+    el.removeAttribute('aria-invalid');
+
+    var wrap = el.closest('.date-placeholder-wrap');
+    var host = wrap ? wrap.parentElement : el.parentElement;
+    var feedback = host ? host.querySelector(':scope > .js-client-error') : null;
+    if (feedback) {
+      feedback.textContent = '';
+      feedback.style.display = 'none';
+    }
+  }
+
+  function validateField(el, rules) {
+    if (!el || !rules) return true;
+
+    var value = trim(el.value);
+    var empty = value === '';
+    var required = typeof rules.required === 'function' ? !!rules.required() : !!rules.required;
+
+    if (required && empty) {
+      setError(el, rules.requiredMessage || 'This field is required.');
+      return false;
+    }
+
+    if (empty) {
+      clearError(el);
+      return true;
+    }
+
+    if (rules.max != null && value.length > rules.max) {
+      setError(el, 'Must be ' + rules.max + ' characters or fewer.');
+      return false;
+    }
+
+    if (rules.email && !EMAIL_RE.test(value)) {
+      setError(el, 'Enter a valid email address.');
+      return false;
+    }
+
+    if (rules.integer) {
+      if (!/^\d+$/.test(value)) {
+        setError(el, 'Enter a whole number.');
+        return false;
+      }
+      var intVal = parseInt(value, 10);
+      if (rules.min != null && intVal < rules.min) {
+        setError(el, 'Must be at least ' + rules.min + '.');
+        return false;
+      }
+      if (rules.maxNum != null && intVal > rules.maxNum) {
+        setError(el, 'Must be ' + rules.maxNum + ' or less.');
+        return false;
+      }
+    }
+
+    if (rules.decimal) {
+      if (!/^\d+(\.\d+)?$/.test(value)) {
+        setError(el, 'Enter a valid number.');
+        return false;
+      }
+      var numVal = parseFloat(value);
+      if (rules.min != null && numVal < rules.min) {
+        setError(el, 'Must be at least ' + rules.min + '.');
+        return false;
+      }
+    }
+
+    if (rules.year) {
+      if (!/^\d{4}$/.test(value)) {
+        setError(el, 'Enter a 4-digit year.');
+        return false;
+      }
+      var year = parseInt(value, 10);
+      if (year < 2000 || year > 2100) {
+        setError(el, 'Year must be between 2000 and 2100.');
+        return false;
+      }
+    }
+
+    clearError(el);
+    return true;
+  }
+
+  function buildRules(form) {
+    return {
+      group_name: { required: true, max: 255, requiredMessage: 'Group name is required.' },
+      email: { email: true, max: 255 },
+      ref: { max: 255 },
+      year: { year: true },
+      nights: { integer: true, min: 1 },
+      rooms_per_night: { integer: true, min: 0 },
+      single_rooms: { integer: true, min: 0 },
+      double_rooms: { integer: true, min: 0 },
+      triple_rooms: { integer: true, min: 0 },
+      single_rate: { decimal: true, min: 0 },
+      double_rate: { decimal: true, min: 0 },
+      triple_rate: { decimal: true, min: 0 },
+      total_revenue: { decimal: true, min: 0 },
+      remarks: { max: 5000 },
+      cxl_policy: { max: 255 },
+      cancellation_reason: {
+        required: function () {
+          var cancel = form.querySelector('#cancel_booking');
+          return !!(cancel && cancel.checked);
+        },
+        max: 500,
+        requiredMessage: 'Enter a cancellation reason.'
+      },
+      client_response: { required: true, max: 2000, requiredMessage: 'Enter the client response.' },
+      response_date: { required: true, requiredMessage: 'Enter the response date.' }
+    };
+  }
+
+  function init(form) {
+    if (!form || form.dataset.enquiryValidationInit === '1') return;
+    form.dataset.enquiryValidationInit = '1';
+    form.setAttribute('novalidate', 'novalidate');
+
+    var rulesMap = buildRules(form);
+
+    function fields() {
+      return Object.keys(rulesMap)
+        .map(function (name) {
+          return form.querySelector('[name="' + name + '"]');
+        })
+        .filter(Boolean);
+    }
+
+    function runField(el) {
+      return validateField(el, rulesMap[el.getAttribute('name')]);
+    }
+
+    fields().forEach(function (el) {
+      ['keyup', 'input', 'change', 'blur'].forEach(function (evt) {
+        el.addEventListener(evt, function () {
+          runField(el);
+        });
+      });
+    });
+
+    var cancelEl = form.querySelector('#cancel_booking');
+    if (cancelEl) {
+      cancelEl.addEventListener('change', function () {
+        var reason = form.querySelector('#cancellation_reason');
+        if (reason) runField(reason);
+      });
+    }
+
+    form.addEventListener('submit', function (e) {
+      var firstInvalid = null;
+      fields().forEach(function (el) {
+        if (!runField(el) && !firstInvalid) firstInvalid = el;
+      });
+      if (firstInvalid) {
+        e.preventDefault();
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+
+  function boot() {
+    document.querySelectorAll('form.enquiry-form').forEach(init);
+  }
+
+  window.EnquiryValidation = { init: init, boot: boot };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})(window, document);

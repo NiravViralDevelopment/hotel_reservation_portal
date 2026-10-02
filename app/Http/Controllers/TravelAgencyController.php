@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TravelAgency;
 use App\Support\Audit;
 use App\Support\QuerySort;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -40,7 +41,7 @@ class TravelAgencyController extends Controller
         return view('travel-agencies.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $this->authorize('create', TravelAgency::class);
 
@@ -55,8 +56,21 @@ class TravelAgencyController extends Controller
             'status' => ['required', 'in:active,inactive'],
         ]);
 
+        if (blank($data['country'] ?? null)) {
+            $data['country'] = 'United Kingdom';
+        }
+
         $agency = TravelAgency::query()->create($data);
         Audit::log('created', 'travel_agencies', $agency->code, $agency);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'id' => $agency->id,
+                'name' => $agency->name,
+                'code' => $agency->code,
+                'message' => 'Travel agency created.',
+            ]);
+        }
 
         return redirect()->route('travel-agencies.index')->with('success', 'Travel agency created.');
     }
@@ -91,6 +105,10 @@ class TravelAgencyController extends Controller
             'country' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'in:active,inactive'],
         ]);
+
+        if (blank($data['country'] ?? null)) {
+            $data['country'] = 'United Kingdom';
+        }
 
         $travelAgency->update($data);
         Audit::log('updated', 'travel_agencies', $travelAgency->code, $travelAgency);

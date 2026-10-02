@@ -95,7 +95,7 @@
     <div class="card mb-4" id="client-response">
       <div class="card-header">Client response</div>
       <div class="card-body">
-        <form method="POST" action="{{ route('enquiries.response', $enquiry) }}" class="row g-3">
+        <form method="POST" action="{{ route('enquiries.response', $enquiry) }}" class="row g-3 enquiry-form" novalidate>
           @csrf
           <div class="col-md-8">
             <label for="enquiry_name" class="form-label">Enquiry name</label>
@@ -104,12 +104,12 @@
           </div>
           <div class="col-md-4">
             <label for="response_date" class="form-label">Response date <span class="text-danger">*</span></label>
-            <input type="date" name="response_date" id="response_date" class="form-control @error('response_date') is-invalid @enderror" value="{{ old('response_date') }}" required>
+            <input type="date" name="response_date" id="response_date" class="form-control @error('response_date') is-invalid @enderror" value="{{ old('response_date') }}">
             @error('response_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
             <label for="client_response" class="form-label">Client response <span class="text-danger">*</span></label>
-            <textarea name="client_response" id="client_response" rows="3" class="form-control @error('client_response') is-invalid @enderror" placeholder="What did the client say?" required maxlength="2000">{{ old('client_response') }}</textarea>
+            <textarea name="client_response" id="client_response" rows="3" class="form-control @error('client_response') is-invalid @enderror" placeholder="What did the client say?" maxlength="2000">{{ old('client_response') }}</textarea>
             @error('client_response')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
@@ -158,3 +158,7 @@
     </div>
   @endif
 @endsection
+
+@push('scripts')
+<script src="{{ asset('assets/js/enquiry-validation.js') }}?v={{ @filemtime(public_path('assets/js/enquiry-validation.js')) }}"></script>
+@endpush

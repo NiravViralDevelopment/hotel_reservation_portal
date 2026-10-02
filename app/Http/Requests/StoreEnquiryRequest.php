@@ -13,13 +13,20 @@ class StoreEnquiryRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('ref') === '') {
+            $this->merge(['ref' => null]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'ref' => ['required', 'string', 'max:255', 'unique:enquiries,ref'],
+            'ref' => ['nullable', 'string', 'max:255', 'unique:enquiries,ref'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
             'response_date' => ['nullable', 'date'],

@@ -71,6 +71,11 @@ class EnquiryController extends Controller
         if (empty($data['year']) && ! empty($data['enquiry_date'])) {
             $data['year'] = (int) Carbon::parse($data['enquiry_date'])->format('Y');
         }
+        if (empty($data['ref'])) {
+            $data['ref'] = $this->nextEnquiryRef(
+                isset($data['year']) ? (int) $data['year'] : null
+            );
+        }
 
         $data = array_merge($data, $this->calculateRoomTotals($data));
 
@@ -297,6 +302,24 @@ class EnquiryController extends Controller
         Audit::log('converted', 'enquiries', $enquiry->ref.' → '.$booking->block_id, $booking);
 
         return $booking;
+    }
+
+    private function nextEnquiryRef(?int $year = null): string
+    {
+        $year = $year ?: (int) date('Y');
+        $prefix = 'ENQ-'.$year.'-';
+
+        $latest = Enquiry::query()
+            ->where('ref', 'like', $prefix.'%')
+            ->orderByDesc('ref')
+            ->value('ref');
+
+        $next = 1;
+        if (is_string($latest) && preg_match('/(\d+)$/', $latest, $matches)) {
+            $next = ((int) $matches[1]) + 1;
+        }
+
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     /**
