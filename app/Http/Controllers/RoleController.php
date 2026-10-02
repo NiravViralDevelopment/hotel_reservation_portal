@@ -103,7 +103,13 @@ class RoleController extends Controller
         ]);
 
         $role->update(['name' => $validated['name']]);
-        $role->syncPermissions($validated['permissions'] ?? []);
+
+        // Administrator always has every permission (also enforced by Gate::before).
+        if ($role->name === 'Administrator') {
+            $role->syncPermissions(Permission::query()->pluck('name')->all());
+        } else {
+            $role->syncPermissions($validated['permissions'] ?? []);
+        }
 
         Audit::log('updated', 'roles', $role->name, $role);
 

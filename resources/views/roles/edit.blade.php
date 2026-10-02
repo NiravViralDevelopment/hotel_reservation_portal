@@ -51,18 +51,38 @@
     <div class="card mb-4">
       <div class="card-header">Permissions</div>
       <div class="card-body">
-        <p class="small text-secondary mb-3">
-          Tip: enable the <strong>.view</strong> permission for a module (e.g. <code>hotels.view</code>) so it appears in the sidebar.
-        </p>
+        @if ($role->name === 'Administrator')
+          <div class="alert alert-info small mb-3">
+            <strong>Administrator</strong> always has full access to every module (including Status Master), even if a checkbox looks unchecked in the database.
+            Permissions below are kept fully assigned and cannot be reduced for this role.
+          </div>
+        @else
+          <p class="small text-secondary mb-3">
+            Tip: enable the <strong>.view</strong> permission for a module (e.g. <code>hotels.view</code>) so it appears in the sidebar.
+          </p>
+        @endif
         @php
-          $selected = old('permissions', $role->permissions->pluck('name')->all());
+          $isAdminRole = $role->name === 'Administrator';
+          $selected = $isAdminRole
+            ? $permissions->pluck('name')->all()
+            : old('permissions', $role->permissions->pluck('name')->all());
         @endphp
         <div class="row g-2">
           @foreach ($permissions as $permission)
             <div class="col-md-4 col-lg-3">
               <div class="form-check">
-                <input class="form-check-input @error('permissions') is-invalid @enderror" type="checkbox" name="permissions[]" value="{{ $permission->name }}" id="perm_{{ $permission->id }}"
-                  @checked(in_array($permission->name, $selected, true))>
+                <input
+                  class="form-check-input @error('permissions') is-invalid @enderror"
+                  type="checkbox"
+                  name="permissions[]"
+                  value="{{ $permission->name }}"
+                  id="perm_{{ $permission->id }}"
+                  @checked(in_array($permission->name, $selected, true))
+                  @disabled($isAdminRole)
+                >
+                @if ($isAdminRole)
+                  <input type="hidden" name="permissions[]" value="{{ $permission->name }}">
+                @endif
                 <label class="form-check-label small" for="perm_{{ $permission->id }}">{{ $permission->name }}</label>
               </div>
             </div>

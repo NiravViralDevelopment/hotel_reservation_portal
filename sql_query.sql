@@ -1,5 +1,10 @@
 Hiten sql query :
 
+NOTE: These changes are also in migration:
+  database/migrations/2026_10_02_072457_add_status_masters_and_enquiry_fields.php
+Prefer: php artisan migrate
+Use the SQL below only for manual/hotfix runs on an existing DB.
+
 
 
 ERROR FIX: travel_agencies.country cannot be null
@@ -79,3 +84,17 @@ INSERT INTO permissions (name, guard_name, created_at, updated_at) VALUES
   ('statuses.edit', 'web', NOW(), NOW()),
   ('statuses.delete', 'web', NOW(), NOW())
 ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- Assign Status Master permissions to Administrator (role id by name)
+INSERT INTO role_has_permissions (permission_id, role_id)
+SELECT p.id, r.id
+FROM permissions p
+CROSS JOIN roles r
+WHERE r.name = 'Administrator'
+  AND r.guard_name = 'web'
+  AND p.guard_name = 'web'
+  AND p.name IN ('statuses.view', 'statuses.create', 'statuses.edit', 'statuses.delete')
+  AND NOT EXISTS (
+    SELECT 1 FROM role_has_permissions rhp
+    WHERE rhp.permission_id = p.id AND rhp.role_id = r.id
+  );
