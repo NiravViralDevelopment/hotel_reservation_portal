@@ -125,7 +125,7 @@
           </div>
           <div class="col-12">
             <label for="client_response" class="form-label">Client response <span class="text-danger">*</span></label>
-            <textarea name="client_response" id="client_response" rows="3" class="form-control @error('client_response') is-invalid @enderror" placeholder="What did the client say?" maxlength="2000">{{ old('client_response') }}</textarea>
+            <textarea name="client_response" id="client_response" rows="3" class="form-control @error('client_response') is-invalid @enderror" placeholder="Enter client response" maxlength="2000">{{ old('client_response') }}</textarea>
             @error('client_response')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">

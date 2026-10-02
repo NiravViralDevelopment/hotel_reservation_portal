@@ -25,7 +25,7 @@
         <div class="row g-3">
           <div class="col-md-3">
             <label for="ref" class="form-label">Reference <span class="text-danger">*</span></label>
-            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref', $e->ref) }}">
+            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref', $e->ref) }}" placeholder="Enter reference">
             @error('ref')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
@@ -43,7 +43,7 @@
           </div>
           <div class="col-md-3">
             <label for="year" class="form-label">Year</label>
-            <input type="number" name="year" id="year" class="form-control @error('year') is-invalid @enderror" value="{{ old('year', $e->year) }}">
+            <input type="number" name="year" id="year" class="form-control @error('year') is-invalid @enderror" value="{{ old('year', $e->year) }}" placeholder="Enter year">
             @error('year')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
@@ -73,18 +73,18 @@
           </div>
           <div class="col-12" id="cancellationReasonWrap" style="{{ old('cancel_booking') ? '' : 'display:none;' }}">
             <label for="cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
-            <textarea name="cancellation_reason" id="cancellation_reason" rows="2" class="form-control @error('cancellation_reason') is-invalid @enderror" placeholder="Required when Cancel is checked">{{ old('cancellation_reason') }}</textarea>
+            <textarea name="cancellation_reason" id="cancellation_reason" rows="2" class="form-control @error('cancellation_reason') is-invalid @enderror" placeholder="Enter cancellation reason">{{ old('cancellation_reason') }}</textarea>
             @error('cancellation_reason')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
             <label for="group_name" class="form-label">Group name <span class="text-danger">*</span></label>
-            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $e->group_name) }}" placeholder="e.g. Smith wedding party">
+            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $e->group_name) }}" placeholder="Enter group name">
             <div class="form-text">Each group name can be used only once.</div>
             @error('group_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
             <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $e->email) }}">
+            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $e->email) }}" placeholder="Enter email">
             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
@@ -135,7 +135,7 @@
           </div>
           <div class="col-md-4">
             <label for="cxl_policy" class="form-label">Cancellation policy</label>
-            <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ old('cxl_policy', $e->cxl_policy) }}">
+            <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ old('cxl_policy', $e->cxl_policy) }}" placeholder="Enter cancellation policy">
             @error('cxl_policy')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
@@ -163,7 +163,7 @@
           </div>
           <div class="col-md-4" id="taxPercentageWrap" style="{{ old('has_tax', $e->has_tax) ? '' : 'display:none;' }}">
             <label for="tax_percentage" class="form-label">Tax percentage (%) <span class="text-danger">*</span></label>
-            <input type="number" step="0.01" min="0" max="100" name="tax_percentage" id="tax_percentage" class="form-control @error('tax_percentage') is-invalid @enderror" value="{{ old('tax_percentage', $e->tax_percentage) }}" placeholder="e.g. 20">
+            <input type="number" step="0.01" min="0" max="100" name="tax_percentage" id="tax_percentage" class="form-control @error('tax_percentage') is-invalid @enderror" value="{{ old('tax_percentage', $e->tax_percentage) }}" placeholder="Enter tax percentage">
             @error('tax_percentage')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4" id="taxRevenueWrap" style="{{ old('has_tax', $e->has_tax) ? '' : 'display:none;' }}">
@@ -182,16 +182,16 @@
           @foreach (['single', 'double', 'triple'] as $type)
             <div class="col-md-2">
               <label for="{{ $type }}_rooms" class="form-label">{{ ucfirst($type) }} rooms</label>
-              <input type="number" name="{{ $type }}_rooms" id="{{ $type }}_rooms" min="0" class="form-control enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms', $e->{$type.'_rooms'}) }}">
+              <input type="number" name="{{ $type }}_rooms" id="{{ $type }}_rooms" min="0" class="form-control enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms', $e->{$type.'_rooms'}) }}" placeholder="Enter {{ $type }} rooms">
             </div>
             <div class="col-md-2">
               <label for="{{ $type }}_rate" class="form-label">{{ ucfirst($type) }} rate (£)</label>
-              <input type="number" step="0.01" name="{{ $type }}_rate" id="{{ $type }}_rate" min="0" class="form-control enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate', $e->{$type.'_rate'}) }}">
+              <input type="number" step="0.01" name="{{ $type }}_rate" id="{{ $type }}_rate" min="0" class="form-control enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate', $e->{$type.'_rate'}) }}" placeholder="Enter {{ $type }} rate">
             </div>
           @endforeach
           <div class="col-12">
             <label for="remarks" class="form-label">Remarks</label>
-            <textarea name="remarks" id="remarks" rows="3" class="form-control @error('remarks') is-invalid @enderror">{{ old('remarks', $e->remarks) }}</textarea>
+            <textarea name="remarks" id="remarks" rows="3" class="form-control @error('remarks') is-invalid @enderror" placeholder="Enter remarks">{{ old('remarks', $e->remarks) }}</textarea>
             @error('remarks')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
         </div>

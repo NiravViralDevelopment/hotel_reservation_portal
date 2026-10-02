@@ -60,13 +60,17 @@
               <td><x-badge-status :status="$statusMaster->status" /></td>
               <td class="text-end text-nowrap">
                 @can('update', $statusMaster)
-                  <a href="{{ route('status-masters.edit', $statusMaster) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  <a href="{{ route('status-masters.edit', $statusMaster) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </a>
                 @endcan
                 @can('delete', $statusMaster)
                   <form method="POST" action="{{ route('status-masters.destroy', $statusMaster) }}" class="d-inline" onsubmit="return confirm('Delete this status?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
                   </form>
                 @endcan
               </td>

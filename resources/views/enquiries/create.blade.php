@@ -24,18 +24,18 @@
         <div class="row g-3">
           <div class="col-md-8">
             <label for="group_name" class="form-label">Group name <span class="text-danger">*</span></label>
-            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name') }}" placeholder="e.g. Smith wedding party" maxlength="255">
+            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name') }}" placeholder="Enter group name" maxlength="255">
             <div class="form-text">Each group name can be used only once.</div>
             @error('group_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="name@company.co.uk" maxlength="255">
+            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="Enter email" maxlength="255">
             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
             <label for="remarks" class="form-label">Remarks</label>
-            <textarea name="remarks" id="remarks" rows="3" class="form-control @error('remarks') is-invalid @enderror" placeholder="Notes about this enquiry">{{ old('remarks') }}</textarea>
+            <textarea name="remarks" id="remarks" rows="3" class="form-control @error('remarks') is-invalid @enderror" placeholder="Enter remarks">{{ old('remarks') }}</textarea>
             @error('remarks')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
         </div>
@@ -48,7 +48,7 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label for="ref" class="form-label">Reference</label>
-            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref') }}" placeholder="e.g. ENQ-2026-014">
+            <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref') }}" placeholder="Enter reference">
             <div class="form-text">Optional. Leave blank to auto-generate.</div>
             @error('ref')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
@@ -64,7 +64,7 @@
           </div>
           <div class="col-md-4">
             <label for="year" class="form-label">Year</label>
-            <input type="text" name="year" id="year" inputmode="numeric" maxlength="4" class="form-control js-digits @error('year') is-invalid @enderror" value="{{ old('year', date('Y')) }}" placeholder="YYYY">
+            <input type="text" name="year" id="year" inputmode="numeric" maxlength="4" class="form-control js-digits @error('year') is-invalid @enderror" value="{{ old('year', date('Y')) }}" placeholder="Enter year">
             @error('year')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
@@ -150,12 +150,12 @@
           </div>
           <div class="col-md-4">
             <label for="rooms_per_night" class="form-label">Rooms per night</label>
-            <input type="text" name="rooms_per_night" id="rooms_per_night" inputmode="numeric" pattern="[0-9]*" class="form-control js-digits @error('rooms_per_night') is-invalid @enderror" value="{{ old('rooms_per_night') }}" placeholder="e.g. 10">
+            <input type="text" name="rooms_per_night" id="rooms_per_night" inputmode="numeric" pattern="[0-9]*" class="form-control js-digits @error('rooms_per_night') is-invalid @enderror" value="{{ old('rooms_per_night') }}" placeholder="Enter rooms per night">
             @error('rooms_per_night')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="total_revenue" class="form-label">Total revenue (£)</label>
-            <input type="text" name="total_revenue" id="total_revenue" inputmode="decimal" class="form-control js-decimal @error('total_revenue') is-invalid @enderror" value="{{ old('total_revenue') }}" placeholder="e.g. 1500.00">
+            <input type="text" name="total_revenue" id="total_revenue" inputmode="decimal" class="form-control js-decimal @error('total_revenue') is-invalid @enderror" value="{{ old('total_revenue') }}" placeholder="Enter total revenue (£)">
             <div class="form-text">Filled from rooms × rates × nights when rates are entered.</div>
             @error('total_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
@@ -167,7 +167,7 @@
           </div>
           <div class="col-md-4" id="taxPercentageWrap" style="{{ old('has_tax') ? '' : 'display:none;' }}">
             <label for="tax_percentage" class="form-label">Tax percentage (%) <span class="text-danger">*</span></label>
-            <input type="text" name="tax_percentage" id="tax_percentage" inputmode="decimal" class="form-control js-decimal @error('tax_percentage') is-invalid @enderror" value="{{ old('tax_percentage') }}" placeholder="e.g. 20">
+            <input type="text" name="tax_percentage" id="tax_percentage" inputmode="decimal" class="form-control js-decimal @error('tax_percentage') is-invalid @enderror" value="{{ old('tax_percentage') }}" placeholder="Enter tax percentage">
             @error('tax_percentage')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4" id="taxRevenueWrap" style="{{ old('has_tax') ? '' : 'display:none;' }}">
@@ -187,12 +187,12 @@
           @foreach (['single' => '95.00', 'double' => '120.00', 'triple' => '150.00'] as $type => $rateExample)
             <div class="col-md-6">
               <label for="{{ $type }}_rooms" class="form-label">{{ ucfirst($type) }} rooms</label>
-              <input type="text" name="{{ $type }}_rooms" id="{{ $type }}_rooms" inputmode="numeric" class="form-control js-digits enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms') }}" placeholder="e.g. {{ $type === 'double' ? '4' : ($type === 'triple' ? '1' : '2') }}">
+              <input type="text" name="{{ $type }}_rooms" id="{{ $type }}_rooms" inputmode="numeric" class="form-control js-digits enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ old($type.'_rooms') }}" placeholder="Enter {{ $type }} rooms">
               @error($type.'_rooms')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-6">
               <label for="{{ $type }}_rate" class="form-label">{{ ucfirst($type) }} rate (£)</label>
-              <input type="text" name="{{ $type }}_rate" id="{{ $type }}_rate" inputmode="decimal" class="form-control js-decimal enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate') }}" placeholder="e.g. {{ $rateExample }}">
+              <input type="text" name="{{ $type }}_rate" id="{{ $type }}_rate" inputmode="decimal" class="form-control js-decimal enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ old($type.'_rate') }}" placeholder="Enter {{ $type }} rate">
               @error($type.'_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
           @endforeach
@@ -219,31 +219,31 @@
             <div class="row g-3">
               <div class="col-md-3">
                 <label for="qa_code" class="form-label">Code <span class="text-danger">*</span></label>
-                <input type="text" name="code" id="qa_code" class="form-control" maxlength="20">
+                <input type="text" name="code" id="qa_code" class="form-control" maxlength="20" placeholder="Enter code">
               </div>
               <div class="col-md-9">
                 <label for="qa_name" class="form-label">Name <span class="text-danger">*</span></label>
-                <input type="text" name="name" id="qa_name" class="form-control" maxlength="255">
+                <input type="text" name="name" id="qa_name" class="form-control" maxlength="255" placeholder="Enter name">
               </div>
               <div class="col-md-4">
                 <label for="qa_contact_name" class="form-label">Contact name</label>
-                <input type="text" name="contact_name" id="qa_contact_name" class="form-control" maxlength="255">
+                <input type="text" name="contact_name" id="qa_contact_name" class="form-control" maxlength="255" placeholder="Enter contact name">
               </div>
               <div class="col-md-4">
                 <label for="qa_email" class="form-label">Email</label>
-                <input type="email" name="email" id="qa_email" class="form-control" maxlength="255">
+                <input type="email" name="email" id="qa_email" class="form-control" maxlength="255" placeholder="Enter email">
               </div>
               <div class="col-md-4">
                 <label for="qa_phone" class="form-label">Phone</label>
-                <input type="text" name="phone" id="qa_phone" class="form-control" maxlength="30">
+                <input type="text" name="phone" id="qa_phone" class="form-control" maxlength="30" placeholder="Enter phone">
               </div>
               <div class="col-md-4">
                 <label for="qa_city" class="form-label">City</label>
-                <input type="text" name="city" id="qa_city" class="form-control" maxlength="255">
+                <input type="text" name="city" id="qa_city" class="form-control" maxlength="255" placeholder="Enter city">
               </div>
               <div class="col-md-4">
                 <label for="qa_country" class="form-label">Country</label>
-                <input type="text" name="country" id="qa_country" class="form-control" maxlength="255">
+                <input type="text" name="country" id="qa_country" class="form-control" maxlength="255" placeholder="Enter country">
               </div>
               <div class="col-md-4">
                 <label for="qa_status" class="form-label">Status <span class="text-danger">*</span></label>

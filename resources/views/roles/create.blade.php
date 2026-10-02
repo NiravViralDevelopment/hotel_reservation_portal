@@ -27,7 +27,7 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label for="name" class="form-label">Role name <span class="text-danger">*</span></label>
-            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required maxlength="125" placeholder="e.g. Night Auditor">
+            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required maxlength="125" placeholder="Enter role name">
             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
         </div>

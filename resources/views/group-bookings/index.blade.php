@@ -20,24 +20,43 @@
     @endcan
   </div>
 
-  <div class="card">
+    <div class="card">
     <div class="table-toolbar">
-      <form method="GET" action="{{ route('group-bookings.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
-        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
+      <form method="GET" action="{{ route('group-bookings.index') }}" class="d-flex flex-wrap gap-2 align-items-center w-100">
+        <div class="input-group input-group-sm" style="width: 240px; flex-shrink: 0;">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input
+            type="search"
+            name="q"
+            class="form-control"
+            placeholder="Search block, group, email…"
+            value="{{ request('q') }}"
+          >
+        </div>
+        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto; min-width: 140px;">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
-            <option value="{{ $hotel->id }}" @selected(request('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>
+            <option value="{{ $hotel->id }}" @selected((string) request('hotel_id') === (string) $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
-        <select name="status" class="form-select form-select-sm select2" style="width:auto">
+        <select name="travel_agency_id" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
+          <option value="">All agencies</option>
+          @foreach ($travelAgencies as $agency)
+            <option value="{{ $agency->id }}" @selected((string) request('travel_agency_id') === (string) $agency->id)>{{ $agency->name }}</option>
+          @endforeach
+        </select>
+        <select name="status" class="form-select form-select-sm select2" style="width:auto; min-width: 130px;">
           <option value="">All statuses</option>
-          @foreach (\App\Enums\BookingStatus::values() as $status)
+          @foreach ($statuses as $status)
+            @continue($status === \App\Enums\BookingStatus::Cancelled->value)
             <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
           @endforeach
         </select>
-        <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        @if (request()->hasAny(['hotel_id', 'status']))
-          <a href="{{ route('group-bookings.index') }}" class="btn btn-outline-danger btn-sm">
+        <input type="date" name="arrival_from" class="form-control form-control-sm" style="width:auto;" value="{{ request('arrival_from') }}" title="Arrival from">
+        <input type="date" name="arrival_to" class="form-control form-control-sm" style="width:auto;" value="{{ request('arrival_to') }}" title="Arrival to">
+        <button type="submit" class="btn btn-outline-secondary btn-sm flex-shrink-0"><i class="bi bi-funnel"></i> Filter</button>
+        @if (request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'status', 'arrival_from', 'arrival_to']))
+          <a href="{{ route('group-bookings.index') }}" class="btn btn-outline-danger btn-sm flex-shrink-0">
             <i class="bi bi-x-circle"></i> Clear
           </a>
         @endif

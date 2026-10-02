@@ -36,6 +36,7 @@
               value="{{ old('name', $role->name) }}"
               required
               maxlength="125"
+              placeholder="Enter role name"
               @disabled($role->name === 'Administrator')
             >
             @if ($role->name === 'Administrator')

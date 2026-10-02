@@ -25,12 +25,12 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label for="block_id" class="form-label">Block ID <span class="text-danger">*</span></label>
-            <input type="text" name="block_id" id="block_id" class="form-control @error('block_id') is-invalid @enderror" value="{{ old('block_id', $b->block_id) }}" required>
+            <input type="text" name="block_id" id="block_id" class="form-control @error('block_id') is-invalid @enderror" value="{{ old('block_id', $b->block_id) }}" placeholder="Enter block ID" required>
             @error('block_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-8">
             <label for="group_name" class="form-label">Group name <span class="text-danger">*</span></label>
-            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $b->group_name) }}" required>
+            <input type="text" name="group_name" id="group_name" class="form-control @error('group_name') is-invalid @enderror" value="{{ old('group_name', $b->group_name) }}" placeholder="Enter group name" required>
             @error('group_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
@@ -85,7 +85,7 @@
           </div>
           <div class="col-md-4">
             <label for="nights" class="form-label">Nights</label>
-            <input type="number" name="nights" id="nights" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights', $b->nights) }}">
+            <input type="number" name="nights" id="nights" class="form-control @error('nights') is-invalid @enderror" value="{{ old('nights', $b->nights) }}" placeholder="Enter nights">
             @error('nights')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
@@ -99,42 +99,42 @@
           </div>
           <div class="col-md-3">
             <label for="revenue" class="form-label">Revenue (£)</label>
-            <input type="number" step="0.01" name="revenue" id="revenue" class="form-control @error('revenue') is-invalid @enderror" value="{{ old('revenue', $b->revenue) }}">
+            <input type="number" step="0.01" name="revenue" id="revenue" class="form-control @error('revenue') is-invalid @enderror" value="{{ old('revenue', $b->revenue) }}" placeholder="Enter revenue (£)">
             @error('revenue')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
             <label for="rooms" class="form-label">Rooms</label>
-            <input type="number" name="rooms" id="rooms" class="form-control @error('rooms') is-invalid @enderror" value="{{ old('rooms', $b->rooms) }}">
+            <input type="number" name="rooms" id="rooms" class="form-control @error('rooms') is-invalid @enderror" value="{{ old('rooms', $b->rooms) }}" placeholder="Enter rooms">
             @error('rooms')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
             <label for="pax" class="form-label">Pax</label>
-            <input type="number" name="pax" id="pax" class="form-control @error('pax') is-invalid @enderror" value="{{ old('pax', $b->pax) }}">
+            <input type="number" name="pax" id="pax" class="form-control @error('pax') is-invalid @enderror" value="{{ old('pax', $b->pax) }}" placeholder="Enter pax">
             @error('pax')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="client" class="form-label">Client</label>
-            <input type="text" name="client" id="client" class="form-control @error('client') is-invalid @enderror" value="{{ old('client', $b->client) }}">
+            <input type="text" name="client" id="client" class="form-control @error('client') is-invalid @enderror" value="{{ old('client', $b->client) }}" placeholder="Enter client">
             @error('client')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $b->email) }}">
+            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $b->email) }}" placeholder="Enter email">
             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="commission" class="form-label">Commission (£)</label>
-            <input type="number" step="0.01" name="commission" id="commission" min="0" class="form-control @error('commission') is-invalid @enderror" value="{{ old('commission', $b->commission) }}">
+            <input type="number" step="0.01" name="commission" id="commission" min="0" class="form-control @error('commission') is-invalid @enderror" value="{{ old('commission', $b->commission) }}" placeholder="Enter commission (£)">
             @error('commission')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
             <label for="internal_notes" class="form-label">Internal notes</label>
-            <textarea name="internal_notes" id="internal_notes" rows="2" class="form-control @error('internal_notes') is-invalid @enderror">{{ old('internal_notes', $b->internal_notes) }}</textarea>
+            <textarea name="internal_notes" id="internal_notes" rows="2" class="form-control @error('internal_notes') is-invalid @enderror" placeholder="Enter internal notes">{{ old('internal_notes', $b->internal_notes) }}</textarea>
             @error('internal_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
             <label for="update_notes" class="form-label">Update notes</label>
-            <textarea name="update_notes" id="update_notes" rows="2" class="form-control @error('update_notes') is-invalid @enderror">{{ old('update_notes', $b->update_notes) }}</textarea>
+            <textarea name="update_notes" id="update_notes" rows="2" class="form-control @error('update_notes') is-invalid @enderror" placeholder="Enter update notes">{{ old('update_notes', $b->update_notes) }}</textarea>
             @error('update_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
         </div>
@@ -147,7 +147,7 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label for="payment_term" class="form-label">Payment Term</label>
-            <input type="text" name="payment_term" id="payment_term" class="form-control @error('payment_term') is-invalid @enderror" value="{{ old('payment_term', $b->payment_term) }}" placeholder="e.g. 30 days / deposit">
+            <input type="text" name="payment_term" id="payment_term" class="form-control @error('payment_term') is-invalid @enderror" value="{{ old('payment_term', $b->payment_term) }}" placeholder="Enter payment term">
             @error('payment_term')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
@@ -157,7 +157,7 @@
           </div>
           <div class="col-md-4">
             <label for="payment_status" class="form-label">Payment Status</label>
-            <input type="text" name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror" value="{{ old('payment_status', $b->payment_status) }}" placeholder="e.g. Awaiting deposit">
+            <input type="text" name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror" value="{{ old('payment_status', $b->payment_status) }}" placeholder="Enter payment status">
             @error('payment_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
@@ -180,7 +180,7 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label for="cxl_policy" class="form-label">CXL Policy</label>
-            <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ old('cxl_policy', $b->cxl_policy) }}">
+            <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ old('cxl_policy', $b->cxl_policy) }}" placeholder="Enter CXL policy">
             @error('cxl_policy')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
@@ -237,7 +237,7 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label for="document_name" class="form-label">Document name</label>
-            <input type="text" name="document_name" id="document_name" class="form-control @error('document_name') is-invalid @enderror" value="{{ old('document_name') }}" placeholder="Optional display name">
+            <input type="text" name="document_name" id="document_name" class="form-control @error('document_name') is-invalid @enderror" value="{{ old('document_name') }}" placeholder="Enter document name">
             @error('document_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">

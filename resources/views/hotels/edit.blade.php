@@ -23,12 +23,12 @@
         <div class="row g-3">
           <div class="col-md-3">
             <label for="code" class="form-label">Code <span class="text-danger">*</span></label>
-            <input type="text" name="code" id="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code', $hotel->code) }}" required>
+            <input type="text" name="code" id="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code', $hotel->code) }}" placeholder="Enter code" required>
             @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
             <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $hotel->name) }}" required>
+            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $hotel->name) }}" placeholder="Enter name" required>
             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
@@ -43,22 +43,22 @@
           </div>
           <div class="col-md-4">
             <label for="city" class="form-label">City <span class="text-danger">*</span></label>
-            <input type="text" name="city" id="city" class="form-control @error('city') is-invalid @enderror" value="{{ old('city', $hotel->city) }}" required>
+            <input type="text" name="city" id="city" class="form-control @error('city') is-invalid @enderror" value="{{ old('city', $hotel->city) }}" placeholder="Enter city" required>
             @error('city')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="country" class="form-label">Country</label>
-            <input type="text" name="country" id="country" class="form-control @error('country') is-invalid @enderror" value="{{ old('country', $hotel->country) }}">
+            <input type="text" name="country" id="country" class="form-control @error('country') is-invalid @enderror" value="{{ old('country', $hotel->country) }}" placeholder="Enter country">
             @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="rooms" class="form-label">Rooms</label>
-            <input type="number" name="rooms" id="rooms" min="0" class="form-control @error('rooms') is-invalid @enderror" value="{{ old('rooms', $hotel->rooms) }}">
+            <input type="number" name="rooms" id="rooms" min="0" class="form-control @error('rooms') is-invalid @enderror" value="{{ old('rooms', $hotel->rooms) }}" placeholder="Enter rooms">
             @error('rooms')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="manager_name" class="form-label">Manager</label>
-            <input type="text" name="manager_name" id="manager_name" class="form-control @error('manager_name') is-invalid @enderror" value="{{ old('manager_name', $hotel->manager_name) }}">
+            <input type="text" name="manager_name" id="manager_name" class="form-control @error('manager_name') is-invalid @enderror" value="{{ old('manager_name', $hotel->manager_name) }}" placeholder="Enter manager name">
             @error('manager_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
@@ -71,17 +71,17 @@
           </div>
           <div class="col-md-6">
             <label for="phone" class="form-label">Phone</label>
-            <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $hotel->phone) }}">
+            <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $hotel->phone) }}" placeholder="Enter phone">
             @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
             <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $hotel->email) }}">
+            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $hotel->email) }}" placeholder="Enter email">
             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
             <label for="notes" class="form-label">Notes</label>
-            <textarea name="notes" id="notes" rows="3" class="form-control @error('notes') is-invalid @enderror">{{ old('notes', $hotel->notes) }}</textarea>
+            <textarea name="notes" id="notes" rows="3" class="form-control @error('notes') is-invalid @enderror" placeholder="Enter notes">{{ old('notes', $hotel->notes) }}</textarea>
             @error('notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
         </div>

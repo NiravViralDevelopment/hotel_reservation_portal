@@ -162,12 +162,12 @@
               </div>
               <div class="col-md-4">
                 <label for="revenue_lost" class="form-label">Revenue lost (£)</label>
-                <input type="number" step="0.01" name="revenue_lost" id="revenue_lost" class="form-control @error('revenue_lost') is-invalid @enderror" value="{{ old('revenue_lost') }}">
+                <input type="number" step="0.01" name="revenue_lost" id="revenue_lost" class="form-control @error('revenue_lost') is-invalid @enderror" value="{{ old('revenue_lost') }}" placeholder="Enter revenue lost (£)">
                 @error('revenue_lost')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="col-12">
                 <label for="cancellation_reason" class="form-label">Reason</label>
-                <textarea name="cancellation_reason" id="cancellation_reason" rows="2" class="form-control @error('cancellation_reason') is-invalid @enderror">{{ old('cancellation_reason') }}</textarea>
+                <textarea name="cancellation_reason" id="cancellation_reason" rows="2" class="form-control @error('cancellation_reason') is-invalid @enderror" placeholder="Enter cancellation reason">{{ old('cancellation_reason') }}</textarea>
                 @error('cancellation_reason')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="col-12">

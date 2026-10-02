@@ -31,13 +31,36 @@ class GroupBookingController extends Controller
             ->with(['hotel', 'travelAgency', 'company'])
             ->active();
 
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($builder) use ($search) {
+                $builder->where('block_id', 'like', "%{$search}%")
+                    ->orWhere('group_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('client', 'like', "%{$search}%")
+                    ->orWhere('agency_name', 'like', "%{$search}%");
+            });
+        }
+
         if ($request->filled('hotel_id')) {
             \App\Support\HotelAccess::ensure(null, $request->integer('hotel_id'));
             $query->where('hotel_id', $request->integer('hotel_id'));
         }
 
+        if ($request->filled('travel_agency_id')) {
+            $query->where('travel_agency_id', $request->integer('travel_agency_id'));
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('arrival_from')) {
+            $query->whereDate('arrival', '>=', $request->string('arrival_from'));
+        }
+
+        if ($request->filled('arrival_to')) {
+            $query->whereDate('arrival', '<=', $request->string('arrival_to'));
         }
 
         QuerySort::apply($query, $request, [
@@ -53,8 +76,10 @@ class GroupBookingController extends Controller
 
         $bookings = $query->paginate(25)->withQueryString();
         $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $statuses = BookingStatus::values();
 
-        return view('group-bookings.index', compact('bookings', 'hotels'));
+        return view('group-bookings.index', compact('bookings', 'hotels', 'travelAgencies', 'statuses'));
     }
 
     public function create(): View

@@ -26,7 +26,7 @@
             <div class="row g-3">
               <div class="col-md-6">
                 <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}" required>
+                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}" placeholder="Enter name" required>
                 @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="col-md-6">
@@ -36,12 +36,12 @@
               </div>
               <div class="col-md-6">
                 <label for="phone" class="form-label">Phone</label>
-                <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}">
+                <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}" placeholder="Enter phone">
                 @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="col-md-6">
                 <label for="job_title" class="form-label">Job title</label>
-                <input type="text" name="job_title" id="job_title" class="form-control @error('job_title') is-invalid @enderror" value="{{ old('job_title', $user->job_title) }}">
+                <input type="text" name="job_title" id="job_title" class="form-control @error('job_title') is-invalid @enderror" value="{{ old('job_title', $user->job_title) }}" placeholder="Enter job title">
                 @error('job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="col-12">
