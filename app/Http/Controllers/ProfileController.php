@@ -6,6 +6,7 @@ use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -32,5 +33,24 @@ class ProfileController extends Controller
         Audit::log('updated', 'profile', $user->email, $user);
 
         return redirect()->route('profile.edit')->with('success', 'Profile updated.');
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        $user->update([
+            'password' => $validated['password'],
+        ]);
+
+        Audit::log('updated', 'profile', 'Password changed for '.$user->email, $user);
+
+        return redirect()->route('profile.edit')->with('success', 'Password changed successfully.');
     }
 }

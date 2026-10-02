@@ -1,0 +1,9 @@
+Hiten sql query :
+
+NO SQL NEEDED for change password.
+
+Table name: users
+Column used: password (already exists)
+
+Password change updates the existing `password` column on the `users` table.
+No new table or column is required — do not run any migration or ALTER TABLE.

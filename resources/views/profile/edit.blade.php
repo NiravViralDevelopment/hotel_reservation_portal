@@ -45,8 +45,37 @@
                 @error('job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="col-12">
-                <p class="small text-secondary mb-3">Email and password can only be changed by an administrator from Users.</p>
                 <button type="submit" class="btn btn-accent">Save profile</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header">Change password</div>
+        <div class="card-body">
+          <form method="POST" action="{{ route('profile.password') }}">
+            @csrf
+            @method('PUT')
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="current_password" class="form-label">Current password <span class="text-danger">*</span></label>
+                <input type="password" name="current_password" id="current_password" class="form-control @error('current_password') is-invalid @enderror" required autocomplete="current-password">
+                @error('current_password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+              </div>
+              <div class="col-md-6"></div>
+              <div class="col-md-6">
+                <label for="password" class="form-label">New password <span class="text-danger">*</span></label>
+                <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" required autocomplete="new-password" minlength="6">
+                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+              </div>
+              <div class="col-md-6">
+                <label for="password_confirmation" class="form-label">Confirm password <span class="text-danger">*</span></label>
+                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required autocomplete="new-password" minlength="6">
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-accent">Change password</button>
               </div>
             </div>
           </form>
