@@ -70,6 +70,7 @@ class EnquiryController extends Controller
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',
+            'year' => 'year',
             'group_name' => 'group_name',
             'enquiry_date' => 'enquiry_date',
             'response_date' => 'response_date',
