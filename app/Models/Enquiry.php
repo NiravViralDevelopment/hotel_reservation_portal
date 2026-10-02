@@ -37,6 +37,9 @@ class Enquiry extends Model
         'triple_rate',
         'basis',
         'total_revenue',
+        'has_tax',
+        'tax_percentage',
+        'tax_revenue',
         'cxl_policy',
         'option_date',
         'email',
@@ -67,6 +70,9 @@ class Enquiry extends Model
             'double_rate' => 'decimal:2',
             'triple_rate' => 'decimal:2',
             'total_revenue' => 'decimal:2',
+            'has_tax' => 'boolean',
+            'tax_percentage' => 'decimal:2',
+            'tax_revenue' => 'decimal:2',
             'status' => EnquiryStatus::class,
         ];
     }

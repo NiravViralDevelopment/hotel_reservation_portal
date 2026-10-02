@@ -109,6 +109,10 @@
         setError(el, 'Must be at least ' + rules.min + '.');
         return false;
       }
+      if (rules.maxNum != null && numVal > rules.maxNum) {
+        setError(el, 'Must be ' + rules.maxNum + ' or less.');
+        return false;
+      }
     }
 
     if (rules.year) {
@@ -159,6 +163,16 @@
         afterField: 'check_in',
         afterMessage: 'Check-out must be after check-in.'
       },
+      tax_percentage: {
+        required: function () {
+          var hasTax = form.querySelector('#has_tax');
+          return !!(hasTax && hasTax.checked);
+        },
+        decimal: true,
+        min: 0,
+        maxNum: 100,
+        requiredMessage: 'Enter the tax percentage.'
+      },
       cancellation_reason: {
         required: function () {
           var cancel = form.querySelector('#cancel_booking');
@@ -204,6 +218,14 @@
       cancelEl.addEventListener('change', function () {
         var reason = form.querySelector('#cancellation_reason');
         if (reason) runField(reason);
+      });
+    }
+
+    var hasTaxEl = form.querySelector('#has_tax');
+    if (hasTaxEl) {
+      hasTaxEl.addEventListener('change', function () {
+        var taxPct = form.querySelector('#tax_percentage');
+        if (taxPct) runField(taxPct);
       });
     }
 

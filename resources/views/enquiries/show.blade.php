@@ -61,7 +61,9 @@
         <div class="info-card mb-3"><div class="info-card-label">Check-out</div><div class="info-card-value">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Nights</div><div class="info-card-value">{{ $enquiry->nights ?? '—' }}</div></div>
         <div class="info-card mb-3"><div class="info-card-label">Rooms / night</div><div class="info-card-value">{{ $enquiry->rooms_per_night ?? '—' }}</div></div>
-        <div class="info-card"><div class="info-card-label">Total revenue</div><div class="info-card-value">£{{ number_format((float) ($enquiry->total_revenue ?? 0), 2) }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Total revenue</div><div class="info-card-value">£{{ number_format((float) ($enquiry->total_revenue ?? 0), 2) }}</div></div>
+        <div class="info-card mb-3"><div class="info-card-label">Tax</div><div class="info-card-value">{{ $enquiry->has_tax ? (($enquiry->tax_percentage ?? 0).'%') : 'No' }}</div></div>
+        <div class="info-card"><div class="info-card-label">Tax revenue</div><div class="info-card-value">£{{ number_format((float) ($enquiry->tax_revenue ?? 0), 2) }}</div></div>
       </div>
     </div>
   </div>

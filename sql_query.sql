@@ -46,3 +46,22 @@ ALTER TABLE enquiries
 
   ADD COLUMN check_out DATE NULL AFTER check_in;
 
+
+
+3)
+
+ADD tax fields on enquiries Total revenue (run this manually)
+
+
+
+Table: enquiries
+
+
+
+ALTER TABLE enquiries
+
+  ADD COLUMN has_tax TINYINT(1) NOT NULL DEFAULT 0 AFTER total_revenue,
+
+  ADD COLUMN tax_percentage DECIMAL(5,2) NULL AFTER has_tax,
+
+  ADD COLUMN tax_revenue DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER tax_percentage;

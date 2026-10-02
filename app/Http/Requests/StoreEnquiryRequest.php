@@ -18,6 +18,10 @@ class StoreEnquiryRequest extends FormRequest
         if ($this->input('ref') === '') {
             $this->merge(['ref' => null]);
         }
+
+        $this->merge([
+            'has_tax' => $this->boolean('has_tax'),
+        ]);
     }
 
     /**
@@ -44,6 +48,9 @@ class StoreEnquiryRequest extends FormRequest
             'triple_rooms' => ['nullable', 'integer', 'min:0'],
             'triple_rate' => ['nullable', 'numeric', 'min:0'],
             'total_revenue' => ['nullable', 'numeric', 'min:0'],
+            'has_tax' => ['sometimes', 'boolean'],
+            'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_tax,1,true'],
+            'tax_revenue' => ['nullable', 'numeric', 'min:0'],
             'status' => ['nullable', Rule::in(EnquiryStatus::values())],
             'email' => ['nullable', 'email', 'max:255'],
             'remarks' => ['nullable', 'string'],
@@ -58,6 +65,7 @@ class StoreEnquiryRequest extends FormRequest
         return [
             'group_name.unique' => 'This group name is already used. Enter a different name.',
             'check_out.after' => 'Check-out must be after check-in.',
+            'tax_percentage.required_if' => 'Enter the tax percentage.',
         ];
     }
 }

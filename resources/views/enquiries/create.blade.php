@@ -154,6 +154,23 @@
             <div class="form-text">Filled from rooms × rates × nights when rates are entered.</div>
             @error('total_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="has_tax" id="has_tax" value="1" @checked(old('has_tax'))>
+              <label class="form-check-label" for="has_tax">Tax revenue</label>
+            </div>
+          </div>
+          <div class="col-md-4" id="taxPercentageWrap" style="{{ old('has_tax') ? '' : 'display:none;' }}">
+            <label for="tax_percentage" class="form-label">Tax percentage (%) <span class="text-danger">*</span></label>
+            <input type="text" name="tax_percentage" id="tax_percentage" inputmode="decimal" class="form-control js-decimal @error('tax_percentage') is-invalid @enderror" value="{{ old('tax_percentage') }}" placeholder="e.g. 20">
+            @error('tax_percentage')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-4" id="taxRevenueWrap" style="{{ old('has_tax') ? '' : 'display:none;' }}">
+            <label for="tax_revenue" class="form-label">Tax revenue (£)</label>
+            <input type="text" name="tax_revenue" id="tax_revenue" inputmode="decimal" class="form-control @error('tax_revenue') is-invalid @enderror" value="{{ old('tax_revenue') }}" placeholder="Auto from %" readonly>
+            <div class="form-text">Auto-calculated from total revenue × tax %.</div>
+            @error('tax_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
         </div>
       </div>
     </div>
@@ -294,6 +311,30 @@
     recalcEnquiryTotals();
   }
 
+  function recalcTaxRevenue() {
+    var hasTax = document.getElementById('has_tax');
+    var taxPctEl = document.getElementById('tax_percentage');
+    var taxRevEl = document.getElementById('tax_revenue');
+    var pctWrap = document.getElementById('taxPercentageWrap');
+    var revWrap = document.getElementById('taxRevenueWrap');
+    var enabled = !!(hasTax && hasTax.checked);
+
+    if (pctWrap) pctWrap.style.display = enabled ? '' : 'none';
+    if (revWrap) revWrap.style.display = enabled ? '' : 'none';
+
+    if (!enabled) {
+      if (taxPctEl) taxPctEl.value = '';
+      if (taxRevEl) taxRevEl.value = '';
+      return;
+    }
+
+    var total = num('total_revenue');
+    var pct = num('tax_percentage');
+    if (taxRevEl) {
+      taxRevEl.value = (total > 0 && pct > 0) ? (total * pct / 100).toFixed(2) : '';
+    }
+  }
+
   function recalcEnquiryTotals() {
     var singleRooms = num('single_rooms');
     var doubleRooms = num('double_rooms');
@@ -315,6 +356,7 @@
     if (nightly > 0 && totalEl) {
       totalEl.value = (nightly * nights).toFixed(2);
     }
+    recalcTaxRevenue();
   }
 
   ['check_in', 'check_out'].forEach(function (id) {
@@ -324,13 +366,19 @@
     el.addEventListener('input', nightsFromDates);
   });
 
-  document.querySelectorAll('.enquiry-calc, #nights').forEach(function (el) {
+  document.querySelectorAll('.enquiry-calc, #nights, #total_revenue, #tax_percentage').forEach(function (el) {
     el.addEventListener('input', recalcEnquiryTotals);
     el.addEventListener('change', recalcEnquiryTotals);
   });
 
+  var hasTaxEl = document.getElementById('has_tax');
+  if (hasTaxEl) {
+    hasTaxEl.addEventListener('change', recalcTaxRevenue);
+  }
+
   nightsFromDates();
   recalcEnquiryTotals();
+  recalcTaxRevenue();
 
   var agencyForm = document.getElementById('quickTravelAgencyForm');
   if (agencyForm) {

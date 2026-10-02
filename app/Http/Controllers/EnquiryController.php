@@ -32,6 +32,42 @@ class EnquiryController extends Controller
             ])
             ->whereNull('converted_booking_id');
 
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($builder) use ($search) {
+                $builder->where('ref', 'like', "%{$search}%")
+                    ->orWhere('group_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('hotel_id')) {
+            \App\Support\HotelAccess::ensure(null, $request->integer('hotel_id'));
+            $query->where('hotel_id', $request->integer('hotel_id'));
+        }
+
+        if ($request->filled('travel_agency_id')) {
+            $query->where('travel_agency_id', $request->integer('travel_agency_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('enquiry_date_from')) {
+            $query->whereDate('enquiry_date', '>=', $request->string('enquiry_date_from'));
+        }
+
+        if ($request->filled('enquiry_date_to')) {
+            $query->whereDate('enquiry_date', '<=', $request->string('enquiry_date_to'));
+        }
+
+        if ($request->string('response') === 'awaiting') {
+            $query->whereNull('response_date');
+        } elseif ($request->string('response') === 'received') {
+            $query->whereNotNull('response_date');
+        }
+
         QuerySort::apply($query, $request, [
             'ref' => 'ref',
             'group_name' => 'group_name',
@@ -44,7 +80,16 @@ class EnquiryController extends Controller
 
         $enquiries = $query->paginate(20)->withQueryString();
 
-        return view('enquiries.index', compact('enquiries'));
+        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $statuses = [
+            EnquiryStatus::New->value,
+            EnquiryStatus::FollowUp->value,
+            EnquiryStatus::Quoted->value,
+            EnquiryStatus::Lost->value,
+        ];
+
+        return view('enquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'statuses'));
     }
 
     public function create(): View
@@ -77,8 +122,10 @@ class EnquiryController extends Controller
             );
         }
 
+        $data = $this->normalizeEnquiryDefaults($data);
         $data = array_merge($data, $this->applyStayDates($data));
         $data = array_merge($data, $this->calculateRoomTotals($data));
+        $data = array_merge($data, $this->applyTaxRevenue($data));
 
         $enquiry = Enquiry::query()->create($data);
         Audit::log('created', 'enquiries', $enquiry->ref, $enquiry);
@@ -129,6 +176,9 @@ class EnquiryController extends Controller
             'triple_rooms' => ['nullable', 'integer', 'min:0'],
             'triple_rate' => ['nullable', 'numeric', 'min:0'],
             'total_revenue' => ['nullable', 'numeric', 'min:0'],
+            'has_tax' => ['sometimes', 'boolean'],
+            'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_tax,1,true'],
+            'tax_revenue' => ['nullable', 'numeric', 'min:0'],
             'status' => ['nullable', 'in:'.implode(',', EnquiryStatus::values())],
             'email' => ['nullable', 'email', 'max:255'],
             'remarks' => ['nullable', 'string'],
@@ -140,7 +190,10 @@ class EnquiryController extends Controller
         ], [
             'group_name.unique' => 'This group name is already used. Enter a different name.',
             'check_out.after' => 'Check-out must be after check-in.',
+            'tax_percentage.required_if' => 'Enter the tax percentage.',
         ]);
+
+        $data['has_tax'] = $request->boolean('has_tax');
 
         $confirmBooking = $request->boolean('confirm_booking');
         $cancelBooking = $request->boolean('cancel_booking');
@@ -167,8 +220,10 @@ class EnquiryController extends Controller
             $data['day'] = Carbon::parse($data['enquiry_date'])->format('l');
         }
 
+        $data = $this->normalizeEnquiryDefaults($data);
         $data = array_merge($data, $this->applyStayDates($data));
         $data = array_merge($data, $this->calculateRoomTotals($data));
+        $data = array_merge($data, $this->applyTaxRevenue($data));
         $cancellationReason = $cancelBooking
             ? $request->string('cancellation_reason')->toString()
             : null;
@@ -351,6 +406,60 @@ class EnquiryController extends Controller
         }
 
         return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeEnquiryDefaults(array $data): array
+    {
+        foreach (['single_rooms', 'double_rooms', 'triple_rooms', 'rooms_per_night'] as $key) {
+            if (! isset($data[$key]) || $data[$key] === '' || $data[$key] === null) {
+                $data[$key] = 0;
+            } else {
+                $data[$key] = (int) $data[$key];
+            }
+        }
+
+        foreach (['single_rate', 'double_rate', 'triple_rate'] as $key) {
+            if (! isset($data[$key]) || $data[$key] === '' || $data[$key] === null) {
+                $data[$key] = 0;
+            } else {
+                $data[$key] = round((float) $data[$key], 2);
+            }
+        }
+
+        if (! isset($data['nights']) || $data['nights'] === '' || $data['nights'] === null) {
+            $data['nights'] = 1;
+        } else {
+            $data['nights'] = max(1, (int) $data['nights']);
+        }
+
+        if (! isset($data['total_revenue']) || $data['total_revenue'] === '' || $data['total_revenue'] === null) {
+            $data['total_revenue'] = 0;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array{has_tax: bool, tax_percentage: float|null, tax_revenue: float}
+     */
+    private function applyTaxRevenue(array $data): array
+    {
+        $hasTax = ! empty($data['has_tax']);
+        $percentage = $hasTax ? (float) ($data['tax_percentage'] ?? 0) : null;
+        $total = (float) ($data['total_revenue'] ?? 0);
+
+        return [
+            'has_tax' => $hasTax,
+            'tax_percentage' => $hasTax ? $percentage : null,
+            'tax_revenue' => ($hasTax && $percentage > 0)
+                ? round($total * ($percentage / 100), 2)
+                : 0.0,
+        ];
     }
 
     /**
