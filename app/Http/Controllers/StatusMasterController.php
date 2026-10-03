@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Enquiry;
 use App\Models\StatusMaster;
 use App\Support\Audit;
 use App\Support\QuerySort;
@@ -34,7 +35,13 @@ class StatusMasterController extends Controller
 
         $statusMasters = $query->paginate(10)->withQueryString();
 
-        return view('status-masters.index', compact('statusMasters'));
+        $usedTitles = Enquiry::query()
+            ->whereIn('status', $statusMasters->pluck('title'))
+            ->distinct()
+            ->pluck('status')
+            ->all();
+
+        return view('status-masters.index', compact('statusMasters', 'usedTitles'));
     }
 
     public function create(): View
@@ -98,6 +105,12 @@ class StatusMasterController extends Controller
     public function destroy(StatusMaster $statusMaster): RedirectResponse
     {
         $this->authorize('delete', $statusMaster);
+
+        if (! $statusMaster->canBeDeleted()) {
+            return redirect()
+                ->route('status-masters.index')
+                ->with('error', 'This status is used by one or more enquiries and cannot be deleted.');
+        }
 
         $title = $statusMaster->title;
         $statusMaster->delete();

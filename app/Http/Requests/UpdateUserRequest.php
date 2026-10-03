@@ -30,7 +30,14 @@ class UpdateUserRequest extends FormRequest
             'roles' => ['nullable', 'array'],
             'roles.*' => ['string', 'exists:roles,name'],
             'hotels' => ['nullable', 'array'],
-            'hotels.*' => ['integer', 'exists:hotels,id'],
+            'hotels.*' => [
+                'integer',
+                Rule::in(
+                    \App\Models\Hotel::optionsForAssignment(
+                        $this->route('user')?->hotels()->pluck('hotels.id')->all() ?? []
+                    )->pluck('id')->map(fn ($id) => (int) $id)->all()
+                ),
+            ],
         ];
     }
 

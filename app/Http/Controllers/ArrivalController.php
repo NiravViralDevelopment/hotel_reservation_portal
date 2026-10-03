@@ -37,7 +37,7 @@ class ArrivalController extends Controller
         ], 'group_name');
 
         $bookings = $query->get();
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
 
         return view('arrivals.index', compact('bookings', 'hotels', 'date'));
     }

@@ -73,7 +73,35 @@ class HotelAccess
             return collect();
         }
 
-        return Hotel::query()->whereIn('id', $ids)->orderBy('name')->get();
+        return Hotel::query()
+            ->whereIn('id', $ids)
+            ->active()
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * Active hotel IDs available for selection forms.
+     *
+     * @return list<int>
+     */
+    public static function selectableHotelIds(?User $user = null, int|string|null $includeId = null): array
+    {
+        $ids = Hotel::query()
+            ->accessibleBy($user)
+            ->active()
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if ($includeId !== null && $includeId !== '') {
+            $includeId = (int) $includeId;
+            if ($includeId > 0 && ! in_array($includeId, $ids, true) && self::allows($user, $includeId)) {
+                $ids[] = $includeId;
+            }
+        }
+
+        return $ids;
     }
 
     public static function currentHotel(?User $user = null): ?Hotel
@@ -95,6 +123,13 @@ class HotelAccess
 
         $sessionId = session('current_hotel_id');
         if ($sessionId && in_array((int) $sessionId, $assigned, true)) {
+            $hotel = Hotel::query()->find((int) $sessionId);
+            if ($hotel === null || ! $hotel->isActive()) {
+                self::clearCurrentHotel();
+
+                return null;
+            }
+
             return (int) $sessionId;
         }
 

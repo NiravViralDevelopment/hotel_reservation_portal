@@ -55,7 +55,7 @@ class UserController extends Controller
 
         $users = $query->paginate(10)->withQueryString();
         $roles = Role::query()->orderBy('name')->get(['id', 'name']);
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForAssignment();
 
         return view('users.index', compact('users', 'roles', 'hotels'));
     }
@@ -65,7 +65,7 @@ class UserController extends Controller
         $this->authorize('create', User::class);
 
         $roles = Role::query()->orderBy('name')->get();
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForAssignment();
         $existingEmails = User::query()->pluck('email')->map(fn ($email) => mb_strtolower($email))->values();
 
         return view('users.create', compact('roles', 'hotels', 'existingEmails'));
@@ -96,8 +96,8 @@ class UserController extends Controller
         $this->authorize('update', $user);
 
         $roles = Role::query()->orderBy('name')->get();
-        $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
         $user->load(['roles', 'hotels']);
+        $hotels = Hotel::optionsForAssignment($user->hotels->pluck('id')->all());
         $existingEmails = User::query()
             ->where('id', '!=', $user->id)
             ->pluck('email')

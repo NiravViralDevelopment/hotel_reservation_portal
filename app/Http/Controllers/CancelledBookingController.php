@@ -34,7 +34,7 @@ class CancelledBookingController extends Controller
         ], 'cancelled_at', 'desc');
 
         $bookings = $query->paginate(10)->withQueryString();
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
 
         return view('cancelled-bookings.index', compact('bookings', 'hotels'));
     }

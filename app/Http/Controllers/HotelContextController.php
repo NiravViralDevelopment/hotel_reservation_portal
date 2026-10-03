@@ -12,7 +12,18 @@ class HotelContextController extends Controller
     public function switch(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'hotel_id' => ['required', 'integer', Rule::in(HotelAccess::assignedHotelIds())],
+            'hotel_id' => [
+                'required',
+                'integer',
+                Rule::in(
+                    \App\Models\Hotel::query()
+                        ->accessibleBy()
+                        ->active()
+                        ->pluck('id')
+                        ->map(fn ($id) => (int) $id)
+                        ->all()
+                ),
+            ],
         ]);
 
         HotelAccess::setCurrentHotelId((int) $validated['hotel_id']);

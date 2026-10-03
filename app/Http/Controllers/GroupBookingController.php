@@ -74,7 +74,7 @@ class GroupBookingController extends Controller
         ], 'arrival');
 
         $bookings = $query->paginate(10)->withQueryString();
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = BookingStatus::values();
 
@@ -86,7 +86,7 @@ class GroupBookingController extends Controller
         $this->authorize('create', GroupBooking::class);
 
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = BookingStatus::values();
 
@@ -131,7 +131,7 @@ class GroupBookingController extends Controller
 
         $groupBooking->load(['documents.uploadedBy']);
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect($groupBooking->hotel_id);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = BookingStatus::values();
 

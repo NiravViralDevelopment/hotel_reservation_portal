@@ -78,7 +78,7 @@ class EnquiryController extends Controller
 
         $enquiries = $query->paginate(10)->withQueryString();
 
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = StatusMaster::query()
             ->active()
@@ -94,7 +94,7 @@ class EnquiryController extends Controller
         $this->authorize('create', Enquiry::class);
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
         $statuses = StatusMaster::query()->active()->orderBy('title')->pluck('title');
 
         return view('enquiries.create', compact('travelAgencies', 'hotels', 'statuses'));
@@ -144,7 +144,7 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect($enquiry->hotel_id);
         $statuses = StatusMaster::query()->active()->orderBy('title')->pluck('title');
 
         return view('enquiries.edit', compact('enquiry', 'travelAgencies', 'hotels', 'statuses'));
@@ -168,7 +168,7 @@ class EnquiryController extends Controller
             'check_out' => ['nullable', 'date', 'after:check_in'],
             'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($enquiry->id)],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
-            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
+            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::selectableHotelIds(null, $enquiry->hotel_id))],
             'nights' => ['nullable', 'integer', 'min:1'],
             'rooms_per_night' => ['nullable', 'integer', 'min:0'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],

@@ -65,13 +65,19 @@
                   </a>
                 @endcan
                 @can('delete', $statusMaster)
-                  <form method="POST" action="{{ route('status-masters.destroy', $statusMaster) }}" class="d-inline" data-confirm-title="Delete status" data-confirm="{{ "Are you sure you want to delete the status \"{$statusMaster->title}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                  @if (in_array($statusMaster->title, $usedTitles, true))
+                    <button type="button" class="btn btn-sm btn-outline-danger" title="Used by enquiries — cannot delete" disabled>
                       <i class="bi bi-trash"></i>
                     </button>
-                  </form>
+                  @else
+                    <form method="POST" action="{{ route('status-masters.destroy', $statusMaster) }}" class="d-inline" data-confirm-title="Delete status" data-confirm="{{ "Are you sure you want to delete the status \"{$statusMaster->title}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  @endif
                 @endcan
               </td>
             </tr>
