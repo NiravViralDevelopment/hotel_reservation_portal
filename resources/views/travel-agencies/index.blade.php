@@ -87,7 +87,7 @@
               <td>{{ $travelAgency->contact_name ?? '—' }}</td>
               <td>{{ $travelAgency->city ?? '—' }}</td>
               <td class="text-center">{{ $travelAgency->enquiries_count }}</td>
-              <td class="text-center">{{ $travelAgency->group_bookings_count }}</td>
+              <td class="text-center">{{ $travelAgency->confirmed_bookings_count }}</td>
               <td><x-badge-status :status="$travelAgency->status" /></td>
               <td class="text-end text-nowrap">
                 @can('view', $travelAgency)

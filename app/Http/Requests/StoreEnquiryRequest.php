@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\EnquiryFieldRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,42 +29,14 @@ class StoreEnquiryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'ref' => ['nullable', 'string', 'max:255', 'unique:enquiries,ref'],
-            'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'enquiry_date' => ['nullable', 'date'],
-            'response_date' => [
-                'nullable',
-                'date',
-                Rule::when($this->filled('enquiry_date'), ['after_or_equal:enquiry_date']),
-            ],
-            'check_in' => ['nullable', 'date'],
-            'check_in_day' => ['nullable', 'string', 'max:20'],
-            'check_out' => ['nullable', 'date', 'after:check_in'],
-            'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')],
-            'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
-            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::selectableHotelIds())],
-            'nights' => ['nullable', 'integer', 'min:1'],
-            'rooms_per_night' => ['nullable', 'integer', 'min:0'],
-            'single_rooms' => ['nullable', 'integer', 'min:0'],
-            'single_rate' => ['nullable', 'numeric', 'min:0'],
-            'double_rooms' => ['nullable', 'integer', 'min:0'],
-            'double_rate' => ['nullable', 'numeric', 'min:0'],
-            'triple_rooms' => ['nullable', 'integer', 'min:0'],
-            'triple_rate' => ['nullable', 'numeric', 'min:0'],
-            'total_revenue' => ['nullable', 'numeric', 'min:0'],
-            'has_tax' => ['sometimes', 'boolean'],
-            'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_tax,1,true'],
-            'tax_revenue' => ['nullable', 'numeric', 'min:0'],
-            'status' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::exists('status_masters', 'title')->where(fn ($query) => $query->where('status', 'active')),
-            ],
-            'email' => ['nullable', 'email', 'max:255'],
-            'remarks' => ['nullable', 'string'],
+        $rules = EnquiryFieldRules::base();
+        $rules['response_date'] = [
+            'nullable',
+            'date',
+            Rule::when($this->filled('enquiry_date'), ['after_or_equal:enquiry_date']),
         ];
+
+        return $rules;
     }
 
     /**

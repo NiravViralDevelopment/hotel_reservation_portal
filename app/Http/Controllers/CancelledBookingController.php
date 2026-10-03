@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\GroupBooking;
+use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
@@ -13,12 +13,12 @@ class CancelledBookingController extends Controller
 {
     public function index(Request $request): View
     {
-        $this->authorize('viewAny', GroupBooking::class);
+        abort_unless(auth()->user()?->can('bookings.view'), 403);
 
-        $query = GroupBooking::query()
+        $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['hotel', 'travelAgency', 'company', 'contact', 'createdBy'])
-            ->cancelled();
+            ->with(['hotel', 'travelAgency'])
+            ->cancelledBookings();
 
         if ($request->filled('hotel_id')) {
             HotelAccess::ensure(null, $request->integer('hotel_id'));
@@ -26,12 +26,16 @@ class CancelledBookingController extends Controller
         }
 
         QuerySort::apply($query, $request, [
-            'block_id' => 'block_id',
+            'ref' => 'ref',
             'group_name' => 'group_name',
-            'cancelled_at' => 'cancelled_at',
-            'revenue' => 'revenue_lost',
-            'reason' => 'cancellation_reason',
-        ], 'cancelled_at', 'desc');
+            'check_in' => 'check_in',
+            'check_out' => 'check_out',
+            'days' => 'days',
+            'nights' => 'nights',
+            'total_price' => 'total_price',
+            'grand_total' => 'grand_total',
+            'status' => 'status',
+        ], 'updated_at', 'desc');
 
         $bookings = $query->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();

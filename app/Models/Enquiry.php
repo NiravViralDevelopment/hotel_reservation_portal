@@ -26,7 +26,10 @@ class Enquiry extends Model
         'check_in_day',
         'check_out',
         'nights',
+        'days',
+        'breakdown',
         'group_name',
+        'client',
         'travel_agency_id',
         'hotel_id',
         'contact_id',
@@ -46,10 +49,36 @@ class Enquiry extends Model
         'cxl_policy',
         'option_date',
         'email',
+        'mobile',
+        'source',
+        'service_person',
+        'subject',
+        'booking_msg',
+        'adults_price',
+        'child_price',
+        'adults_extra',
+        'child_extra',
+        'total_pax',
+        'agent_price',
+        'our_cost',
+        'package_price',
+        'gst_policy',
+        'total_price',
+        'net_price',
+        'advance',
+        'remaining',
+        'agent_comm_percent',
+        'agent_comm_amount',
+        'payable_to_agent',
+        'service_total',
+        'total_tax',
+        'grand_total',
         'remarks',
         'client_response',
         'status',
-        'converted_booking_id',
+        'is_confirm',
+        'is_cancel',
+        'cancellation_reason',
     ];
 
     /**
@@ -65,17 +94,38 @@ class Enquiry extends Model
             'option_date' => 'date',
             'year' => 'integer',
             'nights' => 'integer',
+            'days' => 'integer',
             'rooms_per_night' => 'integer',
             'single_rooms' => 'integer',
             'double_rooms' => 'integer',
             'triple_rooms' => 'integer',
+            'total_pax' => 'integer',
             'single_rate' => 'decimal:2',
             'double_rate' => 'decimal:2',
             'triple_rate' => 'decimal:2',
             'total_revenue' => 'decimal:2',
             'has_tax' => 'boolean',
+            'is_confirm' => 'boolean',
+            'is_cancel' => 'boolean',
             'tax_percentage' => 'decimal:2',
             'tax_revenue' => 'decimal:2',
+            'adults_price' => 'decimal:2',
+            'child_price' => 'decimal:2',
+            'adults_extra' => 'decimal:2',
+            'child_extra' => 'decimal:2',
+            'agent_price' => 'decimal:2',
+            'our_cost' => 'decimal:2',
+            'package_price' => 'decimal:2',
+            'total_price' => 'decimal:2',
+            'net_price' => 'decimal:2',
+            'advance' => 'decimal:2',
+            'remaining' => 'decimal:2',
+            'agent_comm_percent' => 'decimal:2',
+            'agent_comm_amount' => 'decimal:2',
+            'payable_to_agent' => 'decimal:2',
+            'service_total' => 'decimal:2',
+            'total_tax' => 'decimal:2',
+            'grand_total' => 'decimal:2',
         ];
     }
 
@@ -104,11 +154,6 @@ class Enquiry extends Model
         return $this->hasMany(EnquiryResponse::class)->latest();
     }
 
-    public function convertedBooking(): BelongsTo
-    {
-        return $this->belongsTo(GroupBooking::class, 'converted_booking_id');
-    }
-
     /**
      * @param  Builder<Enquiry>  $query
      * @return Builder<Enquiry>
@@ -121,5 +166,32 @@ class Enquiry extends Model
         }
 
         return $query->whereIn($query->getModel()->getTable().'.hotel_id', $ids);
+    }
+
+    /**
+     * @param  Builder<Enquiry>  $query
+     * @return Builder<Enquiry>
+     */
+    public function scopeOpenPipeline(Builder $query): Builder
+    {
+        return $query->where('is_confirm', false)->where('is_cancel', false);
+    }
+
+    /**
+     * @param  Builder<Enquiry>  $query
+     * @return Builder<Enquiry>
+     */
+    public function scopeGroupBookings(Builder $query): Builder
+    {
+        return $query->where('is_confirm', true)->where('is_cancel', false);
+    }
+
+    /**
+     * @param  Builder<Enquiry>  $query
+     * @return Builder<Enquiry>
+     */
+    public function scopeCancelledBookings(Builder $query): Builder
+    {
+        return $query->where('is_cancel', true);
     }
 }

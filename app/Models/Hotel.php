@@ -57,14 +57,14 @@ class Hotel extends Model
         return $this->belongsToMany(User::class, 'hotel_user')->withTimestamps();
     }
 
-    public function groupBookings(): HasMany
-    {
-        return $this->hasMany(GroupBooking::class);
-    }
-
     public function enquiries(): HasMany
     {
         return $this->hasMany(Enquiry::class);
+    }
+
+    public function confirmedBookings(): HasMany
+    {
+        return $this->hasMany(Enquiry::class)->where('is_confirm', true)->where('is_cancel', false);
     }
 
     public function isActive(): bool

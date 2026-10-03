@@ -137,26 +137,26 @@
     <div class="col-lg-6">
       <div class="card h-100">
         <div class="card-header">
-          <h2 class="agency-section-title"><i class="bi bi-calendar2-check"></i> Recent group bookings ({{ $travelAgency->groupBookings->count() }})</h2>
+          <h2 class="agency-section-title"><i class="bi bi-calendar2-check"></i> Confirmed bookings ({{ $travelAgency->confirmedBookings->count() }})</h2>
         </div>
         <div class="table-wrapper">
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>Block ID</th>
+                <th>Ref</th>
                 <th>Group</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              @forelse ($travelAgency->groupBookings->take(10) as $booking)
+              @forelse ($travelAgency->confirmedBookings->take(10) as $booking)
                 <tr>
-                  <td class="fw-semibold"><a href="{{ route('group-bookings.show', $booking) }}">{{ $booking->block_id }}</a></td>
+                  <td class="fw-semibold"><a href="{{ route('enquiries.show', $booking) }}">{{ $booking->ref ?: '—' }}</a></td>
                   <td>{{ $booking->group_name ?: '—' }}</td>
                   <td><x-badge-status :status="$booking->status" /></td>
                 </tr>
               @empty
-                <tr><td colspan="3" class="text-center text-secondary py-3">No group bookings.</td></tr>
+                <tr><td colspan="3" class="text-center text-secondary py-3">No confirmed bookings.</td></tr>
               @endforelse
             </tbody>
           </table>

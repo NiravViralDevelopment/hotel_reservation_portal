@@ -31,16 +31,6 @@
             @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
-            <label for="group_booking_id" class="form-label">Group booking</label>
-            <select name="group_booking_id" id="group_booking_id" class="form-select select2 @error('group_booking_id') is-invalid @enderror">
-              <option value="">— None —</option>
-              @foreach ($groupBookings as $booking)
-                <option value="{{ $booking->id }}" @selected(old('group_booking_id') == $booking->id)>{{ $booking->block_id }} — {{ $booking->group_name }}</option>
-              @endforeach
-            </select>
-            @error('group_booking_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-6">
             <label for="file" class="form-label">File <span class="text-danger">*</span></label>
             <input type="file" name="file" id="file" class="form-control @error('file') is-invalid @enderror" required>
             @error('file')<div class="invalid-feedback">{{ $message }}</div>@enderror

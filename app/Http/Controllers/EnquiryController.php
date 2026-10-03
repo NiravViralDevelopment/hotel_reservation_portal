@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\BookingStatus;
 use App\Http\Requests\StoreEnquiryRequest;
 use App\Models\Enquiry;
-use App\Models\GroupBooking;
 use App\Models\Hotel;
 use App\Models\StatusMaster;
 use App\Models\TravelAgency;
 use App\Support\Audit;
+use App\Support\EnquiryFieldRules;
 use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,16 +24,20 @@ class EnquiryController extends Controller
 
         $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['travelAgency', 'hotel', 'contact', 'assignedTo'])
-            ->whereNotIn('status', ['confirmed', 'cancelled'])
-            ->whereNull('converted_booking_id');
+            ->with(['travelAgency', 'hotel', 'assignedTo'])
+            ->openPipeline();
 
         if ($request->filled('q')) {
             $search = $request->string('q')->trim()->toString();
             $query->where(function ($builder) use ($search) {
                 $builder->where('ref', 'like', "%{$search}%")
                     ->orWhere('group_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('client', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%")
+                    ->orWhere('source', 'like', "%{$search}%")
+                    ->orWhere('service_person', 'like', "%{$search}%");
             });
         }
 
@@ -67,13 +70,15 @@ class EnquiryController extends Controller
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',
-            'year' => 'year',
             'group_name' => 'group_name',
             'enquiry_date' => 'enquiry_date',
-            'response_date' => 'response_date',
-            'status' => 'status',
-            'total_revenue' => 'total_revenue',
+            'check_in' => 'check_in',
+            'check_out' => 'check_out',
+            'days' => 'days',
             'nights' => 'nights',
+            'total_price' => 'total_price',
+            'grand_total' => 'grand_total',
+            'status' => 'status',
         ], 'enquiry_date', 'desc');
 
         $enquiries = $query->paginate(10)->withQueryString();
@@ -82,9 +87,11 @@ class EnquiryController extends Controller
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = StatusMaster::query()
             ->active()
-            ->whereRaw("LOWER(title) NOT IN ('confirmed', 'cancelled')")
             ->orderBy('title')
-            ->pluck('title');
+            ->pluck('title')
+            ->merge(['confirmed', 'cancelled'])
+            ->unique()
+            ->values();
 
         return view('enquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'statuses'));
     }
@@ -122,6 +129,9 @@ class EnquiryController extends Controller
         $data = array_merge($data, $this->applyStayDates($data));
         $data = array_merge($data, $this->calculateRoomTotals($data));
         $data = array_merge($data, $this->applyTaxRevenue($data));
+        $data = array_merge($data, $this->applyCommercialTotals($data));
+        $data['is_confirm'] = false;
+        $data['is_cancel'] = false;
 
         $enquiry = Enquiry::query()->create($data);
         Audit::log('created', 'enquiries', $enquiry->ref, $enquiry);
@@ -133,7 +143,7 @@ class EnquiryController extends Controller
     {
         $this->authorize('view', $enquiry);
 
-        $enquiry->load(['travelAgency', 'hotel', 'contact', 'assignedTo', 'convertedBooking', 'responses.user']);
+        $enquiry->load(['travelAgency', 'hotel', 'assignedTo', 'responses.user']);
 
         return view('enquiries.show', compact('enquiry'));
     }
@@ -161,42 +171,19 @@ class EnquiryController extends Controller
             $request->merge(['ref' => null]);
         }
 
-        $data = $request->validate([
-            'ref' => ['nullable', 'string', 'max:255', 'unique:enquiries,ref,'.$enquiry->id],
-            'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'enquiry_date' => ['nullable', 'date'],
-            'response_date' => [
-                'nullable',
-                'date',
-                Rule::when($request->filled('enquiry_date'), ['after_or_equal:enquiry_date']),
-            ],
-            'check_in' => ['nullable', 'date'],
-            'check_in_day' => ['nullable', 'string', 'max:20'],
-            'check_out' => ['nullable', 'date', 'after:check_in'],
-            'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($enquiry->id)],
-            'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
-            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::selectableHotelIds(null, $enquiry->hotel_id))],
-            'nights' => ['nullable', 'integer', 'min:1'],
-            'rooms_per_night' => ['nullable', 'integer', 'min:0'],
-            'single_rooms' => ['nullable', 'integer', 'min:0'],
-            'single_rate' => ['nullable', 'numeric', 'min:0'],
-            'double_rooms' => ['nullable', 'integer', 'min:0'],
-            'double_rate' => ['nullable', 'numeric', 'min:0'],
-            'triple_rooms' => ['nullable', 'integer', 'min:0'],
-            'triple_rate' => ['nullable', 'numeric', 'min:0'],
-            'total_revenue' => ['nullable', 'numeric', 'min:0'],
-            'has_tax' => ['sometimes', 'boolean'],
-            'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_tax,1,true'],
-            'tax_revenue' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', 'string', 'max:255', Rule::exists('status_masters', 'title')],
-            'email' => ['nullable', 'email', 'max:255'],
-            'remarks' => ['nullable', 'string'],
-            'cxl_policy' => ['nullable', 'string', 'max:255'],
-            'option_date' => ['nullable', 'date'],
-            'confirm_booking' => ['nullable', 'boolean'],
-            'cancel_booking' => ['nullable', 'boolean'],
-            'cancellation_reason' => ['nullable', 'string', 'max:500'],
-        ], [
+        $rules = EnquiryFieldRules::base($enquiry->id, $enquiry->hotel_id);
+        $rules['response_date'] = [
+            'nullable',
+            'date',
+            Rule::when($request->filled('enquiry_date'), ['after_or_equal:enquiry_date']),
+        ];
+        $rules['cxl_policy'] = ['nullable', 'string', 'max:255'];
+        $rules['option_date'] = ['nullable', 'date'];
+        $rules['confirm_booking'] = ['nullable', 'boolean'];
+        $rules['cancel_booking'] = ['nullable', 'boolean'];
+        $rules['cancellation_reason'] = ['nullable', 'string', 'max:500'];
+
+        $data = $request->validate($rules, [
             'group_name.unique' => 'This group name is already used. Enter a different name.',
             'check_out.after' => 'Check-out must be after check-in.',
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
@@ -222,8 +209,14 @@ class EnquiryController extends Controller
 
         if ($confirmBooking) {
             $data['status'] = 'confirmed';
+            $data['is_confirm'] = true;
+            $data['is_cancel'] = false;
+            $data['cancellation_reason'] = null;
         } elseif ($cancelBooking) {
             $data['status'] = 'cancelled';
+            $data['is_confirm'] = false;
+            $data['is_cancel'] = true;
+            $data['cancellation_reason'] = $request->string('cancellation_reason')->toString();
         }
 
         if (! empty($data['enquiry_date'])) {
@@ -234,38 +227,23 @@ class EnquiryController extends Controller
         $data = array_merge($data, $this->applyStayDates($data));
         $data = array_merge($data, $this->calculateRoomTotals($data));
         $data = array_merge($data, $this->applyTaxRevenue($data));
-        $cancellationReason = $cancelBooking
-            ? $request->string('cancellation_reason')->toString()
-            : null;
+        $data = array_merge($data, $this->applyCommercialTotals($data));
 
-        unset($data['confirm_booking'], $data['cancel_booking'], $data['cancellation_reason']);
+        unset($data['confirm_booking'], $data['cancel_booking']);
 
         $enquiry->update($data);
         Audit::log('updated', 'enquiries', $enquiry->ref, $enquiry);
-        $enquiry->refresh();
 
         if ($confirmBooking) {
-            $booking = $this->ensureConvertedBooking($enquiry, [
-                'status' => BookingStatus::Confirmed->value,
-            ]);
-
             return redirect()
-                ->route('group-bookings.show', $booking)
-                ->with('success', 'Enquiry confirmed and moved to group bookings.');
+                ->route('group-bookings.index')
+                ->with('success', 'Enquiry confirmed. Moved to Group Bookings.');
         }
 
         if ($cancelBooking) {
-            $this->ensureConvertedBooking($enquiry, [
-                'status' => BookingStatus::Cancelled->value,
-                'cancelled_at' => now(),
-                'cxl_date' => now()->toDateString(),
-                'cancellation_reason' => $cancellationReason,
-                'revenue_lost' => $enquiry->total_revenue,
-            ]);
-
             return redirect()
                 ->route('cancelled-bookings.index')
-                ->with('success', 'Enquiry cancelled and moved to cancelled bookings.');
+                ->with('success', 'Enquiry cancelled. Moved to Cancelled Bookings.');
         }
 
         return redirect()->route('enquiries.index')->with('success', 'Enquiry updated.');
@@ -319,74 +297,17 @@ class EnquiryController extends Controller
     {
         $this->authorize('convert', $enquiry);
 
-        $booking = $this->ensureConvertedBooking($enquiry, [
-            'status' => BookingStatus::Confirmed->value,
+        $enquiry->update([
+            'status' => 'confirmed',
+            'is_confirm' => true,
+            'is_cancel' => false,
+            'cancellation_reason' => null,
         ]);
-
-        $enquiry->update(['status' => 'confirmed']);
+        Audit::log('confirmed', 'enquiries', $enquiry->ref, $enquiry);
 
         return redirect()
-            ->route('group-bookings.show', $booking)
-            ->with('success', 'Enquiry converted to group booking.');
-    }
-
-    /**
-     * @param  array<string, mixed>  $extra
-     */
-    private function ensureConvertedBooking(Enquiry $enquiry, array $extra = []): GroupBooking
-    {
-        if ($enquiry->converted_booking_id) {
-            $booking = GroupBooking::query()->find($enquiry->converted_booking_id);
-            if ($booking) {
-                $booking->update($extra);
-                Audit::log('updated', 'group_bookings', $booking->block_id, $booking);
-
-                return $booking;
-            }
-        }
-
-        $arrival = $enquiry->check_in
-            ? Carbon::parse($enquiry->check_in)->startOfDay()
-            : ($enquiry->option_date
-                ? Carbon::parse($enquiry->option_date)->startOfDay()
-                : now()->addMonth()->startOfDay());
-        $nights = max(1, (int) $enquiry->nights);
-        $departure = $enquiry->check_out
-            ? Carbon::parse($enquiry->check_out)->startOfDay()
-            : $arrival->copy()->addDays($nights);
-        if ($enquiry->check_in && $enquiry->check_out) {
-            $nights = max(1, $arrival->diffInDays($departure));
-        }
-
-        $booking = GroupBooking::query()->create(array_merge([
-            'block_id' => 'ENQ-'.$enquiry->ref,
-            'enquiry_id' => $enquiry->id,
-            'hotel_id' => $enquiry->hotel_id,
-            'travel_agency_id' => $enquiry->travel_agency_id,
-            'contact_id' => $enquiry->contact_id,
-            'created_by' => auth()->id(),
-            'group_name' => $enquiry->group_name,
-            'email' => $enquiry->email,
-            'arrival' => $arrival,
-            'departure' => $departure,
-            'arrival_day' => $arrival->format('l'),
-            'nights' => $nights,
-            'status' => BookingStatus::Provisional->value,
-            'single_rns' => $enquiry->single_rooms,
-            'single_rate' => $enquiry->single_rate,
-            'double_rns' => $enquiry->double_rooms,
-            'double_rate' => $enquiry->double_rate,
-            'triple_rns' => $enquiry->triple_rooms,
-            'triple_rate' => $enquiry->triple_rate,
-            'revenue' => $enquiry->total_revenue,
-            'cxl_policy' => $enquiry->cxl_policy,
-            'rooms' => $enquiry->rooms_per_night,
-        ], $extra));
-
-        $enquiry->update(['converted_booking_id' => $booking->id]);
-        Audit::log('converted', 'enquiries', $enquiry->ref.' → '.$booking->block_id, $booking);
-
-        return $booking;
+            ->route('group-bookings.index')
+            ->with('success', 'Enquiry confirmed. Moved to Group Bookings.');
     }
 
     /**
@@ -413,8 +334,74 @@ class EnquiryController extends Controller
         $nights = $checkIn->diffInDays($checkOut);
 
         $result['nights'] = max(1, $nights);
+        $result['days'] = max(1, $nights);
 
         return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function applyCommercialTotals(array $data): array
+    {
+        $moneyKeys = [
+            'adults_price', 'child_price', 'adults_extra', 'child_extra',
+            'agent_price', 'our_cost', 'package_price', 'total_price', 'net_price',
+            'advance', 'remaining', 'agent_comm_percent', 'agent_comm_amount',
+            'payable_to_agent', 'service_total', 'total_tax', 'grand_total',
+        ];
+
+        foreach ($moneyKeys as $key) {
+            if (! isset($data[$key]) || $data[$key] === '' || $data[$key] === null) {
+                $data[$key] = 0;
+            } else {
+                $data[$key] = round((float) $data[$key], 2);
+            }
+        }
+
+        if (! isset($data['total_pax']) || $data['total_pax'] === '' || $data['total_pax'] === null) {
+            $data['total_pax'] = 0;
+        } else {
+            $data['total_pax'] = max(0, (int) $data['total_pax']);
+        }
+
+        $builtTotal = $data['adults_price'] + $data['child_price'] + $data['adults_extra'] + $data['child_extra'];
+        if ($data['total_price'] <= 0 && $builtTotal > 0) {
+            $data['total_price'] = round($builtTotal, 2);
+        }
+
+        if ($data['service_total'] <= 0 && $data['total_price'] > 0) {
+            $data['service_total'] = $data['total_price'];
+        }
+
+        if ($data['total_tax'] <= 0 && ! empty($data['has_tax'])) {
+            $data['total_tax'] = round((float) ($data['tax_revenue'] ?? 0), 2);
+        }
+
+        $data['agent_comm_amount'] = $data['agent_comm_percent'] > 0
+            ? round(($data['agent_price'] > 0 ? $data['agent_price'] : $data['total_price']) * ($data['agent_comm_percent'] / 100), 2)
+            : round((float) $data['agent_comm_amount'], 2);
+
+        $data['payable_to_agent'] = $data['agent_comm_amount'];
+
+        if ($data['net_price'] <= 0) {
+            $data['net_price'] = round(max(0, $data['total_price'] - $data['agent_comm_amount']), 2);
+        }
+
+        if (abs($data['service_total'] - $data['total_price']) < 0.001) {
+            $data['grand_total'] = round($data['total_price'] + $data['total_tax'], 2);
+        } else {
+            $data['grand_total'] = round($data['total_price'] + $data['service_total'] + $data['total_tax'], 2);
+        }
+
+        $data['remaining'] = round(max(0, $data['grand_total'] - $data['advance']), 2);
+
+        if (empty($data['days']) && ! empty($data['nights'])) {
+            $data['days'] = (int) $data['nights'];
+        }
+
+        return $data;
     }
 
     /**

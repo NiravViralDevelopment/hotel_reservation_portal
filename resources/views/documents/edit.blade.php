@@ -31,16 +31,6 @@
             <input type="text" name="category" id="category" class="form-control @error('category') is-invalid @enderror" value="{{ old('category', $document->category) }}" placeholder="Enter category" required>
             @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-12">
-            <label for="group_booking_id" class="form-label">Group booking</label>
-            <select name="group_booking_id" id="group_booking_id" class="form-select select2 @error('group_booking_id') is-invalid @enderror">
-              <option value="">— None —</option>
-              @foreach ($groupBookings as $booking)
-                <option value="{{ $booking->id }}" @selected(old('group_booking_id', $document->group_booking_id) == $booking->id)>{{ $booking->block_id }} — {{ $booking->group_name }}</option>
-              @endforeach
-            </select>
-            @error('group_booking_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
         </div>
       </div>
     </div>

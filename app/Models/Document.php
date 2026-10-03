@@ -16,7 +16,6 @@ class Document extends Model
     protected $fillable = [
         'name',
         'category',
-        'group_booking_id',
         'uploaded_by',
         'disk',
         'path',
@@ -32,11 +31,6 @@ class Document extends Model
         return [
             'size' => 'integer',
         ];
-    }
-
-    public function groupBooking(): BelongsTo
-    {
-        return $this->belongsTo(GroupBooking::class);
     }
 
     public function uploadedBy(): BelongsTo

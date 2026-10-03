@@ -35,9 +35,4 @@ class Company extends Model
     {
         return $this->hasMany(Contact::class);
     }
-
-    public function groupBookings(): HasMany
-    {
-        return $this->hasMany(GroupBooking::class);
-    }
 }

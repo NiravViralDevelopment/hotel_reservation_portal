@@ -143,40 +143,40 @@
 
   <div class="card">
     <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-      <h2 class="hotel-section-title"><i class="bi bi-calendar2-week"></i> Recent group bookings</h2>
-      <span class="badge bg-light text-dark border">{{ $hotel->groupBookings->count() }}</span>
+      <h2 class="hotel-section-title"><i class="bi bi-calendar2-week"></i> Confirmed bookings</h2>
+      <span class="badge bg-light text-dark border">{{ $hotel->confirmedBookings->count() }}</span>
     </div>
     <div class="table-wrapper">
       <table class="table table-hover mb-0 align-middle">
         <thead>
           <tr>
-            <th>Block ID</th>
+            <th>Ref</th>
             <th>Group</th>
             <th>Arrival</th>
-            <th class="text-end">Revenue</th>
+            <th class="text-end">Grand total</th>
             <th>Status</th>
             <th class="text-end">Actions</th>
           </tr>
         </thead>
         <tbody>
-          @forelse ($hotel->groupBookings->take(15) as $booking)
+          @forelse ($hotel->confirmedBookings->take(15) as $booking)
             <tr>
               <td class="fw-semibold text-nowrap">
-                <a href="{{ route('group-bookings.show', $booking) }}">{{ $booking->block_id }}</a>
+                <a href="{{ route('enquiries.show', $booking) }}">{{ $booking->ref ?: '—' }}</a>
               </td>
               <td>{{ $booking->group_name }}</td>
-              <td>{{ $booking->arrival?->format('d M Y') ?? '—' }}</td>
-              <td class="text-end">£{{ number_format((float) ($booking->revenue ?? 0), 2) }}</td>
+              <td>{{ $booking->check_in?->format('d M Y') ?? '—' }}</td>
+              <td class="text-end">£{{ number_format((float) ($booking->grand_total ?? 0), 2) }}</td>
               <td><x-badge-status :status="$booking->status" /></td>
               <td class="text-end">
-                <a href="{{ route('group-bookings.show', $booking) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                <a href="{{ route('enquiries.show', $booking) }}" class="btn btn-sm btn-outline-secondary" title="View">
                   <i class="bi bi-eye"></i>
                 </a>
               </td>
             </tr>
           @empty
             <tr>
-              <td colspan="6" class="text-center text-secondary py-4">No group bookings for this hotel yet.</td>
+              <td colspan="6" class="text-center text-secondary py-4">No confirmed bookings for this hotel yet.</td>
             </tr>
           @endforelse
         </tbody>

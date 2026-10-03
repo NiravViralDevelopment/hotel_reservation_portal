@@ -40,6 +40,7 @@ class EnquiryPolicy
     {
         return $user->hasPermissionTo('enquiries.convert')
             && HotelAccess::allows($user, $enquiry->hotel_id)
-            && $enquiry->converted_booking_id === null;
+            && ! $enquiry->is_confirm
+            && ! $enquiry->is_cancel;
     }
 }

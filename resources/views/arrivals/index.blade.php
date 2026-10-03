@@ -12,7 +12,7 @@
       </ol>
     </nav>
     <h1 class="page-title">Arrivals</h1>
-    <p class="page-subtitle">Groups arriving on {{ \Illuminate\Support\Carbon::parse($date)->format('l, d M Y') }}.</p>
+    <p class="page-subtitle">Confirmed groups arriving on {{ \Illuminate\Support\Carbon::parse($date)->format('l, d M Y') }}.</p>
   </div>
 
   <div class="card">
@@ -38,24 +38,24 @@
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <x-sortable-th column="block_id" label="Block ID" default="group_name" />
+            <x-sortable-th column="ref" label="Ref" default="group_name" />
             <x-sortable-th column="group_name" label="Group" default="group_name" />
             <th>Hotel</th>
             <th>Agency</th>
             <x-sortable-th column="nights" label="Nights" default="group_name" />
-            <x-sortable-th column="rooms" label="Rooms" default="group_name" />
+            <th>Pax</th>
             <x-sortable-th column="status" label="Status" default="group_name" />
           </tr>
         </thead>
         <tbody>
           @forelse ($bookings as $booking)
             <tr>
-              <td><a href="{{ route('group-bookings.show', $booking) }}">{{ $booking->block_id }}</a></td>
+              <td><a href="{{ route('enquiries.show', $booking) }}">{{ $booking->ref ?: '—' }}</a></td>
               <td>{{ $booking->group_name }}</td>
               <td>{{ $booking->hotel?->code ?? '—' }}</td>
               <td>{{ $booking->travelAgency?->name ?? '—' }}</td>
               <td>{{ $booking->nights ?? '—' }}</td>
-              <td>{{ $booking->rooms ?? '—' }}</td>
+              <td>{{ $booking->total_pax ?? '—' }}</td>
               <td><x-badge-status :status="$booking->status" /></td>
             </tr>
           @empty

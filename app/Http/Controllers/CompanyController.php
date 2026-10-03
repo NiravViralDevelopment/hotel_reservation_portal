@@ -83,10 +83,17 @@ class CompanyController extends Controller
 
         $company->load([
             'hotels' => fn ($q) => $q->orderBy('name'),
-            'groupBookings' => fn ($q) => $q->with('hotel:id,code,name')->latest('arrival')->limit(15),
         ]);
 
-        return view('companies.show', compact('company'));
+        $confirmedBookings = \App\Models\Enquiry::query()
+            ->with('hotel:id,code,name')
+            ->whereIn('hotel_id', $company->hotels->pluck('id'))
+            ->groupBookings()
+            ->latest('check_in')
+            ->limit(15)
+            ->get();
+
+        return view('companies.show', compact('company', 'confirmedBookings'));
     }
 
     public function edit(Company $company): View

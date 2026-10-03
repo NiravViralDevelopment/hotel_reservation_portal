@@ -39,9 +39,4 @@ class Contact extends Model
     {
         return $this->hasMany(Enquiry::class);
     }
-
-    public function groupBookings(): HasMany
-    {
-        return $this->hasMany(GroupBooking::class);
-    }
 }

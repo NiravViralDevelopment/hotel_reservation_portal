@@ -21,7 +21,7 @@ class HotelController extends Controller
         $query = Hotel::query()
             ->accessibleBy()
             ->with(['company'])
-            ->withCount(['users', 'enquiries', 'groupBookings']);
+            ->withCount(['users', 'enquiries', 'confirmedBookings']);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->trim()->toString();
@@ -131,7 +131,11 @@ class HotelController extends Controller
         $this->authorize('view', $hotel);
         HotelAccess::ensure(null, $hotel->id);
 
-        $hotel->load(['company', 'users', 'groupBookings' => fn ($q) => $q->accessibleBy()->latest('arrival')->limit(20)]);
+        $hotel->load([
+            'company',
+            'users',
+            'confirmedBookings' => fn ($q) => $q->accessibleBy()->latest('check_in')->limit(20),
+        ]);
 
         return view('hotels.show', compact('hotel'));
     }

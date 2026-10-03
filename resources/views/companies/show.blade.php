@@ -103,8 +103,8 @@
           <div class="info-card-value">{{ $company->hotels->count() }}</div>
         </div>
         <div class="info-card mb-3">
-          <div class="info-card-label">Group bookings</div>
-          <div class="info-card-value">{{ $company->groupBookings->count() }}</div>
+          <div class="info-card-label">Confirmed bookings</div>
+          <div class="info-card-value">{{ $confirmedBookings->count() }}</div>
         </div>
         <div class="info-card">
           <div class="info-card-label">Notes</div>
@@ -146,32 +146,32 @@
 
   <div class="card">
     <div class="card-header">
-      <h2 class="company-section-title"><i class="bi bi-calendar2-check"></i> Recent group bookings ({{ $company->groupBookings->count() }})</h2>
+      <h2 class="company-section-title"><i class="bi bi-calendar2-check"></i> Confirmed bookings ({{ $confirmedBookings->count() }})</h2>
     </div>
     <div class="table-wrapper">
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Block ID</th>
+            <th>Ref</th>
             <th>Group</th>
             <th>Hotel</th>
             <th>Arrival</th>
-            <th>Revenue</th>
+            <th>Grand total</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          @forelse ($company->groupBookings as $booking)
+          @forelse ($confirmedBookings as $booking)
             <tr>
-              <td class="fw-semibold"><a href="{{ route('group-bookings.show', $booking) }}">{{ $booking->block_id }}</a></td>
+              <td class="fw-semibold"><a href="{{ route('enquiries.show', $booking) }}">{{ $booking->ref ?: '—' }}</a></td>
               <td>{{ $booking->group_name }}</td>
               <td>{{ $booking->hotel?->code ?? '—' }}</td>
-              <td>{{ $booking->arrival?->format('d M Y') ?? '—' }}</td>
-              <td>£{{ number_format((float) ($booking->revenue ?? 0), 2) }}</td>
+              <td>{{ $booking->check_in?->format('d M Y') ?? '—' }}</td>
+              <td>£{{ number_format((float) ($booking->grand_total ?? 0), 2) }}</td>
               <td><x-badge-status :status="$booking->status" /></td>
             </tr>
           @empty
-            <tr><td colspan="6" class="text-center text-secondary py-3">No group bookings.</td></tr>
+            <tr><td colspan="6" class="text-center text-secondary py-3">No confirmed bookings.</td></tr>
           @endforelse
         </tbody>
       </table>

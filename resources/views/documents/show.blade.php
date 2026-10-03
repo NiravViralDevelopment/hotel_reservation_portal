@@ -27,7 +27,6 @@
   <div class="card">
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-md-4"><div class="info-card-label">Group booking</div><div class="info-card-value">@if($document->groupBooking)<a href="{{ route('group-bookings.show', $document->groupBooking) }}">{{ $document->groupBooking->block_id }}</a>@else — @endif</div></div>
         <div class="col-md-4"><div class="info-card-label">Uploaded by</div><div class="info-card-value">{{ $document->uploadedBy?->name ?? '—' }}</div></div>
         <div class="col-md-4"><div class="info-card-label">Uploaded</div><div class="info-card-value">{{ $document->created_at?->format('d M Y H:i') ?? '—' }}</div></div>
         <div class="col-md-4"><div class="info-card-label">MIME type</div><div class="info-card-value">{{ $document->mime_type ?? '—' }}</div></div>

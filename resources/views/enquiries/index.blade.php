@@ -13,7 +13,7 @@
         </ol>
       </nav>
       <h1 class="page-title">Enquiries</h1>
-      <p class="page-subtitle">Incoming group booking enquiries and pipeline.</p>
+      <p class="page-subtitle">Enquiry records — confirm or cancel updates status only.</p>
     </div>
     @can('create', App\Models\Enquiry::class)
       <a href="{{ route('enquiries.create') }}" class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> Add enquiry</a>
@@ -29,7 +29,7 @@
             type="search"
             name="q"
             class="form-control border-start-0"
-            placeholder="Search ref, group, email…"
+            placeholder="Search ref, group, client, email, mobile…"
             value="{{ request('q') }}"
           >
         </div>
@@ -72,112 +72,12 @@
         @endif
       </form>
     </div>
-    <div class="table-scroll-hint"><i class="bi bi-arrows-expand"></i> Scroll horizontally to see all columns</div>
-    <div class="table-wrapper table-scroll-wide table-scroll-enquiries">
-      <table class="table table-hover table-sm mb-0" id="enquiriesTable" style="font-size:0.78rem">
-        <thead>
-          <tr>
-            <x-sortable-th column="ref" label="Ref" default="enquiry_date" default-dir="desc" />
-            <x-sortable-th column="year" label="Year" default="enquiry_date" default-dir="desc" />
-            <x-sortable-th column="enquiry_date" label="Date" default="enquiry_date" default-dir="desc" />
-            <th>Day</th>
-            <x-sortable-th column="response_date" label="Response date" default="enquiry_date" default-dir="desc" />
-            <x-sortable-th column="group_name" label="Group name" default="enquiry_date" default-dir="desc" />
-            <th>Email</th>
-            <th>Agency</th>
-            <th>Hotel</th>
-            <th>Check-in</th>
-            <th>Check-in day</th>
-            <th>Check-out</th>
-            <x-sortable-th column="nights" label="Nights" default="enquiry_date" default-dir="desc" />
-            <th>Rooms / night</th>
-            <th>Single</th>
-            <th>Single rate</th>
-            <th>Double</th>
-            <th>Double rate</th>
-            <th>Triple</th>
-            <th>Triple rate</th>
-            <th>Basis</th>
-            <x-sortable-th column="total_revenue" label="Total revenue" default="enquiry_date" default-dir="desc" />
-            <th>Tax</th>
-            <th>Tax %</th>
-            <th>Tax revenue</th>
-            <th>CXL policy</th>
-            <th>Option date</th>
-            <th>Remarks</th>
-            <x-sortable-th column="status" label="Status" default="enquiry_date" default-dir="desc" />
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse ($enquiries as $enquiry)
-            <tr>
-              <td class="fw-semibold text-nowrap"><a href="{{ route('enquiries.show', $enquiry) }}">{{ $enquiry->ref }}</a></td>
-              <td>{{ $enquiry->year ?? '—' }}</td>
-              <td class="text-nowrap">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</td>
-              <td>{{ $enquiry->day ?? '—' }}</td>
-              <td class="text-nowrap">
-                @if ($enquiry->response_date)
-                  {{ $enquiry->response_date->format('d M Y') }}
-                @else
-                  <span class="text-secondary">Awaiting</span>
-                @endif
-              </td>
-              <td class="text-nowrap">{{ $enquiry->group_name }}</td>
-              <td class="text-nowrap">{{ $enquiry->email ?: '—' }}</td>
-              <td class="text-nowrap">{{ $enquiry->travelAgency?->name ?? '—' }}</td>
-              <td class="text-nowrap">{{ $enquiry->hotel?->code ?? '—' }}</td>
-              <td class="text-nowrap">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</td>
-              <td class="text-nowrap">{{ $enquiry->check_in_day ?: '—' }}</td>
-              <td class="text-nowrap">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</td>
-              <td>{{ $enquiry->nights ?? '—' }}</td>
-              <td>{{ $enquiry->rooms_per_night ?? '—' }}</td>
-              <td>{{ $enquiry->single_rooms ?? 0 }}</td>
-              <td>£{{ number_format((float) ($enquiry->single_rate ?? 0), 2) }}</td>
-              <td>{{ $enquiry->double_rooms ?? 0 }}</td>
-              <td>£{{ number_format((float) ($enquiry->double_rate ?? 0), 2) }}</td>
-              <td>{{ $enquiry->triple_rooms ?? 0 }}</td>
-              <td>£{{ number_format((float) ($enquiry->triple_rate ?? 0), 2) }}</td>
-              <td>{{ $enquiry->basis ?: '—' }}</td>
-              <td class="text-nowrap">£{{ number_format((float) ($enquiry->total_revenue ?? 0), 2) }}</td>
-              <td>{{ $enquiry->has_tax ? 'Yes' : 'No' }}</td>
-              <td>{{ $enquiry->has_tax ? number_format((float) ($enquiry->tax_percentage ?? 0), 2).'%' : '—' }}</td>
-              <td class="text-nowrap">£{{ number_format((float) ($enquiry->tax_revenue ?? 0), 2) }}</td>
-              <td class="text-nowrap">{{ $enquiry->cxl_policy ?: '—' }}</td>
-              <td class="text-nowrap">{{ $enquiry->option_date?->format('d M Y') ?? '—' }}</td>
-              <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->remarks }}">{{ $enquiry->remarks ?: '—' }}</td>
-              <td><x-badge-status :status="$enquiry->status" /></td>
-              <td class="text-end text-nowrap">
-                @can('view', $enquiry)
-                  <a href="{{ route('enquiries.show', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
-                    <i class="bi bi-eye"></i>
-                  </a>
-                @endcan
-                @can('update', $enquiry)
-                  <a href="{{ route('enquiries.show', $enquiry) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
-                    <i class="bi bi-chat-left-text"></i>
-                  </a>
-                  <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                    <i class="bi bi-pencil"></i>
-                  </a>
-                @endcan
-                @can('delete', $enquiry)
-                  <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="{{ sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Delete">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </form>
-                @endcan
-              </td>
-            </tr>
-          @empty
-            <tr><td colspan="30" class="text-center text-secondary py-4">No enquiries found.</td></tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
+    @include('enquiries.partials.list-table', [
+      'rows' => $enquiries,
+      'defaultSort' => 'enquiry_date',
+      'defaultDir' => 'desc',
+      'emptyMessage' => 'No enquiries found.',
+    ])
     @include('partials.pagination-footer', ['paginator' => $enquiries])
   </div>
 @endsection

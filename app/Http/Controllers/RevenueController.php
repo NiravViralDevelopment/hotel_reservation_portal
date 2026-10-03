@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BobMonthlySnapshot;
-use App\Models\GroupBooking;
+use App\Models\Enquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -16,18 +16,18 @@ class RevenueController extends Controller
 
         $year = $request->integer('year', (int) now()->format('Y'));
 
-        $monthlyRevenue = GroupBooking::query()
+        $monthlyRevenue = Enquiry::query()
             ->accessibleBy()
-            ->active()
-            ->whereYear('arrival', $year)
+            ->groupBookings()
+            ->whereYear('check_in', $year)
             ->select(
-                DB::raw('MONTH(arrival) as month'),
-                DB::raw('SUM(revenue) as total_revenue'),
-                DB::raw('SUM(bb_revenue) as bb_revenue'),
-                DB::raw('SUM(dinner_revenue) as dinner_revenue'),
-                DB::raw('SUM(total_rns) as room_nights'),
+                DB::raw('MONTH(check_in) as month'),
+                DB::raw('SUM(grand_total) as total_revenue'),
+                DB::raw('SUM(COALESCE(service_total, 0)) as bb_revenue'),
+                DB::raw('SUM(COALESCE(total_tax, 0)) as dinner_revenue'),
+                DB::raw('SUM(COALESCE(nights, 0) * COALESCE(rooms_per_night, 0)) as room_nights'),
             )
-            ->groupBy(DB::raw('MONTH(arrival)'))
+            ->groupBy(DB::raw('MONTH(check_in)'))
             ->orderBy('month')
             ->get()
             ->keyBy('month');
@@ -38,11 +38,11 @@ class RevenueController extends Controller
             ->get()
             ->keyBy('month');
 
-        $yearTotal = GroupBooking::query()
+        $yearTotal = Enquiry::query()
             ->accessibleBy()
-            ->active()
-            ->whereYear('arrival', $year)
-            ->sum('revenue');
+            ->groupBookings()
+            ->whereYear('check_in', $year)
+            ->sum('grand_total');
 
         return view('revenue.index', compact('monthlyRevenue', 'snapshots', 'year', 'yearTotal'));
     }

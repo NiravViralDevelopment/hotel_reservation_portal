@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Enquiry;
-use App\Models\GroupBooking;
 use App\Models\Hotel;
 use App\Support\HotelAccess;
 use Illuminate\Http\Request;
@@ -90,16 +89,17 @@ class ReportController extends Controller
             return view('reports.run', compact('results', 'validated', 'hotels'));
         }
 
-        $query = GroupBooking::query()
+        $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['hotel', 'travelAgency']);
+            ->with(['hotel', 'travelAgency'])
+            ->groupBookings();
 
         if ($validated['date_from'] ?? null) {
-            $query->whereDate('arrival', '>=', $validated['date_from']);
+            $query->whereDate('check_in', '>=', $validated['date_from']);
         }
 
         if ($validated['date_to'] ?? null) {
-            $query->whereDate('arrival', '<=', $validated['date_to']);
+            $query->whereDate('check_in', '<=', $validated['date_to']);
         }
 
         if ($validated['hotel_id'] ?? null) {
@@ -108,15 +108,14 @@ class ReportController extends Controller
 
         $results = match ($validated['report']) {
             'bookings_by_hotel' => (clone $query)
-                ->select('hotel_id', DB::raw('COUNT(*) as bookings'), DB::raw('SUM(revenue) as revenue'))
+                ->select('hotel_id', DB::raw('COUNT(*) as bookings'), DB::raw('SUM(grand_total) as revenue'))
                 ->groupBy('hotel_id')
                 ->get(),
             'arrivals_summary' => (clone $query)
-                ->active()
-                ->orderBy('arrival')
+                ->orderBy('check_in')
                 ->get(),
             'revenue_by_agency' => (clone $query)
-                ->select('travel_agency_id', DB::raw('COUNT(*) as bookings'), DB::raw('SUM(revenue) as revenue'))
+                ->select('travel_agency_id', DB::raw('COUNT(*) as bookings'), DB::raw('SUM(grand_total) as revenue'))
                 ->groupBy('travel_agency_id')
                 ->get(),
         };
@@ -135,39 +134,29 @@ class ReportController extends Controller
         $to = $validated['date_to'];
 
         return match ($validated['report']) {
-            'group_bookings' => GroupBooking::query()
+            'group_bookings' => Enquiry::query()
                 ->accessibleBy()
-                ->with(['hotel', 'travelAgency', 'company', 'contact', 'createdBy'])
-                ->active()
-                ->whereDate('arrival', '>=', $from)
-                ->whereDate('arrival', '<=', $to)
-                ->orderBy('arrival')
+                ->with(['hotel', 'travelAgency', 'assignedTo'])
+                ->groupBookings()
+                ->whereDate('check_in', '>=', $from)
+                ->whereDate('check_in', '<=', $to)
+                ->orderBy('check_in')
                 ->get(),
             'enquiries' => Enquiry::query()
                 ->accessibleBy()
-                ->with(['hotel', 'travelAgency', 'contact', 'assignedTo'])
-                ->whereNotIn('status', ['confirmed', 'cancelled'])
-                ->whereNull('converted_booking_id')
+                ->with(['hotel', 'travelAgency', 'assignedTo'])
+                ->openPipeline()
                 ->whereDate('enquiry_date', '>=', $from)
                 ->whereDate('enquiry_date', '<=', $to)
                 ->orderBy('enquiry_date')
                 ->get(),
-            'cancelled_bookings' => GroupBooking::query()
+            'cancelled_bookings' => Enquiry::query()
                 ->accessibleBy()
-                ->with(['hotel', 'travelAgency', 'company', 'contact', 'createdBy'])
-                ->cancelled()
-                ->where(function ($query) use ($from, $to) {
-                    $query->where(function ($dated) use ($from, $to) {
-                        $dated->whereNotNull('cancelled_at')
-                            ->whereDate('cancelled_at', '>=', $from)
-                            ->whereDate('cancelled_at', '<=', $to);
-                    })->orWhere(function ($dated) use ($from, $to) {
-                        $dated->whereNull('cancelled_at')
-                            ->whereDate('cxl_date', '>=', $from)
-                            ->whereDate('cxl_date', '<=', $to);
-                    });
-                })
-                ->orderByDesc('cancelled_at')
+                ->with(['hotel', 'travelAgency', 'assignedTo'])
+                ->cancelledBookings()
+                ->whereDate('updated_at', '>=', $from)
+                ->whereDate('updated_at', '<=', $to)
+                ->orderByDesc('updated_at')
                 ->get(),
         };
     }

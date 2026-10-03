@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Enquiry;
-use App\Models\GroupBooking;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
 use App\Support\HotelAccess;
@@ -19,14 +18,13 @@ class DashboardController extends Controller
         $allocatedHotels = HotelAccess::hotels();
         $currentHotel = HotelAccess::currentHotel();
 
-        // Non-admin users must pick a hotel first. Administrators can use all hotels.
         if ($currentHotel === null && ! HotelAccess::canAccessAllHotels()) {
             return view('dashboard.select-hotel', compact('allocatedHotels'));
         }
 
         $hotelIds = HotelAccess::hotelIds();
         $hotelsQuery = Hotel::query()->accessibleBy()->where('status', 'active');
-        $bookingsQuery = GroupBooking::query()->accessibleBy();
+        $confirmedQuery = Enquiry::query()->accessibleBy()->groupBookings();
         $enquiriesQuery = Enquiry::query()->accessibleBy();
 
         $stats = [
@@ -36,24 +34,21 @@ class DashboardController extends Controller
                 ->whereHas('hotels', fn ($q) => $q->whereIn('hotels.id', $hotelIds ?: [0]))
                 ->count(),
             'travelAgencies' => TravelAgency::query()->where('status', 'active')->count(),
-            'activeGroups' => (clone $bookingsQuery)->active()->count(),
-            'arrivalsToday' => (clone $bookingsQuery)->active()->arrivingOn(now()->toDateString())->count(),
-            'departuresToday' => (clone $bookingsQuery)->active()->departingOn(now()->toDateString())->count(),
-            'openEnquiries' => (clone $enquiriesQuery)
-                ->whereNotIn('status', ['confirmed', 'lost', 'cancelled'])
-                ->count(),
-            'revenueYtd' => (clone $bookingsQuery)
-                ->active()
-                ->whereYear('arrival', now()->year)
-                ->sum('revenue'),
+            'activeGroups' => (clone $confirmedQuery)->count(),
+            'arrivalsToday' => (clone $confirmedQuery)->whereDate('check_in', now()->toDateString())->count(),
+            'departuresToday' => (clone $confirmedQuery)->whereDate('check_out', now()->toDateString())->count(),
+            'openEnquiries' => (clone $enquiriesQuery)->openPipeline()->count(),
+            'revenueYtd' => (clone $confirmedQuery)
+                ->whereYear('check_in', now()->year)
+                ->sum('grand_total'),
         ];
 
-        $upcomingArrivals = GroupBooking::query()
+        $upcomingArrivals = Enquiry::query()
             ->accessibleBy()
             ->with(['hotel', 'travelAgency'])
-            ->active()
-            ->whereDate('arrival', '>=', now()->toDateString())
-            ->orderBy('arrival')
+            ->groupBookings()
+            ->whereDate('check_in', '>=', now()->toDateString())
+            ->orderBy('check_in')
             ->limit(10)
             ->get();
 

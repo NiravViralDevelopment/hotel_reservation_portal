@@ -112,11 +112,6 @@ class User extends Authenticatable
         return $this->hasMany(Enquiry::class, 'assigned_to');
     }
 
-    public function createdGroupBookings(): HasMany
-    {
-        return $this->hasMany(GroupBooking::class, 'created_by');
-    }
-
     public function uploadedDocuments(): HasMany
     {
         return $this->hasMany(Document::class, 'uploaded_by');

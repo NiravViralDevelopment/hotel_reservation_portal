@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\GroupBooking;
+use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
@@ -13,15 +13,15 @@ class ArrivalController extends Controller
 {
     public function index(Request $request): View
     {
-        $this->authorize('viewAny', GroupBooking::class);
+        abort_unless(auth()->user()?->can('bookings.view'), 403);
 
         $date = $request->date('date')?->toDateString() ?? now()->toDateString();
 
-        $query = GroupBooking::query()
+        $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['hotel', 'travelAgency', 'contact'])
-            ->active()
-            ->arrivingOn($date);
+            ->with(['hotel', 'travelAgency'])
+            ->groupBookings()
+            ->whereDate('check_in', $date);
 
         if ($request->filled('hotel_id')) {
             HotelAccess::ensure(null, $request->integer('hotel_id'));
@@ -29,10 +29,9 @@ class ArrivalController extends Controller
         }
 
         QuerySort::apply($query, $request, [
-            'block_id' => 'block_id',
+            'ref' => 'ref',
             'group_name' => 'group_name',
             'nights' => 'nights',
-            'rooms' => 'rooms',
             'status' => 'status',
         ], 'group_name');
 

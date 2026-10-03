@@ -29,13 +29,13 @@ class TravelAgency extends Model
         return $this->hasMany(Contact::class);
     }
 
-    public function groupBookings(): HasMany
-    {
-        return $this->hasMany(GroupBooking::class);
-    }
-
     public function enquiries(): HasMany
     {
         return $this->hasMany(Enquiry::class);
+    }
+
+    public function confirmedBookings(): HasMany
+    {
+        return $this->hasMany(Enquiry::class)->where('is_confirm', true)->where('is_cancel', false);
     }
 }

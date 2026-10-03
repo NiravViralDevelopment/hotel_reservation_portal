@@ -67,10 +67,11 @@ Route::middleware('auth')->group(function () {
     Route::post('enquiries/{enquiry}/response', [EnquiryController::class, 'storeResponse'])->name('enquiries.response');
     Route::post('enquiries/{enquiry}/convert', [EnquiryController::class, 'convert'])->name('enquiries.convert');
 
-    Route::resource('group-bookings', GroupBookingController::class);
-    Route::post('group-bookings/{group_booking}/cancel', [GroupBookingController::class, 'cancel'])->name('group-bookings.cancel');
-    Route::get('group-bookings/{group_booking}/documents/{document}/download', [GroupBookingController::class, 'downloadDocument'])->name('group-bookings.documents.download');
-    Route::delete('group-bookings/{group_booking}/documents/{document}', [GroupBookingController::class, 'destroyDocument'])->name('group-bookings.documents.destroy');
+    // Group bookings = confirmed enquiries (same enquiries table)
+    Route::get('group-bookings', [GroupBookingController::class, 'index'])->name('group-bookings.index');
+    Route::get('group-bookings/create', [GroupBookingController::class, 'create'])->name('group-bookings.create');
+    Route::get('group-bookings/{enquiry}', [GroupBookingController::class, 'show'])->name('group-bookings.show');
+    Route::get('group-bookings/{enquiry}/edit', [GroupBookingController::class, 'edit'])->name('group-bookings.edit');
 
     Route::get('cancelled-bookings', [CancelledBookingController::class, 'index'])->name('cancelled-bookings.index');
     Route::get('arrivals', [ArrivalController::class, 'index'])->name('arrivals.index');

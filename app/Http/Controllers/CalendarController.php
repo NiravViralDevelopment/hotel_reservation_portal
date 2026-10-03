@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\GroupBooking;
+use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Support\HotelAccess;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ class CalendarController extends Controller
 {
     public function index(Request $request): View
     {
-        $this->authorize('viewAny', GroupBooking::class);
+        abort_unless(auth()->user()?->can('bookings.view'), 403);
 
         $month = $request->integer('month', (int) now()->format('n'));
         $year = $request->integer('year', (int) now()->format('Y'));
@@ -20,16 +20,16 @@ class CalendarController extends Controller
         $start = now()->setDate($year, $month, 1)->startOfMonth();
         $end = $start->copy()->endOfMonth();
 
-        $query = GroupBooking::query()
+        $query = Enquiry::query()
             ->accessibleBy()
             ->with(['hotel'])
-            ->active()
+            ->groupBookings()
             ->where(function ($q) use ($start, $end) {
-                $q->whereBetween('arrival', [$start, $end])
-                    ->orWhereBetween('departure', [$start, $end])
+                $q->whereBetween('check_in', [$start, $end])
+                    ->orWhereBetween('check_out', [$start, $end])
                     ->orWhere(function ($q2) use ($start, $end) {
-                        $q2->where('arrival', '<=', $start)
-                            ->where('departure', '>=', $end);
+                        $q2->where('check_in', '<=', $start)
+                            ->where('check_out', '>=', $end);
                     });
             });
 
@@ -38,7 +38,7 @@ class CalendarController extends Controller
             $query->where('hotel_id', $request->integer('hotel_id'));
         }
 
-        $bookings = $query->orderBy('arrival')->get();
+        $bookings = $query->orderBy('check_in')->get();
         $hotels = Hotel::optionsForSelect();
 
         return view('calendar.index', compact('bookings', 'hotels', 'month', 'year', 'start'));

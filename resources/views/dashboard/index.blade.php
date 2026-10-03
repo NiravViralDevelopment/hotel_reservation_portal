@@ -120,7 +120,7 @@
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Block ID</th>
+            <th>Ref</th>
             <th>Group</th>
             <th>Hotel</th>
             <th>Travel agency</th>
@@ -133,15 +133,15 @@
         <tbody>
           @forelse ($upcomingArrivals as $booking)
             <tr>
-              <td><code>{{ $booking->block_id }}</code></td>
+              <td><code>{{ $booking->ref ?: '—' }}</code></td>
               <td class="fw-semibold">{{ $booking->group_name }}</td>
               <td>{{ $booking->hotel?->name ?? '—' }}</td>
               <td>{{ $booking->travelAgency?->name ?? '—' }}</td>
-              <td>{{ $booking->arrival?->format('d M Y') ?? '—' }}</td>
-              <td class="text-center">{{ $booking->rooms ?? '—' }}</td>
-              <td class="text-center">{{ $booking->pax ?? '—' }}</td>
+              <td>{{ $booking->check_in?->format('d M Y') ?? '—' }}</td>
+              <td class="text-center">{{ $booking->rooms_per_night ?? '—' }}</td>
+              <td class="text-center">{{ $booking->total_pax ?? '—' }}</td>
               <td class="text-end">
-                <a href="{{ route('group-bookings.show', $booking) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                <a href="{{ route('enquiries.show', $booking) }}" class="btn btn-sm btn-outline-secondary" title="View">
                   <i class="bi bi-eye"></i>
                 </a>
               </td>

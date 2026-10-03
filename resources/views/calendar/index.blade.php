@@ -7,7 +7,24 @@
   @php
     $prev = $start->copy()->subMonth();
     $next = $start->copy()->addMonth();
+    $daysInMonth = $start->daysInMonth;
+    $startDow = (int) $start->copy()->startOfMonth()->dayOfWeekIso; // 1=Mon
+    $byDate = [];
+    foreach ($bookings as $booking) {
+      if (! $booking->check_in) {
+        continue;
+      }
+      $cursor = $booking->check_in->copy()->startOfDay();
+      $endDate = ($booking->check_out ?? $booking->check_in)->copy()->startOfDay();
+      while ($cursor->lte($endDate)) {
+        if ($cursor->month === (int) $month && $cursor->year === (int) $year) {
+          $byDate[$cursor->toDateString()][] = $booking;
+        }
+        $cursor->addDay();
+      }
+    }
   @endphp
+
   <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
       <nav aria-label="breadcrumb">
@@ -16,8 +33,8 @@
           <li class="breadcrumb-item active">Calendar</li>
         </ol>
       </nav>
-      <h1 class="page-title">{{ $start->format('F Y') }}</h1>
-      <p class="page-subtitle">Group booking calendar overview.</p>
+      <h1 class="page-title">Calendar</h1>
+      <p class="page-subtitle">Confirmed bookings for {{ $start->format('F Y') }}.</p>
     </div>
     <div class="d-flex gap-2 align-items-center">
       <a href="{{ route('calendar.index', array_filter(['month' => $prev->month, 'year' => $prev->year, 'hotel_id' => request('hotel_id')])) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chevron-left"></i></a>
@@ -26,14 +43,14 @@
   </div>
 
   <div class="card mb-4">
-    <div class="table-toolbar">
+    <div class="card-body">
       <form method="GET" action="{{ route('calendar.index') }}" class="d-flex gap-2">
         <input type="hidden" name="month" value="{{ $month }}">
         <input type="hidden" name="year" value="{{ $year }}">
-        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
+        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto; min-width:180px">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
-            <option value="{{ $hotel->id }}" @selected(request('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>
+            <option value="{{ $hotel->id }}" @selected((string) request('hotel_id') === (string) $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
         <button type="submit" class="btn btn-outline-secondary btn-sm">Filter</button>
@@ -41,75 +58,64 @@
     </div>
   </div>
 
-  @php
-    $monthStart = $start->copy()->startOfMonth();
-    $daysInMonth = $monthStart->daysInMonth;
-    $leadingEmpty = $monthStart->dayOfWeekIso - 1;
-    $cells = array_merge(
-      array_fill(0, $leadingEmpty, null),
-      range(1, $daysInMonth),
-      array_fill(0, (7 - (($leadingEmpty + $daysInMonth) % 7)) % 7, null)
-    );
-  @endphp
-
   <div class="card mb-4">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-bordered mb-0">
-          <thead class="table-light">
-            <tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr>
-          </thead>
-          <tbody>
-            @foreach (array_chunk($cells, 7) as $week)
-              <tr>
-                @foreach ($week as $dayNum)
-                  <td style="height:96px; vertical-align:top; width:14%">
-                    @if ($dayNum)
-                      @php
-                        $current = $monthStart->copy()->day($dayNum);
-                        $dayBookings = $bookings->filter(function ($bk) use ($current) {
-                          if (! $bk->arrival) {
-                            return false;
-                          }
-                          $end = ($bk->departure ?? $bk->arrival)->copy()->subDay();
-                          return $current->between($bk->arrival->copy()->startOfDay(), $end->endOfDay());
-                        });
-                      @endphp
-                      <div class="fw-semibold small mb-1">{{ $dayNum }}</div>
-                      @foreach ($dayBookings->take(3) as $bk)
-                        <div class="small text-truncate"><a href="{{ route('group-bookings.show', $bk) }}">{{ $bk->block_id }}</a></div>
-                      @endforeach
-                      @if ($dayBookings->count() > 3)
-                        <div class="small text-muted">+{{ $dayBookings->count() - 3 }} more</div>
-                      @endif
-                    @endif
-                  </td>
-                @endforeach
-              </tr>
-            @endforeach
-          </tbody>
-        </table>
+    <div class="card-body">
+      <div class="row g-2 text-center small fw-semibold text-secondary mb-2">
+        <div class="col">Mon</div><div class="col">Tue</div><div class="col">Wed</div><div class="col">Thu</div><div class="col">Fri</div><div class="col">Sat</div><div class="col">Sun</div>
+      </div>
+      <div class="row g-2">
+        @for ($i = 1; $i < $startDow; $i++)
+          <div class="col"></div>
+        @endfor
+        @for ($day = 1; $day <= $daysInMonth; $day++)
+          @php
+            $dateKey = sprintf('%04d-%02d-%02d', $year, $month, $day);
+            $dayBookings = $byDate[$dateKey] ?? [];
+          @endphp
+          <div class="col">
+            <div class="border rounded p-2 h-100" style="min-height: 90px;">
+              <div class="fw-semibold mb-1">{{ $day }}</div>
+              @foreach (array_slice($dayBookings, 0, 3) as $bk)
+                <div class="small text-truncate"><a href="{{ route('enquiries.show', $bk) }}">{{ $bk->ref ?: $bk->group_name }}</a></div>
+              @endforeach
+              @if (count($dayBookings) > 3)
+                <div class="small text-secondary">+{{ count($dayBookings) - 3 }} more</div>
+              @endif
+            </div>
+          </div>
+          @if (($startDow + $day - 1) % 7 === 0)
+            </div><div class="row g-2 mt-0">
+          @endif
+        @endfor
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-header">Bookings this month ({{ $bookings->count() }})</div>
     <div class="table-wrapper">
-      <table class="table table-sm table-hover mb-0">
-        <thead><tr><th>Block ID</th><th>Group</th><th>Hotel</th><th>Arrival</th><th>Departure</th><th>Status</th></tr></thead>
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Group</th>
+            <th>Hotel</th>
+            <th>Arrival</th>
+            <th>Departure</th>
+            <th>Status</th>
+          </tr>
+        </thead>
         <tbody>
           @forelse ($bookings as $booking)
             <tr>
-              <td><a href="{{ route('group-bookings.show', $booking) }}">{{ $booking->block_id }}</a></td>
+              <td><a href="{{ route('enquiries.show', $booking) }}">{{ $booking->ref ?: '—' }}</a></td>
               <td>{{ $booking->group_name }}</td>
               <td>{{ $booking->hotel?->code ?? '—' }}</td>
-              <td>{{ $booking->arrival?->format('d M Y') ?? '—' }}</td>
-              <td>{{ $booking->departure?->format('d M Y') ?? '—' }}</td>
+              <td>{{ $booking->check_in?->format('d M Y') ?? '—' }}</td>
+              <td>{{ $booking->check_out?->format('d M Y') ?? '—' }}</td>
               <td><x-badge-status :status="$booking->status" /></td>
             </tr>
           @empty
-            <tr><td colspan="6" class="text-center text-secondary py-3">No bookings in this month.</td></tr>
+            <tr><td colspan="6" class="text-center text-secondary py-4">No confirmed bookings this month.</td></tr>
           @endforelse
         </tbody>
       </table>

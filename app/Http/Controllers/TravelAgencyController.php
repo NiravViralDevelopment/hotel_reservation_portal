@@ -17,7 +17,7 @@ class TravelAgencyController extends Controller
         $this->authorize('viewAny', TravelAgency::class);
 
         $query = TravelAgency::query()
-            ->withCount(['enquiries', 'groupBookings']);
+            ->withCount(['enquiries', 'confirmedBookings']);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->trim()->toString();
@@ -92,8 +92,8 @@ class TravelAgencyController extends Controller
         $this->authorize('view', $travelAgency);
 
         $travelAgency->load([
-            'enquiries' => fn ($q) => $q->latest('enquiry_date')->limit(10),
-            'groupBookings' => fn ($q) => $q->latest('arrival')->limit(10),
+            'enquiries' => fn ($q) => $q->openPipeline()->latest('enquiry_date')->limit(10),
+            'confirmedBookings' => fn ($q) => $q->latest('check_in')->limit(10),
         ]);
 
         return view('travel-agencies.show', compact('travelAgency'));

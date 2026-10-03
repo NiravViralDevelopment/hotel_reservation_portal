@@ -69,7 +69,7 @@
             @error('group_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="email" class="form-label">Contact email</label>
+            <label for="email" class="form-label">Email ID</label>
             <input type="text" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="Enter email" maxlength="255" inputmode="email">
             @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
@@ -81,6 +81,8 @@
         </div>
       </div>
     </div>
+
+    @include('enquiries.partials.commercial-fields')
 
     <div class="card mb-4">
       <div class="card-header">
@@ -175,7 +177,7 @@
       <div class="card-body">
         <div class="row g-3">
           <div class="col-md-3">
-            <label for="check_in" class="form-label">Check-in</label>
+            <label for="check_in" class="form-label">Arrival date</label>
             <div class="date-placeholder-wrap">
               <input type="date" name="check_in" id="check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ old('check_in') }}" placeholder="DD/MM/YYYY">
               <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
@@ -183,23 +185,27 @@
             @error('check_in')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-3">
-            <label for="check_in_day" class="form-label">Check-in day</label>
-            <input type="text" name="check_in_day" id="check_in_day" class="form-control @error('check_in_day') is-invalid @enderror" value="{{ old('check_in_day') }}" placeholder="Auto from check-in" readonly>
-            @error('check_in_day')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-3">
-            <label for="check_out" class="form-label">Check-out</label>
+            <label for="check_out" class="form-label">End date</label>
             <div class="date-placeholder-wrap">
               <input type="date" name="check_out" id="check_out" class="form-control @error('check_out') is-invalid @enderror" value="{{ old('check_out') }}" placeholder="DD/MM/YYYY">
               <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
             </div>
             @error('check_out')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
+            <label for="days" class="form-label">Days</label>
+            <input type="text" name="days" id="days" inputmode="numeric" class="form-control js-digits @error('days') is-invalid @enderror" value="{{ old('days') }}" placeholder="Auto" readonly>
+            @error('days')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-2">
             <label for="nights" class="form-label">Nights</label>
             <input type="text" name="nights" id="nights" inputmode="numeric" class="form-control js-digits @error('nights') is-invalid @enderror" value="{{ old('nights', 1) }}" placeholder="Auto from dates" readonly>
-            <div class="form-text">Auto from check-in / check-out.</div>
             @error('nights')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-2">
+            <label for="check_in_day" class="form-label">Arrival day</label>
+            <input type="text" name="check_in_day" id="check_in_day" class="form-control @error('check_in_day') is-invalid @enderror" value="{{ old('check_in_day') }}" placeholder="Auto" readonly>
+            @error('check_in_day')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
             <label for="rooms_per_night" class="form-label">Rooms per night</label>
@@ -407,7 +413,60 @@
 
     checkOutEl.classList.remove('is-invalid');
     nightsEl.value = String(diff);
+    var daysEl = document.getElementById('days');
+    if (daysEl) daysEl.value = String(diff);
     recalcEnquiryTotals();
+    recalcCommercialTotals();
+  }
+
+  function recalcCommercialTotals() {
+    var adults = num('adults_price');
+    var child = num('child_price');
+    var adultsExtra = num('adults_extra');
+    var childExtra = num('child_extra');
+    var built = adults + child + adultsExtra + childExtra;
+    var totalPriceEl = document.getElementById('total_price');
+    var serviceEl = document.getElementById('service_total');
+    var totalTaxEl = document.getElementById('total_tax');
+    var grandEl = document.getElementById('grand_total');
+    var advanceEl = document.getElementById('advance');
+    var remainingEl = document.getElementById('remaining');
+    var agentPrice = num('agent_price');
+    var commPct = num('agent_comm_percent');
+    var commAmtEl = document.getElementById('agent_comm_amount');
+    var payableEl = document.getElementById('payable_to_agent');
+    var netEl = document.getElementById('net_price');
+
+    var totalPrice = totalPriceEl && totalPriceEl.value !== '' ? num('total_price') : built;
+    if (totalPriceEl && (totalPriceEl.value === '' || document.activeElement !== totalPriceEl) && built > 0) {
+      totalPriceEl.value = built.toFixed(2);
+      totalPrice = built;
+    }
+
+    if (serviceEl && serviceEl.value === '' && totalPrice > 0) {
+      serviceEl.value = totalPrice.toFixed(2);
+    }
+
+    var serviceTotal = num('service_total');
+    var totalTax = num('total_tax');
+    var base = totalPrice;
+    var grand = (Math.abs(serviceTotal - base) < 0.001)
+      ? (base + totalTax)
+      : (base + serviceTotal + totalTax);
+
+    if (grandEl) grandEl.value = grand > 0 ? grand.toFixed(2) : '';
+
+    var commissionBase = agentPrice > 0 ? agentPrice : totalPrice;
+    var commAmt = commPct > 0 ? (commissionBase * commPct / 100) : 0;
+    if (commAmtEl) commAmtEl.value = commAmt > 0 ? commAmt.toFixed(2) : '';
+    if (payableEl) payableEl.value = commAmt > 0 ? commAmt.toFixed(2) : '';
+
+    if (netEl && (netEl.value === '' || document.activeElement !== netEl)) {
+      netEl.value = Math.max(0, totalPrice - commAmt).toFixed(2);
+    }
+
+    var advance = num('advance');
+    if (remainingEl) remainingEl.value = Math.max(0, grand - advance).toFixed(2);
   }
 
   function recalcTaxRevenue() {
@@ -475,9 +534,15 @@
     hasTaxEl.addEventListener('change', recalcTaxRevenue);
   }
 
+  document.querySelectorAll('.enquiry-commercial-calc, #advance').forEach(function (el) {
+    el.addEventListener('input', recalcCommercialTotals);
+    el.addEventListener('change', recalcCommercialTotals);
+  });
+
   nightsFromDates();
   recalcEnquiryTotals();
   recalcTaxRevenue();
+  recalcCommercialTotals();
 
   var agencyForm = document.getElementById('quickTravelAgencyForm');
   if (agencyForm) {
