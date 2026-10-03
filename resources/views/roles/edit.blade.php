@@ -14,7 +14,7 @@
         </ol>
       </nav>
       <h1 class="page-title">Edit role</h1>
-      <p class="page-subtitle">Update role name and permissions.</p>
+      <p class="page-subtitle">Update role permissions.</p>
     </div>
   </div>
 
@@ -27,23 +27,15 @@
       <div class="card-body">
         <div class="row g-3">
           <div class="col-md-6">
-            <label for="name" class="form-label">Role name <span class="text-danger">*</span></label>
+            <label for="name" class="form-label">Role name</label>
             <input
               type="text"
-              name="name"
               id="name"
-              class="form-control @error('name') is-invalid @enderror"
-              value="{{ old('name', $role->name) }}"
-              required
-              maxlength="125"
-              placeholder="Enter role name"
-              @disabled($role->name === 'Administrator')
+              class="form-control"
+              value="{{ $role->name }}"
+              readonly
             >
-            @if ($role->name === 'Administrator')
-              <input type="hidden" name="name" value="Administrator">
-              <div class="form-text">The Administrator role name cannot be changed.</div>
-            @endif
-            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="form-text">Role name cannot be changed.</div>
           </div>
         </div>
       </div>

@@ -21,28 +21,14 @@ class RoleController extends Controller
             ->withCount('users')
             ->with('permissions');
 
-        if ($request->filled('q')) {
-            $search = $request->string('q')->trim()->toString();
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhereHas('permissions', fn ($pq) => $pq->where('name', 'like', "%{$search}%"));
-            });
-        }
-
-        if ($request->filled('permission')) {
-            $permission = $request->string('permission')->toString();
-            $query->whereHas('permissions', fn ($q) => $q->where('name', $permission));
-        }
-
         QuerySort::apply($query, $request, [
             'name' => 'name',
             'users' => 'users_count',
         ], 'name');
 
         $roles = $query->paginate(10)->withQueryString();
-        $permissions = Permission::query()->orderBy('name')->get(['id', 'name']);
 
-        return view('roles.index', compact('roles', 'permissions'));
+        return view('roles.index', compact('roles'));
     }
 
     public function create(): View
@@ -91,21 +77,11 @@ class RoleController extends Controller
         $this->authorize('roles.edit');
 
         $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:125',
-                Rule::unique('roles', 'name')
-                    ->ignore($role->id)
-                    ->where(fn ($q) => $q->where('guard_name', 'web')),
-            ],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
-        $role->update(['name' => $validated['name']]);
-
-        // Administrator always has every permission (also enforced by Gate::before).
+        // Role names are fixed; only permissions can be updated.
         if ($role->name === 'Administrator') {
             $role->syncPermissions(Permission::query()->pluck('name')->all());
         } else {

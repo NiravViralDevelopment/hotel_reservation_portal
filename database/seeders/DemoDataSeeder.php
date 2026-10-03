@@ -34,10 +34,10 @@ class DemoDataSeeder extends Seeder
         $admin->syncRoles(['Administrator']);
 
         $users = [
-            ['email' => 's.mitchell@grandbrighton.co.uk', 'name' => 'Sarah Mitchell', 'role' => 'Hotel Manager', 'job_title' => 'Hotel Manager', 'department' => 'Operations'],
-            ['email' => 'e.richardson@lakemanor.co.uk', 'name' => 'Emma Richardson', 'role' => 'Reservations Coordinator', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
-            ['email' => 'l.green@hotelgroup.co.uk', 'name' => 'Laura Green', 'role' => 'Finance Manager', 'job_title' => 'Finance Manager', 'department' => 'Finance'],
-            ['email' => 'c.bennett@yorkminsterinn.co.uk', 'name' => 'Claire Bennett', 'role' => 'Reservations Coordinator', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
+            ['email' => 's.mitchell@grandbrighton.co.uk', 'name' => 'Sarah Mitchell', 'job_title' => 'Hotel Manager', 'department' => 'Operations'],
+            ['email' => 'e.richardson@lakemanor.co.uk', 'name' => 'Emma Richardson', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
+            ['email' => 'l.green@hotelgroup.co.uk', 'name' => 'Laura Green', 'job_title' => 'Finance Manager', 'department' => 'Finance'],
+            ['email' => 'c.bennett@yorkminsterinn.co.uk', 'name' => 'Claire Bennett', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
         ];
 
         foreach ($users as $row) {
@@ -52,7 +52,7 @@ class DemoDataSeeder extends Seeder
                     'password' => Hash::make('password'),
                 ]
             );
-            $user->syncRoles([$row['role']]);
+            $user->syncRoles(['User']);
         }
 
         $heritage = Company::query()->updateOrCreate(
