@@ -70,20 +70,7 @@ class TravelAgencyController extends Controller
     {
         $this->authorize('create', TravelAgency::class);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:20', 'unique:travel_agencies,code'],
-            'contact_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:active,inactive'],
-        ]);
-
-        if (blank($data['country'] ?? null)) {
-            $data['country'] = 'United Kingdom';
-        }
+        $data = $this->validatedData($request);
 
         $agency = TravelAgency::query()->create($data);
         Audit::log('created', 'travel_agencies', $agency->code, $agency);
@@ -104,7 +91,10 @@ class TravelAgencyController extends Controller
     {
         $this->authorize('view', $travelAgency);
 
-        $travelAgency->load(['enquiries', 'groupBookings']);
+        $travelAgency->load([
+            'enquiries' => fn ($q) => $q->latest('enquiry_date')->limit(10),
+            'groupBookings' => fn ($q) => $q->latest('arrival')->limit(10),
+        ]);
 
         return view('travel-agencies.show', compact('travelAgency'));
     }
@@ -120,20 +110,7 @@ class TravelAgencyController extends Controller
     {
         $this->authorize('update', $travelAgency);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:20', 'unique:travel_agencies,code,'.$travelAgency->id],
-            'contact_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:active,inactive'],
-        ]);
-
-        if (blank($data['country'] ?? null)) {
-            $data['country'] = 'United Kingdom';
-        }
+        $data = $this->validatedData($request, $travelAgency->id);
 
         $travelAgency->update($data);
         Audit::log('updated', 'travel_agencies', $travelAgency->code, $travelAgency);
@@ -150,5 +127,27 @@ class TravelAgencyController extends Controller
         Audit::log('deleted', 'travel_agencies', $code);
 
         return redirect()->route('travel-agencies.index')->with('success', 'Travel agency deleted.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validatedData(Request $request, ?int $ignoreId = null): array
+    {
+        $codeRule = ['required', 'string', 'max:20', 'unique:travel_agencies,code'];
+        if ($ignoreId) {
+            $codeRule[3] = 'unique:travel_agencies,code,'.$ignoreId;
+        }
+
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'code' => $codeRule,
+            'contact_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'max:15'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'in:active,inactive'],
+        ]);
     }
 }

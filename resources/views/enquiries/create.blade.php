@@ -305,16 +305,16 @@
                 <input type="text" name="name" id="qa_name" class="form-control" maxlength="255" placeholder="Enter name">
               </div>
               <div class="col-md-4">
-                <label for="qa_contact_name" class="form-label">Contact name</label>
+                <label for="qa_contact_name" class="form-label">Contact name <span class="text-danger">*</span></label>
                 <input type="text" name="contact_name" id="qa_contact_name" class="form-control" maxlength="255" placeholder="Enter contact name">
               </div>
               <div class="col-md-4">
-                <label for="qa_email" class="form-label">Email</label>
-                <input type="email" name="email" id="qa_email" class="form-control" maxlength="255" placeholder="Enter email">
+                <label for="qa_email" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="text" name="email" id="qa_email" class="form-control" maxlength="255" placeholder="Enter email" inputmode="email">
               </div>
               <div class="col-md-4">
-                <label for="qa_phone" class="form-label">Phone</label>
-                <input type="text" name="phone" id="qa_phone" class="form-control" maxlength="30" placeholder="Enter phone">
+                <label for="qa_phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                <input type="text" name="phone" id="qa_phone" class="form-control" maxlength="15" placeholder="Enter phone">
               </div>
               <div class="col-md-4">
                 <label for="qa_city" class="form-label">City</label>
@@ -511,12 +511,24 @@
     function validateAgencyField(el) {
       var name = el.getAttribute('name');
       var value = (el.value || '').trim();
-      if ((name === 'code' || name === 'name' || name === 'status') && !value) {
-        setAgencyFieldError(el, name === 'code' ? 'Code is required.' : (name === 'name' ? 'Name is required.' : 'Status is required.'));
+      var requiredMessages = {
+        code: 'Code is required.',
+        name: 'Name is required.',
+        status: 'Status is required.',
+        contact_name: 'Contact name is required.',
+        email: 'Email is required.',
+        phone: 'Phone is required.'
+      };
+      if (requiredMessages[name] && !value) {
+        setAgencyFieldError(el, requiredMessages[name]);
         return false;
       }
       if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
         setAgencyFieldError(el, 'Enter a valid email address.');
+        return false;
+      }
+      if (name === 'phone' && value && value.length > 15) {
+        setAgencyFieldError(el, 'Must be 15 characters or fewer.');
         return false;
       }
       clearAgencyFieldError(el);

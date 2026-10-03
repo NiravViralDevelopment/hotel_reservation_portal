@@ -82,7 +82,7 @@
         <tbody>
           @forelse ($travelAgencies as $travelAgency)
             <tr>
-              <td class="fw-semibold"><a href="{{ route('travel-agencies.show', $travelAgency) }}">{{ $travelAgency->code }}</a></td>
+              <td class="fw-semibold">{{ $travelAgency->code }}</td>
               <td>{{ $travelAgency->name }}</td>
               <td>{{ $travelAgency->contact_name ?? '—' }}</td>
               <td>{{ $travelAgency->city ?? '—' }}</td>
