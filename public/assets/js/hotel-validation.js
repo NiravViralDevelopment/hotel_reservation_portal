@@ -160,7 +160,7 @@
       },
       manager_name: { max: 255 },
       status: { required: true, requiredMessage: 'Status is required.' },
-      phone: { required: true, max: 30, requiredMessage: 'Phone is required.' },
+      phone: { required: true, max: 15, requiredMessage: 'Phone is required.' },
       email: { required: true, email: true, max: 255, requiredMessage: 'Email is required.' },
       notes: { max: 5000 }
     };

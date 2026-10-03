@@ -126,7 +126,7 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
-            <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="Enter phone" maxlength="30" autocomplete="tel">
+            <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="Enter phone" maxlength="15" autocomplete="tel">
             @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
