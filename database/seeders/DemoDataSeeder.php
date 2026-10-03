@@ -59,21 +59,38 @@ class DemoDataSeeder extends Seeder
             ['reg_number' => '08472931'],
             [
                 'name' => 'Heritage Hotel Group Ltd',
+                'vat_number' => 'GB847293110',
                 'city' => 'London',
                 'country' => 'United Kingdom',
                 'address' => '45 Berkeley Square, London, W1J 5AZ',
+                'registered_address' => '45 Berkeley Square, London, W1J 5AZ',
+                'trading_address' => '45 Berkeley Square, London, W1J 5AZ',
                 'status' => 'active',
             ]
         );
 
         $coastal = Company::query()->updateOrCreate(
             ['reg_number' => '09234567'],
-            ['name' => 'Coastal Properties UK Ltd', 'city' => 'Brighton', 'country' => 'United Kingdom', 'status' => 'active']
+            [
+                'name' => 'Coastal Properties UK Ltd',
+                'vat_number' => 'GB923456789',
+                'city' => 'Brighton',
+                'country' => 'United Kingdom',
+                'registered_address' => '12 Marine Parade, Brighton, BN2 1TL',
+                'status' => 'active',
+            ]
         );
 
         $scottish = Company::query()->updateOrCreate(
             ['reg_number' => 'SC456789'],
-            ['name' => 'Scottish Hospitality Holdings', 'city' => 'Edinburgh', 'country' => 'United Kingdom', 'status' => 'active']
+            [
+                'name' => 'Scottish Hospitality Holdings',
+                'vat_number' => 'GB456789012',
+                'city' => 'Edinburgh',
+                'country' => 'United Kingdom',
+                'registered_address' => '8 Princes Street, Edinburgh, EH2 2AN',
+                'status' => 'active',
+            ]
         );
 
         $hotelsData = [

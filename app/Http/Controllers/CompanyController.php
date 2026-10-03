@@ -23,6 +23,7 @@ class CompanyController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('reg_number', 'like', "%{$search}%")
+                    ->orWhere('vat_number', 'like', "%{$search}%")
                     ->orWhere('city', 'like', "%{$search}%")
                     ->orWhere('country', 'like', "%{$search}%");
             });
@@ -67,15 +68,8 @@ class CompanyController extends Controller
     {
         $this->authorize('create', Company::class);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'reg_number' => ['nullable', 'string', 'max:50'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
-            'address' => ['nullable', 'string'],
-            'status' => ['required', 'in:active,inactive'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        $data = $this->validatedData($request);
+        $data['country'] = 'United Kingdom';
 
         $company = Company::query()->create($data);
         Audit::log('created', 'companies', $company->name, $company);
@@ -106,15 +100,8 @@ class CompanyController extends Controller
     {
         $this->authorize('update', $company);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'reg_number' => ['nullable', 'string', 'max:50'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
-            'address' => ['nullable', 'string'],
-            'status' => ['required', 'in:active,inactive'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        $data = $this->validatedData($request);
+        $data['country'] = 'United Kingdom';
 
         $company->update($data);
         Audit::log('updated', 'companies', $company->name, $company);
@@ -131,5 +118,22 @@ class CompanyController extends Controller
         Audit::log('deleted', 'companies', $name);
 
         return redirect()->route('companies.index')->with('success', 'Company deleted.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validatedData(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'reg_number' => ['required', 'string', 'max:50'],
+            'vat_number' => ['required', 'string', 'max:50'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'in:active,inactive'],
+            'registered_address' => ['required', 'string', 'max:5000'],
+            'trading_address' => ['required', 'string', 'max:5000'],
+            'notes' => ['nullable', 'string', 'max:5000'],
+        ]);
     }
 }

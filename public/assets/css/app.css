@@ -1995,3 +1995,27 @@ a:hover {
 [data-theme="dark"] .select2-container--bootstrap-5 .select2-results__option--highlighted {
   background-color: var(--brand-accent);
 }
+
+/* ---- Form submit loader (button only, prevent double submit) ---- */
+form.is-submitting button[type="submit"],
+form.is-submitting input[type="submit"] {
+  pointer-events: none;
+  opacity: 0.85;
+  position: relative;
+}
+
+.hgbms-btn-spinner {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-right: 0.4rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.1em;
+  animation: hgbms-btn-spin 0.6s linear infinite;
+}
+
+@keyframes hgbms-btn-spin {
+  to { transform: rotate(360deg); }
+}
