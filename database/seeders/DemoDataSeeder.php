@@ -319,7 +319,7 @@ class DemoDataSeeder extends Seeder
                 'rooms_per_night' => 35,
                 'basis' => 'HB',
                 'total_revenue' => 24500,
-                'status' => 'new',
+                'status' => 'Chesed',
                 'email' => 'h.marsh@saga.co.uk',
                 'option_date' => now()->addDays(14)->toDateString(),
             ]
@@ -338,7 +338,7 @@ class DemoDataSeeder extends Seeder
                 'rooms_per_night' => 30,
                 'basis' => 'HB',
                 'total_revenue' => 15300,
-                'status' => 'quoted',
+                'status' => 'Quoted',
                 'email' => 'r.hughes@titantravel.co.uk',
             ]
         );

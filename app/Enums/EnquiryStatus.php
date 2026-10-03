@@ -4,12 +4,9 @@ namespace App\Enums;
 
 enum EnquiryStatus: string
 {
-    case New = 'new';
-    case FollowUp = 'follow_up';
-    case Quoted = 'quoted';
-    case Confirmed = 'confirmed';
-    case Lost = 'lost';
-    case Cancelled = 'cancelled';
+    case Quoted = 'Quoted';
+    case Lost = 'Lost';
+    case Chesed = 'Chesed';
 
     /**
      * @return list<string>

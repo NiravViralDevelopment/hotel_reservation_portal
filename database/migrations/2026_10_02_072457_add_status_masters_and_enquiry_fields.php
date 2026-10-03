@@ -35,7 +35,7 @@ return new class extends Migration
             }
 
             // Status Master stores free-text titles; widen enquiry status off the old ENUM.
-            DB::statement("ALTER TABLE enquiries MODIFY status VARCHAR(191) NOT NULL DEFAULT 'new'");
+            DB::statement("ALTER TABLE enquiries MODIFY status VARCHAR(191) NOT NULL DEFAULT 'Chesed'");
         }
 
         if (! Schema::hasTable('status_masters')) {
@@ -48,7 +48,7 @@ return new class extends Migration
         }
 
         $now = now();
-        foreach (['new', 'follow_up', 'quoted', 'confirmed', 'lost', 'cancelled'] as $title) {
+        foreach (['Quoted', 'Lost', 'Chesed'] as $title) {
             $exists = DB::table('status_masters')->where('title', $title)->exists();
             if ($exists) {
                 DB::table('status_masters')->where('title', $title)->update([
@@ -64,6 +64,11 @@ return new class extends Migration
                 ]);
             }
         }
+
+        // Remove any legacy status master titles if this migration is re-run on an existing DB.
+        DB::table('status_masters')
+            ->whereNotIn('title', ['Quoted', 'Lost', 'Chesed'])
+            ->delete();
 
         if (! Schema::hasTable('enquiry_responses')) {
             Schema::create('enquiry_responses', function (Blueprint $table) {

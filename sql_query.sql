@@ -73,16 +73,16 @@ CREATE TABLE IF NOT EXISTS status_masters (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO status_masters (title, status, created_at, updated_at) VALUES
-  ('new', 'active', NOW(), NOW()),
-  ('follow_up', 'active', NOW(), NOW()),
-  ('quoted', 'active', NOW(), NOW()),
-  ('confirmed', 'active', NOW(), NOW()),
-  ('lost', 'active', NOW(), NOW()),
-  ('cancelled', 'active', NOW(), NOW())
+  ('Quoted', 'active', NOW(), NOW()),
+  ('Lost', 'active', NOW(), NOW()),
+  ('Chesed', 'active', NOW(), NOW())
 ON DUPLICATE KEY UPDATE status = VALUES(status);
 
+DELETE FROM status_masters
+WHERE title NOT IN ('Quoted', 'Lost', 'Chesed');
+
 ALTER TABLE enquiries
-  MODIFY status VARCHAR(191) NOT NULL DEFAULT 'new';
+  MODIFY status VARCHAR(191) NOT NULL DEFAULT 'Chesed';
 
 INSERT INTO permissions (name, guard_name, created_at, updated_at) VALUES
   ('statuses.view', 'web', NOW(), NOW()),
