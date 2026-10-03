@@ -9,6 +9,7 @@ use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class HotelController extends Controller
@@ -20,7 +21,7 @@ class HotelController extends Controller
         $query = Hotel::query()
             ->accessibleBy()
             ->with(['company'])
-            ->withCount('users');
+            ->withCount(['users', 'enquiries', 'groupBookings']);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->trim()->toString();
@@ -79,8 +80,9 @@ class HotelController extends Controller
         $this->authorize('create', Hotel::class);
 
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
+        $existingPairs = $this->existingCodeNamePairs();
 
-        return view('hotels.create', compact('companies'));
+        return view('hotels.create', compact('companies', 'existingPairs'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -89,8 +91,13 @@ class HotelController extends Controller
 
         $data = $request->validate([
             'company_id' => ['required', 'integer', 'exists:companies,id'],
-            'code' => ['required', 'string', 'max:20', 'unique:hotels,code'],
-            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:20'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('hotels', 'name')->where(fn ($q) => $q->where('code', $request->string('code')->trim()->toString())),
+            ],
             'city' => ['required', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'rooms' => ['required', 'integer', 'min:0', 'max:99999'],
@@ -106,6 +113,7 @@ class HotelController extends Controller
             'city.required' => 'Please enter the city.',
             'code.required' => 'Please enter the hotel code.',
             'name.required' => 'Please enter the hotel name.',
+            'name.unique' => 'This code and name combination already exists.',
             'phone.required' => 'Please enter the phone number.',
             'email.required' => 'Please enter the email address.',
         ]);
@@ -134,8 +142,9 @@ class HotelController extends Controller
         HotelAccess::ensure(null, $hotel->id);
 
         $companies = Company::query()->orderBy('name')->get(['id', 'name']);
+        $existingPairs = $this->existingCodeNamePairs($hotel->id);
 
-        return view('hotels.edit', compact('hotel', 'companies'));
+        return view('hotels.edit', compact('hotel', 'companies', 'existingPairs'));
     }
 
     public function update(Request $request, Hotel $hotel): RedirectResponse
@@ -145,8 +154,15 @@ class HotelController extends Controller
 
         $data = $request->validate([
             'company_id' => ['required', 'integer', 'exists:companies,id'],
-            'code' => ['required', 'string', 'max:20', 'unique:hotels,code,'.$hotel->id],
-            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:20'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('hotels', 'name')
+                    ->ignore($hotel->id)
+                    ->where(fn ($q) => $q->where('code', $request->string('code')->trim()->toString())),
+            ],
             'city' => ['required', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'rooms' => ['required', 'integer', 'min:0', 'max:99999'],
@@ -162,6 +178,7 @@ class HotelController extends Controller
             'city.required' => 'Please enter the city.',
             'code.required' => 'Please enter the hotel code.',
             'name.required' => 'Please enter the hotel name.',
+            'name.unique' => 'This code and name combination already exists.',
             'phone.required' => 'Please enter the phone number.',
             'email.required' => 'Please enter the email address.',
         ]);
@@ -179,10 +196,15 @@ class HotelController extends Controller
         $this->authorize('delete', $hotel);
         HotelAccess::ensure(null, $hotel->id);
 
+        if (! $hotel->canBeDeleted()) {
+            return redirect()
+                ->route('hotels.index')
+                ->with('error', 'This hotel is in use and cannot be deleted.');
+        }
+
         $code = $hotel->code;
         $name = $hotel->name;
 
-        // Detach users first; pivot cascade also covers this on delete.
         $hotel->users()->detach();
         $hotel->delete();
 
@@ -192,11 +214,34 @@ class HotelController extends Controller
     }
 
     /**
+     * @return list<array{code: string, name: string}>
+     */
+    private function existingCodeNamePairs(?int $ignoreHotelId = null): array
+    {
+        $query = Hotel::query()->select(['code', 'name']);
+
+        if ($ignoreHotelId !== null) {
+            $query->where('id', '!=', $ignoreHotelId);
+        }
+
+        return $query
+            ->get()
+            ->map(fn (Hotel $hotel) => [
+                'code' => mb_strtolower(trim((string) $hotel->code)),
+                'name' => mb_strtolower(trim((string) $hotel->name)),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     private function normalizeHotelData(array $data): array
     {
+        $data['code'] = trim((string) ($data['code'] ?? ''));
+        $data['name'] = trim((string) ($data['name'] ?? ''));
         $data['rooms'] = (int) ($data['rooms'] ?? 0);
         $data['country'] = 'United Kingdom';
 

@@ -26,7 +26,6 @@
     var anchor = select2Container(el) || el;
 
     if (feedback) {
-      // Keep Select2 errors under the visible dropdown, not between label and field.
       if (feedback.previousElementSibling !== anchor) {
         anchor.insertAdjacentElement('afterend', feedback);
       }
@@ -77,7 +76,17 @@
     }
   }
 
-  function validateField(el, rules) {
+  function pairExists(pairs, code, name) {
+    var codeKey = String(code || '').trim().toLowerCase();
+    var nameKey = String(name || '').trim().toLowerCase();
+    if (!codeKey || !nameKey) return false;
+
+    return pairs.some(function (pair) {
+      return pair.code === codeKey && pair.name === nameKey;
+    });
+  }
+
+  function validateField(el, rules, form, pairs) {
     if (!el || !rules) return true;
 
     var value = trim(el.value);
@@ -120,14 +129,25 @@
       }
     }
 
+    if (rules.uniquePair) {
+      var codeEl = form.querySelector('[name="code"]');
+      var nameEl = form.querySelector('[name="name"]');
+      var codeVal = codeEl ? trim(codeEl.value) : '';
+      var nameVal = nameEl ? trim(nameEl.value) : '';
+      if (codeVal && nameVal && pairExists(pairs, codeVal, nameVal)) {
+        setError(el, 'This code and name combination already exists.');
+        return false;
+      }
+    }
+
     clearError(el);
     return true;
   }
 
   function buildRules() {
     return {
-      code: { required: true, max: 20, requiredMessage: 'Hotel code is required.' },
-      name: { required: true, max: 255, requiredMessage: 'Hotel name is required.' },
+      code: { required: true, max: 20, uniquePair: true, requiredMessage: 'Hotel code is required.' },
+      name: { required: true, max: 255, uniquePair: true, requiredMessage: 'Hotel name is required.' },
       company_id: { required: true, requiredMessage: 'Please select a company.' },
       city: { required: true, max: 255, requiredMessage: 'City is required.' },
       rooms: {
@@ -151,6 +171,13 @@
     form.dataset.hotelValidationInit = '1';
     form.setAttribute('novalidate', 'novalidate');
 
+    var pairs = [];
+    try {
+      pairs = JSON.parse(form.getAttribute('data-existing-pairs') || '[]');
+    } catch (e) {
+      pairs = [];
+    }
+
     var rulesMap = buildRules();
 
     function fields() {
@@ -162,18 +189,29 @@
     }
 
     function runField(el) {
-      return validateField(el, rulesMap[el.getAttribute('name')]);
+      return validateField(el, rulesMap[el.getAttribute('name')], form, pairs);
+    }
+
+    function runCodeNamePair() {
+      var codeEl = form.querySelector('[name="code"]');
+      var nameEl = form.querySelector('[name="name"]');
+      var codeOk = codeEl ? runField(codeEl) : true;
+      var nameOk = nameEl ? runField(nameEl) : true;
+      return codeOk && nameOk;
     }
 
     fields().forEach(function (el) {
       ['keyup', 'input', 'change', 'blur'].forEach(function (evt) {
         el.addEventListener(evt, function () {
+          if (el.name === 'code' || el.name === 'name') {
+            runCodeNamePair();
+            return;
+          }
           runField(el);
         });
       });
     });
 
-    // Digits-only for rooms.
     var rooms = form.querySelector('#rooms');
     if (rooms) {
       rooms.addEventListener('input', function () {
@@ -197,7 +235,6 @@
       });
     }
 
-    // Select2 change events.
     if (window.jQuery) {
       window.jQuery(form).find('select.select2').on('change.select2', function () {
         runField(this);

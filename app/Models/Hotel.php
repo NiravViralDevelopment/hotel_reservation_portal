@@ -146,19 +146,40 @@ class Hotel extends Model
     }
 
     /**
-     * Hotels assigned to users cannot be deleted.
+     * Hotels in use (users, enquiries, or group bookings) cannot be deleted.
      */
     public function canBeDeleted(): bool
     {
-        if ($this->relationLoaded('users')) {
-            return $this->users->isEmpty();
+        if (isset($this->users_count) || isset($this->enquiries_count) || isset($this->group_bookings_count)) {
+            return (int) ($this->users_count ?? 0) === 0
+                && (int) ($this->enquiries_count ?? 0) === 0
+                && (int) ($this->group_bookings_count ?? 0) === 0;
         }
 
-        if (isset($this->users_count)) {
-            return (int) $this->users_count === 0;
+        if ($this->relationLoaded('users') && $this->users->isNotEmpty()) {
+            return false;
         }
 
-        return ! $this->users()->exists();
+        if ($this->relationLoaded('enquiries') && $this->enquiries->isNotEmpty()) {
+            return false;
+        }
+
+        if ($this->relationLoaded('groupBookings') && $this->groupBookings->isNotEmpty()) {
+            return false;
+        }
+
+        return ! $this->users()->exists()
+            && ! $this->enquiries()->exists()
+            && ! $this->groupBookings()->exists();
+    }
+
+    public function usageBlockReason(): ?string
+    {
+        if ($this->canBeDeleted()) {
+            return null;
+        }
+
+        return 'This hotel is in use and cannot be deleted.';
     }
 
     /**

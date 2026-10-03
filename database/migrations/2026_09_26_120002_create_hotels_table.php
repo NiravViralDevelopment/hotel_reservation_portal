@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('hotels', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('code', 20)->unique();
+            $table->string('code', 20);
             $table->string('name');
             $table->string('city');
             $table->string('country')->default('United Kingdom');
@@ -23,6 +23,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->text('notes')->nullable();
             $table->timestamps();
+            $table->unique(['code', 'name'], 'hotels_code_name_unique');
         });
 
         Schema::create('hotel_user', function (Blueprint $table) {

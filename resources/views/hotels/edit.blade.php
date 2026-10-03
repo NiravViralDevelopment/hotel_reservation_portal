@@ -45,7 +45,7 @@
     <p class="page-subtitle mb-0">Update hotel profile and contact details. Fields marked <span class="text-danger">*</span> are required.</p>
   </div>
 
-  <form method="POST" action="{{ route('hotels.update', $hotel) }}" class="hotel-form" novalidate>
+  <form method="POST" action="{{ route('hotels.update', $hotel) }}" class="hotel-form" novalidate data-existing-pairs='@json($existingPairs)'>
     @csrf
     @method('PUT')
 
@@ -58,7 +58,7 @@
           <div class="col-md-3">
             <label for="code" class="form-label">Code <span class="text-danger">*</span></label>
             <input type="text" name="code" id="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code', $hotel->code) }}" placeholder="Enter code" maxlength="20" autocomplete="off">
-            <div class="form-text">Short unique code, e.g. GBH01.</div>
+            <div class="form-text">Can be reused with a different hotel name.</div>
             @error('code')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-5">
