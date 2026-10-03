@@ -1,8 +1,14 @@
 Hiten sql query :
 
-NOTE: These changes are also in migration:
+NOTE: Prefer migrations:
+  php artisan migrate
+  (or) php artisan migrate:fresh --seed
+
+Also in migration:
   database/migrations/2026_10_02_072457_add_status_masters_and_enquiry_fields.php
-Prefer: php artisan migrate
+  database/migrations/2026_10_03_050639_add_uuid_to_users_table.php
+
+Users now use UUID in URLs (e.g. /users/{uuid}/edit).
 Use the SQL below only for manual/hotfix runs on an existing DB.
 
 
@@ -67,16 +73,16 @@ CREATE TABLE IF NOT EXISTS status_masters (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO status_masters (title, status, created_at, updated_at) VALUES
-  ('new', 'active', NOW(), NOW()),
-  ('follow_up', 'active', NOW(), NOW()),
-  ('quoted', 'active', NOW(), NOW()),
-  ('confirmed', 'active', NOW(), NOW()),
-  ('lost', 'active', NOW(), NOW()),
-  ('cancelled', 'active', NOW(), NOW())
+  ('Quoted', 'active', NOW(), NOW()),
+  ('Lost', 'active', NOW(), NOW()),
+  ('Chesed', 'active', NOW(), NOW())
 ON DUPLICATE KEY UPDATE status = VALUES(status);
 
+DELETE FROM status_masters
+WHERE title NOT IN ('Quoted', 'Lost', 'Chesed');
+
 ALTER TABLE enquiries
-  MODIFY status VARCHAR(191) NOT NULL DEFAULT 'new';
+  MODIFY status VARCHAR(191) NOT NULL DEFAULT 'Chesed';
 
 INSERT INTO permissions (name, guard_name, created_at, updated_at) VALUES
   ('statuses.view', 'web', NOW(), NOW()),
@@ -98,3 +104,13 @@ WHERE r.name = 'Administrator'
     SELECT 1 FROM role_has_permissions rhp
     WHERE rhp.permission_id = p.id AND rhp.role_id = r.id
   );
+
+-- Users UUID for public URLs (prefer migration)
+ALTER TABLE users
+  ADD COLUMN uuid CHAR(36) NULL AFTER id;
+
+UPDATE users SET uuid = UUID() WHERE uuid IS NULL OR uuid = '';
+
+ALTER TABLE users
+  MODIFY uuid CHAR(36) NOT NULL,
+  ADD UNIQUE KEY users_uuid_unique (uuid);

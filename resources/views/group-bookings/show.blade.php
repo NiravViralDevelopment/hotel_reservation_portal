@@ -103,7 +103,9 @@
                 <td>{{ $document->uploadedBy?->name ?? '—' }}</td>
                 <td>{{ $document->created_at?->format('d M Y') ?? '—' }}</td>
                 <td class="text-end">
-                  <a href="{{ route('group-bookings.documents.download', [$b, $document]) }}" class="btn btn-sm btn-outline-secondary">Download</a>
+                  <a href="{{ route('group-bookings.documents.download', [$b, $document]) }}" class="btn btn-sm btn-outline-secondary" title="Download">
+                    <i class="bi bi-download"></i>
+                  </a>
                 </td>
               </tr>
             @endforeach

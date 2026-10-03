@@ -33,4 +33,19 @@ class UpdateUserRequest extends FormRequest
             'hotels.*' => ['integer', 'exists:hotels,id'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Name is required.',
+            'email.required' => 'Email is required.',
+            'email.email' => 'Enter a valid email address.',
+            'email.unique' => 'This email is already used.',
+            'status.required' => 'Status is required.',
+            'password.confirmed' => 'Password confirmation does not match.',
+        ];
+    }
 }

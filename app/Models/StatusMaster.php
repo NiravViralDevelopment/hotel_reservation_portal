@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class StatusMaster extends Model
 {
+    use HasPublicUuid;
+
     /**
      * @var list<string>
      */

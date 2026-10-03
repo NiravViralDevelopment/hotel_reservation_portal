@@ -13,13 +13,14 @@ use App\Models\TravelAgency;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::query()->updateOrCreate(
-            ['email' => 'admin@hotelgroup.co.uk'],
+        $admin = $this->seedUser(
+            'admin@hotelgroup.co.uk',
             [
                 'name' => 'Richard Whitmore',
                 'phone' => '+44 20 7946 0000',
@@ -33,15 +34,15 @@ class DemoDataSeeder extends Seeder
         $admin->syncRoles(['Administrator']);
 
         $users = [
-            ['email' => 's.mitchell@grandbrighton.co.uk', 'name' => 'Sarah Mitchell', 'role' => 'Hotel Manager', 'job_title' => 'Hotel Manager', 'department' => 'Operations'],
-            ['email' => 'e.richardson@lakemanor.co.uk', 'name' => 'Emma Richardson', 'role' => 'Reservations Coordinator', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
-            ['email' => 'l.green@hotelgroup.co.uk', 'name' => 'Laura Green', 'role' => 'Finance Manager', 'job_title' => 'Finance Manager', 'department' => 'Finance'],
-            ['email' => 'c.bennett@yorkminsterinn.co.uk', 'name' => 'Claire Bennett', 'role' => 'Reservations Coordinator', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
+            ['email' => 's.mitchell@grandbrighton.co.uk', 'name' => 'Sarah Mitchell', 'job_title' => 'Hotel Manager', 'department' => 'Operations'],
+            ['email' => 'e.richardson@lakemanor.co.uk', 'name' => 'Emma Richardson', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
+            ['email' => 'l.green@hotelgroup.co.uk', 'name' => 'Laura Green', 'job_title' => 'Finance Manager', 'department' => 'Finance'],
+            ['email' => 'c.bennett@yorkminsterinn.co.uk', 'name' => 'Claire Bennett', 'job_title' => 'Reservations Coordinator', 'department' => 'Reservations'],
         ];
 
         foreach ($users as $row) {
-            $user = User::query()->updateOrCreate(
-                ['email' => $row['email']],
+            $user = $this->seedUser(
+                $row['email'],
                 [
                     'name' => $row['name'],
                     'job_title' => $row['job_title'],
@@ -51,7 +52,7 @@ class DemoDataSeeder extends Seeder
                     'password' => Hash::make('password'),
                 ]
             );
-            $user->syncRoles([$row['role']]);
+            $user->syncRoles(['User']);
         }
 
         $heritage = Company::query()->updateOrCreate(
@@ -318,7 +319,7 @@ class DemoDataSeeder extends Seeder
                 'rooms_per_night' => 35,
                 'basis' => 'HB',
                 'total_revenue' => 24500,
-                'status' => 'new',
+                'status' => 'Chesed',
                 'email' => 'h.marsh@saga.co.uk',
                 'option_date' => now()->addDays(14)->toDateString(),
             ]
@@ -337,7 +338,7 @@ class DemoDataSeeder extends Seeder
                 'rooms_per_night' => 30,
                 'basis' => 'HB',
                 'total_revenue' => 15300,
-                'status' => 'quoted',
+                'status' => 'Quoted',
                 'email' => 'r.hughes@titantravel.co.uk',
             ]
         );
@@ -392,5 +393,22 @@ class DemoDataSeeder extends Seeder
                 ]
             );
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function seedUser(string $email, array $attributes): User
+    {
+        $user = User::query()->firstOrNew(['email' => $email]);
+        $user->fill($attributes);
+
+        if (blank($user->uuid)) {
+            $user->uuid = (string) Str::uuid();
+        }
+
+        $user->save();
+
+        return $user;
     }
 }

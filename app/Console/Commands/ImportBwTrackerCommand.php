@@ -263,12 +263,10 @@ class ImportBwTrackerCommand extends Command
         $enqCount = 0;
         foreach ($payload['enquiries'] ?? [] as $row) {
             $status = match ($row['status'] ?? 'new') {
-                'cancelled' => EnquiryStatus::Cancelled->value,
-                'quoted' => EnquiryStatus::Quoted->value,
-                'confirmed' => EnquiryStatus::Confirmed->value,
-                'lost' => EnquiryStatus::Lost->value,
-                'follow_up' => EnquiryStatus::FollowUp->value,
-                default => EnquiryStatus::New->value,
+                'cancelled', 'lost' => EnquiryStatus::Lost->value,
+                'quoted', 'confirmed' => EnquiryStatus::Quoted->value,
+                'follow_up', 'new' => EnquiryStatus::Chesed->value,
+                default => EnquiryStatus::Chesed->value,
             };
 
             Enquiry::query()->updateOrCreate(

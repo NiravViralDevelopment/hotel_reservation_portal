@@ -88,23 +88,26 @@ class HotelController extends Controller
         $this->authorize('create', Hotel::class);
 
         $data = $request->validate([
-            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'company_id' => ['required', 'integer', 'exists:companies,id'],
             'code' => ['required', 'string', 'max:20', 'unique:hotels,code'],
             'name' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
-            'country' => ['required', 'string', 'max:255'],
-            'rooms' => ['required', 'integer', 'min:0'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'rooms' => ['required', 'integer', 'min:0', 'max:99999'],
             'manager_name' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'max:255'],
             'status' => ['required', 'in:active,inactive'],
-            'notes' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string', 'max:5000'],
         ], [
+            'company_id.required' => 'Please select a company.',
             'rooms.required' => 'Please enter the number of rooms.',
-            'country.required' => 'Please enter the country.',
+            'rooms.integer' => 'Rooms must be a whole number.',
             'city.required' => 'Please enter the city.',
             'code.required' => 'Please enter the hotel code.',
             'name.required' => 'Please enter the hotel name.',
+            'phone.required' => 'Please enter the phone number.',
+            'email.required' => 'Please enter the email address.',
         ]);
 
         $data = $this->normalizeHotelData($data);
@@ -141,23 +144,26 @@ class HotelController extends Controller
         HotelAccess::ensure(null, $hotel->id);
 
         $data = $request->validate([
-            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'company_id' => ['required', 'integer', 'exists:companies,id'],
             'code' => ['required', 'string', 'max:20', 'unique:hotels,code,'.$hotel->id],
             'name' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
-            'country' => ['required', 'string', 'max:255'],
-            'rooms' => ['required', 'integer', 'min:0'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'rooms' => ['required', 'integer', 'min:0', 'max:99999'],
             'manager_name' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'max:255'],
             'status' => ['required', 'in:active,inactive'],
-            'notes' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string', 'max:5000'],
         ], [
+            'company_id.required' => 'Please select a company.',
             'rooms.required' => 'Please enter the number of rooms.',
-            'country.required' => 'Please enter the country.',
+            'rooms.integer' => 'Rooms must be a whole number.',
             'city.required' => 'Please enter the city.',
             'code.required' => 'Please enter the hotel code.',
             'name.required' => 'Please enter the hotel name.',
+            'phone.required' => 'Please enter the phone number.',
+            'email.required' => 'Please enter the email address.',
         ]);
 
         $data = $this->normalizeHotelData($data);
@@ -191,14 +197,10 @@ class HotelController extends Controller
      */
     private function normalizeHotelData(array $data): array
     {
-        if (($data['company_id'] ?? null) === '' || ($data['company_id'] ?? null) === null) {
-            $data['company_id'] = null;
-        }
-
         $data['rooms'] = (int) ($data['rooms'] ?? 0);
-        $data['country'] = trim((string) ($data['country'] ?? '')) ?: 'United Kingdom';
+        $data['country'] = 'United Kingdom';
 
-        foreach (['manager_name', 'phone', 'email', 'notes'] as $field) {
+        foreach (['manager_name', 'notes'] as $field) {
             if (array_key_exists($field, $data) && $data[$field] === '') {
                 $data[$field] = null;
             }

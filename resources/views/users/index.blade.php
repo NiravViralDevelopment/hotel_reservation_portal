@@ -22,8 +22,8 @@
 
   <div class="card">
     <div class="table-toolbar">
-      <form method="GET" action="{{ route('users.index') }}" class="d-flex flex-wrap gap-2 align-items-center w-100">
-        <div class="input-group input-group-sm" style="max-width: 260px;">
+      <form method="GET" action="{{ route('users.index') }}" class="d-flex gap-2 align-items-center flex-nowrap w-100" style="overflow-x: auto;">
+        <div class="input-group input-group-sm" style="width: 210px; flex-shrink: 0;">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
           <input
             type="search"
@@ -35,33 +35,34 @@
           >
         </div>
 
-        <select name="status" class="form-select form-select-sm select2" style="width:auto">
+        <select name="status" class="form-select form-select-sm select2" style="width: 130px;" data-width="130px">
           <option value="">All statuses</option>
           <option value="active" @selected(request('status') === 'active')>Active</option>
           <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
         </select>
 
-        <select name="role" class="form-select form-select-sm select2" style="width:auto">
+        <select name="role" class="form-select form-select-sm select2" style="width: 160px;" data-width="160px">
           <option value="">All roles</option>
           @foreach ($roles as $role)
             <option value="{{ $role->name }}" @selected(request('role') === $role->name)>{{ $role->name }}</option>
           @endforeach
         </select>
 
-        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
+        <select name="hotel_id" class="form-select form-select-sm select2" style="width: 150px;" data-width="150px">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
             <option value="{{ $hotel->id }}" @selected((string) request('hotel_id') === (string) $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
 
-        <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-
-        @if (request()->hasAny(['q', 'status', 'role', 'hotel_id']))
-          <a href="{{ route('users.index') }}" class="btn btn-outline-danger btn-sm">
-            <i class="bi bi-x-circle"></i> Clear
-          </a>
-        @endif
+        <div class="d-flex gap-2 flex-shrink-0 align-items-center">
+          <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
+          @if (request()->filled('q') || request()->filled('status') || request()->filled('role') || request()->filled('hotel_id'))
+            <a href="{{ route('users.index') }}" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-x-circle"></i> Clear
+            </a>
+          @endif
+        </div>
 
         @if (request('sort'))
           <input type="hidden" name="sort" value="{{ request('sort') }}">
@@ -94,7 +95,7 @@
                 @endif
               </td>
               <td>
-                <div><a href="mailto:{{ $user->email }}">{{ $user->email }}</a></div>
+                <div>{{ $user->email }}</div>
                 @if ($user->phone)
                   <div class="small text-secondary">{{ $user->phone }}</div>
                 @endif
@@ -116,8 +117,8 @@
               <td><x-badge-status :status="$user->status" /></td>
               <td class="text-end text-nowrap">
                 @can('update', $user)
-                  <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-secondary" title="Edit user">
-                    <i class="bi bi-pencil"></i> Edit
+                  <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i>
                   </a>
                   @if ($user->id !== auth()->id())
                     <form method="POST" action="{{ route('users.toggle-status', $user) }}" class="d-inline" data-confirm-title="{{ $user->status === 'active' ? 'Deactivate user' : 'Activate user' }}" data-confirm="{{ $user->status === 'active' ? "Are you sure you want to deactivate \"{$user->name}\"?\n\nThey will not be able to sign in until activated again." : "Are you sure you want to activate \"{$user->name}\"?\n\nThey will be able to sign in again." }}" data-confirm-button="{{ $user->status === 'active' ? 'Deactivate' : 'Activate' }}" data-confirm-variant="warning" data-confirm-icon="bi-person-slash">

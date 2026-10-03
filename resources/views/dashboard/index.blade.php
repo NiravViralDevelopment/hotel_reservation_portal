@@ -141,7 +141,9 @@
               <td class="text-center">{{ $booking->rooms ?? '—' }}</td>
               <td class="text-center">{{ $booking->pax ?? '—' }}</td>
               <td class="text-end">
-                <a href="{{ route('group-bookings.show', $booking) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                <a href="{{ route('group-bookings.show', $booking) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                  <i class="bi bi-eye"></i>
+                </a>
               </td>
             </tr>
           @empty

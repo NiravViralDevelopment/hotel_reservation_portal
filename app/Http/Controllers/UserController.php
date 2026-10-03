@@ -11,7 +11,7 @@ use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class UserController extends Controller
 {
@@ -66,8 +66,9 @@ class UserController extends Controller
 
         $roles = Role::query()->orderBy('name')->get();
         $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $existingEmails = User::query()->pluck('email')->map(fn ($email) => mb_strtolower($email))->values();
 
-        return view('users.create', compact('roles', 'hotels'));
+        return view('users.create', compact('roles', 'hotels', 'existingEmails'));
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
@@ -97,8 +98,13 @@ class UserController extends Controller
         $roles = Role::query()->orderBy('name')->get();
         $hotels = Hotel::query()->orderBy('name')->get(['id', 'name', 'code']);
         $user->load(['roles', 'hotels']);
+        $existingEmails = User::query()
+            ->where('id', '!=', $user->id)
+            ->pluck('email')
+            ->map(fn ($email) => mb_strtolower($email))
+            ->values();
 
-        return view('users.edit', compact('user', 'roles', 'hotels'));
+        return view('users.edit', compact('user', 'roles', 'hotels', 'existingEmails'));
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
