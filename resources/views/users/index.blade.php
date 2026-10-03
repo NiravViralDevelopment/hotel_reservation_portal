@@ -116,8 +116,8 @@
               <td><x-badge-status :status="$user->status" /></td>
               <td class="text-end text-nowrap">
                 @can('update', $user)
-                  <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-secondary" title="Edit user">
-                    <i class="bi bi-pencil"></i> Edit
+                  <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i>
                   </a>
                   @if ($user->id !== auth()->id())
                     <form method="POST" action="{{ route('users.toggle-status', $user) }}" class="d-inline" data-confirm-title="{{ $user->status === 'active' ? 'Deactivate user' : 'Activate user' }}" data-confirm="{{ $user->status === 'active' ? "Are you sure you want to deactivate \"{$user->name}\"?\n\nThey will not be able to sign in until activated again." : "Are you sure you want to activate \"{$user->name}\"?\n\nThey will be able to sign in again." }}" data-confirm-button="{{ $user->status === 'active' ? 'Deactivate' : 'Activate' }}" data-confirm-variant="warning" data-confirm-icon="bi-person-slash">

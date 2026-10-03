@@ -84,8 +84,8 @@
               </td>
               <td class="text-end text-nowrap">
                 @can('roles.edit')
-                  <a href="{{ route('roles.edit', $role) }}" class="btn btn-sm btn-outline-secondary" title="Edit role">
-                    <i class="bi bi-pencil"></i> Edit
+                  <a href="{{ route('roles.edit', $role) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i>
                   </a>
                   @if ($role->name !== 'Administrator')
                     <form method="POST" action="{{ route('roles.destroy', $role) }}" class="d-inline" data-confirm-title="Delete role" data-confirm="{{ "Are you sure you want to delete the role \"{$role->name}\"?\n\nUsers with this role may lose their permissions. This cannot be undone." }}" data-confirm-button="Delete">

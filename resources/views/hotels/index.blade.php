@@ -104,17 +104,22 @@
               <td>{{ $hotel->manager_name ?? '—' }}</td>
               <td><x-badge-status :status="$hotel->status" /></td>
               <td class="text-end text-nowrap">
+                @can('view', $hotel)
+                  <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                @endcan
                 @can('update', $hotel)
-                  <a href="{{ route('hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-secondary" title="Edit hotel">
-                    <i class="bi bi-pencil"></i> Edit
+                  <a href="{{ route('hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                    <i class="bi bi-pencil"></i>
                   </a>
                 @endcan
                 @can('delete', $hotel)
                   <form method="POST" action="{{ route('hotels.destroy', $hotel) }}" class="d-inline" data-confirm-title="Delete hotel" data-confirm="{{ "Are you sure you want to delete the hotel \"{$hotel->name}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete hotel">
-                      <i class="bi bi-trash"></i> Delete
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="bi bi-trash"></i>
                     </button>
                   </form>
                 @endcan

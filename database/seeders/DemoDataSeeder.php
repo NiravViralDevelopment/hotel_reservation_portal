@@ -13,13 +13,14 @@ use App\Models\TravelAgency;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::query()->updateOrCreate(
-            ['email' => 'admin@hotelgroup.co.uk'],
+        $admin = $this->seedUser(
+            'admin@hotelgroup.co.uk',
             [
                 'name' => 'Richard Whitmore',
                 'phone' => '+44 20 7946 0000',
@@ -40,8 +41,8 @@ class DemoDataSeeder extends Seeder
         ];
 
         foreach ($users as $row) {
-            $user = User::query()->updateOrCreate(
-                ['email' => $row['email']],
+            $user = $this->seedUser(
+                $row['email'],
                 [
                     'name' => $row['name'],
                     'job_title' => $row['job_title'],
@@ -392,5 +393,22 @@ class DemoDataSeeder extends Seeder
                 ]
             );
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function seedUser(string $email, array $attributes): User
+    {
+        $user = User::query()->firstOrNew(['email' => $email]);
+        $user->fill($attributes);
+
+        if (blank($user->uuid)) {
+            $user->uuid = (string) Str::uuid();
+        }
+
+        $user->save();
+
+        return $user;
     }
 }

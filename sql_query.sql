@@ -1,8 +1,14 @@
 Hiten sql query :
 
-NOTE: These changes are also in migration:
+NOTE: Prefer migrations:
+  php artisan migrate
+  (or) php artisan migrate:fresh --seed
+
+Also in migration:
   database/migrations/2026_10_02_072457_add_status_masters_and_enquiry_fields.php
-Prefer: php artisan migrate
+  database/migrations/2026_10_03_050639_add_uuid_to_users_table.php
+
+Users now use UUID in URLs (e.g. /users/{uuid}/edit).
 Use the SQL below only for manual/hotfix runs on an existing DB.
 
 
@@ -98,3 +104,13 @@ WHERE r.name = 'Administrator'
     SELECT 1 FROM role_has_permissions rhp
     WHERE rhp.permission_id = p.id AND rhp.role_id = r.id
   );
+
+-- Users UUID for public URLs (prefer migration)
+ALTER TABLE users
+  ADD COLUMN uuid CHAR(36) NULL AFTER id;
+
+UPDATE users SET uuid = UUID() WHERE uuid IS NULL OR uuid = '';
+
+ALTER TABLE users
+  MODIFY uuid CHAR(36) NOT NULL,
+  ADD UNIQUE KEY users_uuid_unique (uuid);
