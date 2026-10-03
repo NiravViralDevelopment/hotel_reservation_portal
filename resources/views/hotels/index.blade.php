@@ -115,13 +115,19 @@
                   </a>
                 @endcan
                 @can('delete', $hotel)
-                  <form method="POST" action="{{ route('hotels.destroy', $hotel) }}" class="d-inline" data-confirm-title="Delete hotel" data-confirm="{{ "Are you sure you want to delete the hotel \"{$hotel->name}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                  @if ($hotel->canBeDeleted())
+                    <form method="POST" action="{{ route('hotels.destroy', $hotel) }}" class="d-inline" data-confirm-title="Delete hotel" data-confirm="{{ "Are you sure you want to delete the hotel \"{$hotel->name}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  @else
+                    <button type="button" class="btn btn-sm btn-outline-danger" title="In use — cannot delete" disabled>
                       <i class="bi bi-trash"></i>
                     </button>
-                  </form>
+                  @endif
                 @endcan
               </td>
             </tr>

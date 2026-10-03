@@ -1,5 +1,5 @@
 /**
- * Hotels module client-side validation.
+ * Travel agencies module client-side validation.
  * Shows messages on keyup / input / change / blur, and blocks submit if invalid.
  */
 (function (window, document) {
@@ -76,17 +76,7 @@
     }
   }
 
-  function pairExists(pairs, code, name) {
-    var codeKey = String(code || '').trim().toLowerCase();
-    var nameKey = String(name || '').trim().toLowerCase();
-    if (!codeKey || !nameKey) return false;
-
-    return pairs.some(function (pair) {
-      return pair.code === codeKey && pair.name === nameKey;
-    });
-  }
-
-  function validateField(el, rules, form, pairs) {
+  function validateField(el, rules) {
     if (!el || !rules) return true;
 
     var value = trim(el.value);
@@ -113,70 +103,27 @@
       return false;
     }
 
-    if (rules.integer) {
-      if (!/^\d+$/.test(value)) {
-        setError(el, rules.integerMessage || 'Enter a whole number.');
-        return false;
-      }
-      var intVal = parseInt(value, 10);
-      if (rules.min != null && intVal < rules.min) {
-        setError(el, 'Must be at least ' + rules.min + '.');
-        return false;
-      }
-      if (rules.maxNum != null && intVal > rules.maxNum) {
-        setError(el, 'Must be ' + rules.maxNum + ' or less.');
-        return false;
-      }
-    }
-
-    if (rules.uniquePair) {
-      var codeEl = form.querySelector('[name="code"]');
-      var nameEl = form.querySelector('[name="name"]');
-      var codeVal = codeEl ? trim(codeEl.value) : '';
-      var nameVal = nameEl ? trim(nameEl.value) : '';
-      if (codeVal && nameVal && pairExists(pairs, codeVal, nameVal)) {
-        setError(el, 'This code and name combination already exists.');
-        return false;
-      }
-    }
-
     clearError(el);
     return true;
   }
 
   function buildRules() {
     return {
-      code: { required: true, max: 20, uniquePair: true, requiredMessage: 'Hotel code is required.' },
-      name: { required: true, max: 255, uniquePair: true, requiredMessage: 'Hotel name is required.' },
-      company_id: { required: true, requiredMessage: 'Please select a company.' },
-      city: { required: true, max: 255, requiredMessage: 'City is required.' },
-      rooms: {
-        required: true,
-        integer: true,
-        min: 0,
-        maxNum: 99999,
-        requiredMessage: 'Number of rooms is required.',
-        integerMessage: 'Rooms must be a whole number.'
-      },
-      manager_name: { max: 255 },
-      status: { required: true, requiredMessage: 'Status is required.' },
-      phone: { required: true, max: 15, requiredMessage: 'Phone is required.' },
+      code: { required: true, max: 20, requiredMessage: 'Code is required.' },
+      name: { required: true, max: 255, requiredMessage: 'Name is required.' },
+      contact_name: { required: true, max: 255, requiredMessage: 'Contact name is required.' },
       email: { required: true, email: true, max: 255, requiredMessage: 'Email is required.' },
-      notes: { max: 5000 }
+      phone: { required: true, max: 15, requiredMessage: 'Phone is required.' },
+      city: { max: 255 },
+      country: { max: 255 },
+      status: { required: true, requiredMessage: 'Status is required.' }
     };
   }
 
   function init(form) {
-    if (!form || form.dataset.hotelValidationInit === '1') return;
-    form.dataset.hotelValidationInit = '1';
+    if (!form || form.dataset.travelAgencyValidationInit === '1') return;
+    form.dataset.travelAgencyValidationInit = '1';
     form.setAttribute('novalidate', 'novalidate');
-
-    var pairs = [];
-    try {
-      pairs = JSON.parse(form.getAttribute('data-existing-pairs') || '[]');
-    } catch (e) {
-      pairs = [];
-    }
 
     var rulesMap = buildRules();
 
@@ -189,49 +136,23 @@
     }
 
     function runField(el) {
-      return validateField(el, rulesMap[el.getAttribute('name')], form, pairs);
-    }
-
-    function runCodeNamePair() {
-      var codeEl = form.querySelector('[name="code"]');
-      var nameEl = form.querySelector('[name="name"]');
-      var codeOk = codeEl ? runField(codeEl) : true;
-      var nameOk = nameEl ? runField(nameEl) : true;
-      return codeOk && nameOk;
+      return validateField(el, rulesMap[el.getAttribute('name')]);
     }
 
     fields().forEach(function (el) {
       ['keyup', 'input', 'change', 'blur'].forEach(function (evt) {
         el.addEventListener(evt, function () {
-          if (el.name === 'code' || el.name === 'name') {
-            runCodeNamePair();
-            return;
-          }
           runField(el);
         });
       });
     });
 
-    var rooms = form.querySelector('#rooms');
-    if (rooms) {
-      rooms.addEventListener('input', function () {
-        var cleaned = rooms.value.replace(/\D+/g, '');
-        if (rooms.value !== cleaned) {
-          rooms.value = cleaned;
-        }
-      });
-      rooms.addEventListener('keypress', function (e) {
-        if (e.ctrlKey || e.metaKey || e.altKey || e.key.length > 1) return;
-        if (!/\d/.test(e.key)) e.preventDefault();
-      });
-      rooms.addEventListener('paste', function (e) {
-        e.preventDefault();
-        var text = (e.clipboardData || window.clipboardData).getData('text') || '';
-        var start = rooms.selectionStart || 0;
-        var end = rooms.selectionEnd || 0;
-        var digits = text.replace(/\D+/g, '');
-        rooms.value = rooms.value.slice(0, start) + digits + rooms.value.slice(end);
-        runField(rooms);
+    var phone = form.querySelector('[name="phone"]');
+    if (phone) {
+      phone.addEventListener('input', function () {
+        var cleaned = phone.value.replace(/[^\d+\s()-]/g, '');
+        if (cleaned.length > 15) cleaned = cleaned.slice(0, 15);
+        if (phone.value !== cleaned) phone.value = cleaned;
       });
     }
 
@@ -255,7 +176,7 @@
   }
 
   function boot() {
-    document.querySelectorAll('form.hotel-form').forEach(init);
+    document.querySelectorAll('form.travel-agency-form').forEach(init);
   }
 
   if (document.readyState === 'loading') {
@@ -264,5 +185,5 @@
     boot();
   }
 
-  window.HotelValidation = { init: init, boot: boot };
+  window.TravelAgencyValidation = { init: init, boot: boot };
 })(window, document);

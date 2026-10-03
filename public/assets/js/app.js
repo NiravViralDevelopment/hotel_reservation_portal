@@ -586,7 +586,9 @@
       var form = pendingForm;
       pendingForm = null;
       form.dataset.confirmAccepted = '1';
+      form.dataset.submitting = '1';
       modal.hide();
+      showFormLoader(form);
 
       // Native submit bypasses the capture listener that opened the modal.
       HTMLFormElement.prototype.submit.call(form);
@@ -595,6 +597,43 @@
     modalEl.addEventListener('hidden.bs.modal', function () {
       pendingForm = null;
     });
+  }
+
+  /* ---- Form submit loader (button only, blocks double submit) ---- */
+  function showFormLoader(form) {
+    form.classList.add('is-submitting');
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (btn) {
+      btn.disabled = true;
+
+      if (btn.tagName === 'BUTTON' && !btn.querySelector('.hgbms-btn-spinner')) {
+        var spinner = document.createElement('span');
+        spinner.className = 'hgbms-btn-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+        btn.insertBefore(spinner, btn.firstChild);
+      }
+    });
+  }
+
+  function shouldSkipFormLoader(form) {
+    if (!(form instanceof HTMLFormElement)) return true;
+    if (form.hasAttribute('data-no-loader')) return true;
+    if ((form.getAttribute('method') || 'get').toLowerCase() === 'get') return true;
+    if (form.dataset.submitting === '1') return true;
+    return false;
+  }
+
+  function initFormSubmitLoader() {
+    // Register late so client validation handlers can preventDefault first.
+    setTimeout(function () {
+      document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (shouldSkipFormLoader(form)) return;
+        if (e.defaultPrevented) return;
+
+        form.dataset.submitting = '1';
+        showFormLoader(form);
+      });
+    }, 0);
   }
 
   /* ---- Init ---- */
@@ -607,6 +646,7 @@
     initSelect2();
     initDatePlaceholders();
     initConfirmForms();
+    initFormSubmitLoader();
     if (document.getElementById('hgbms-root')) {
       document.addEventListener('hgbms:layout-ready', function () {
         initSidebar();

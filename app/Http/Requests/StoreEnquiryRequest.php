@@ -42,7 +42,7 @@ class StoreEnquiryRequest extends FormRequest
             'check_out' => ['nullable', 'date', 'after:check_in'],
             'group_name' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
-            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::hotelIds())],
+            'hotel_id' => ['nullable', 'integer', Rule::in(\App\Support\HotelAccess::selectableHotelIds())],
             'nights' => ['nullable', 'integer', 'min:1'],
             'rooms_per_night' => ['nullable', 'integer', 'min:0'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],
@@ -76,6 +76,8 @@ class StoreEnquiryRequest extends FormRequest
             'check_out.after' => 'Check-out must be after check-in.',
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'tax_percentage.required_if' => 'Enter the tax percentage.',
+            'ref.unique' => 'This reference is already used. Enter a different one.',
+            'status.required' => 'Please select a status.',
             'status.exists' => 'Select a valid active status.',
         ];
     }

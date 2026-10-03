@@ -44,14 +44,8 @@
     </div>
 
     <div class="card mb-4">
-      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="card-header">
         <span>Permissions</span>
-        @unless ($isAdminRole)
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="selectAllPermissions">Select all</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="clearAllPermissions">Clear all</button>
-          </div>
-        @endunless
       </div>
       <div class="card-body">
         @if ($isAdminRole)
@@ -61,7 +55,7 @@
           </div>
         @else
           <p class="small text-secondary mb-4 mb-md-3">
-            Tip: turn on <strong>View</strong> for a module so it appears in the sidebar. Use module “Select all” for quick setup.
+            Tip: turn on <strong>View</strong> for a module so it appears in the sidebar. Use a module’s <strong>All</strong> switch to select every action in that module.
           </p>
         @endif
 
@@ -169,22 +163,6 @@
 
         form.querySelectorAll('.role-group-toggle').forEach(function (toggle) {
           syncGroupToggle(toggle.dataset.group);
-        });
-
-        document.getElementById('selectAllPermissions')?.addEventListener('click', function () {
-          form.querySelectorAll('.role-perm-check').forEach(function (el) { el.checked = true; });
-          form.querySelectorAll('.role-group-toggle').forEach(function (toggle) {
-            toggle.checked = true;
-            toggle.indeterminate = false;
-          });
-        });
-
-        document.getElementById('clearAllPermissions')?.addEventListener('click', function () {
-          form.querySelectorAll('.role-perm-check').forEach(function (el) { el.checked = false; });
-          form.querySelectorAll('.role-group-toggle').forEach(function (toggle) {
-            toggle.checked = false;
-            toggle.indeterminate = false;
-          });
         });
       })();
     </script>

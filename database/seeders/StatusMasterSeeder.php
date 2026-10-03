@@ -10,7 +10,8 @@ use Illuminate\Support\Str;
 class StatusMasterSeeder extends Seeder
 {
     /**
-     * Only these status titles are kept in the system.
+     * Enquiry pipeline statuses only.
+     * confirmed / cancelled are booking-action values on enquiries, not status master rows.
      *
      * @var list<string>
      */
@@ -46,7 +47,7 @@ class StatusMasterSeeder extends Seeder
             }
         }
 
-        // Remap legacy enquiry statuses before removing old status master rows.
+        // Remap legacy pipeline statuses only — do not touch confirmed/cancelled enquiries.
         $remap = [
             'quoted' => 'Quoted',
             'lost' => 'Lost',
@@ -54,8 +55,6 @@ class StatusMasterSeeder extends Seeder
             'follow up' => 'Chesed',
             'chesed' => 'Chesed',
             'new' => 'Chesed',
-            'confirmed' => 'Quoted',
-            'cancelled' => 'Lost',
         ];
 
         if (DB::getSchemaBuilder()->hasTable('enquiries')) {
@@ -69,6 +68,7 @@ class StatusMasterSeeder extends Seeder
             }
         }
 
+        // Keep only Quoted / Lost / Chesed in status masters.
         StatusMaster::query()
             ->whereNotIn('title', $this->titles)
             ->delete();

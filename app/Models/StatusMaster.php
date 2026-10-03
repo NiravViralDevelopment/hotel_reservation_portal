@@ -31,4 +31,19 @@ class StatusMaster extends Model
     {
         return $this->status === 'active';
     }
+
+    /**
+     * Statuses assigned to any enquiry cannot be deleted.
+     */
+    public function isUsedByEnquiries(): bool
+    {
+        return Enquiry::query()
+            ->where('status', $this->title)
+            ->exists();
+    }
+
+    public function canBeDeleted(): bool
+    {
+        return ! $this->isUsedByEnquiries();
+    }
 }

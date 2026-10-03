@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Enquiry;
 use App\Models\StatusMaster;
 use App\Support\Audit;
 use App\Support\QuerySort;
@@ -34,7 +35,13 @@ class StatusMasterController extends Controller
 
         $statusMasters = $query->paginate(10)->withQueryString();
 
-        return view('status-masters.index', compact('statusMasters'));
+        $usedTitles = Enquiry::query()
+            ->whereIn('status', $statusMasters->pluck('title'))
+            ->distinct()
+            ->pluck('status')
+            ->all();
+
+        return view('status-masters.index', compact('statusMasters', 'usedTitles'));
     }
 
     public function create(): View
@@ -51,7 +58,17 @@ class StatusMasterController extends Controller
         $this->authorize('create', StatusMaster::class);
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255', 'unique:status_masters,title'],
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:status_masters,title',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (in_array(mb_strtolower(trim((string) $value)), ['confirmed', 'cancelled'], true)) {
+                        $fail('Confirmed and Cancelled are system booking statuses and cannot be added here.');
+                    }
+                },
+            ],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'title.unique' => 'This status title already exists.',
@@ -82,7 +99,17 @@ class StatusMasterController extends Controller
         $this->authorize('update', $statusMaster);
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255', Rule::unique('status_masters', 'title')->ignore($statusMaster->id)],
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('status_masters', 'title')->ignore($statusMaster->id),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (in_array(mb_strtolower(trim((string) $value)), ['confirmed', 'cancelled'], true)) {
+                        $fail('Confirmed and Cancelled are system booking statuses and cannot be used here.');
+                    }
+                },
+            ],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'title.unique' => 'This status title already exists.',
@@ -98,6 +125,12 @@ class StatusMasterController extends Controller
     public function destroy(StatusMaster $statusMaster): RedirectResponse
     {
         $this->authorize('delete', $statusMaster);
+
+        if (! $statusMaster->canBeDeleted()) {
+            return redirect()
+                ->route('status-masters.index')
+                ->with('error', 'This status is used by one or more enquiries and cannot be deleted.');
+        }
 
         $title = $statusMaster->title;
         $statusMaster->delete();

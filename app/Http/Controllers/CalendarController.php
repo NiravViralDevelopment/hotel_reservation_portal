@@ -39,7 +39,7 @@ class CalendarController extends Controller
         }
 
         $bookings = $query->orderBy('arrival')->get();
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
 
         return view('calendar.index', compact('bookings', 'hotels', 'month', 'year', 'start'));
     }

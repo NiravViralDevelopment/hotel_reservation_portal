@@ -30,7 +30,7 @@
             name="q"
             value="{{ request('q') }}"
             class="form-control"
-            placeholder="Search name, reg, city…"
+            placeholder="Search name, reg, VAT, city…"
             aria-label="Search companies"
           >
         </div>
@@ -80,7 +80,7 @@
           @forelse ($companies as $company)
             <tr>
               <td>
-                <div class="fw-semibold"><a href="{{ route('companies.show', $company) }}">{{ $company->name }}</a></div>
+                <div class="fw-semibold">{{ $company->name }}</div>
                 @if ($company->reg_number)
                   <div class="small text-secondary">Reg. {{ $company->reg_number }}</div>
                 @endif

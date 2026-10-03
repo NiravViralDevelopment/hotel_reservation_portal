@@ -18,7 +18,7 @@ class ReportController extends Controller
     {
         $this->authorize('reports.view');
 
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
 
         $defaultFrom = now()->subMonth()->toDateString();
         $defaultTo = now()->toDateString();
@@ -76,7 +76,7 @@ class ReportController extends Controller
                 'after_or_equal:date_from',
                 Rule::requiredIf(fn () => in_array($request->input('report'), $datedReports, true)),
             ],
-            'hotel_id' => ['nullable', 'integer', Rule::in(HotelAccess::hotelIds())],
+            'hotel_id' => ['nullable', 'integer', Rule::in(HotelAccess::selectableHotelIds())],
         ]);
 
         if (! empty($validated['hotel_id'])) {
@@ -121,7 +121,7 @@ class ReportController extends Controller
                 ->get(),
         };
 
-        $hotels = Hotel::query()->accessibleBy()->orderBy('name')->get(['id', 'name', 'code']);
+        $hotels = Hotel::optionsForSelect();
 
         return view('reports.run', compact('results', 'validated', 'hotels'));
     }
