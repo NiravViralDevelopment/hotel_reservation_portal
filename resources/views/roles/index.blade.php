@@ -31,17 +31,25 @@
         <tbody>
           @forelse ($roles as $role)
             <tr>
-              <td class="fw-semibold">{{ $role->name }}</td>
+              <td class="fw-semibold">
+                <a href="{{ route('roles.show', $role) }}">{{ $role->name }}</a>
+              </td>
               <td class="text-center">{{ $role->users_count }}</td>
               <td>
-                @if ($role->permissions->isEmpty())
+                @if ($role->name === 'Administrator')
+                  <span class="badge bg-info-subtle text-info-emphasis border">Full access</span>
+                @elseif ($role->permissions->isEmpty())
                   <span class="text-secondary">None</span>
                 @else
                   <span class="badge bg-light text-dark border me-1">{{ $role->permissions->count() }} assigned</span>
-                  <span class="text-muted small">{{ $role->permissions->pluck('name')->take(4)->join(', ') }}{{ $role->permissions->count() > 4 ? '…' : '' }}</span>
                 @endif
               </td>
               <td class="text-end text-nowrap">
+                @can('roles.view')
+                  <a href="{{ route('roles.show', $role) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                @endcan
                 @can('roles.edit')
                   <a href="{{ route('roles.edit', $role) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
                     <i class="bi bi-pencil"></i>
