@@ -132,6 +132,13 @@ class EnquiryController extends Controller
         $data = array_merge($data, $this->applyCommercialTotals($data));
         $data['is_confirm'] = false;
         $data['is_cancel'] = false;
+        if (empty($data['status'])) {
+            $data['status'] = StatusMaster::query()
+                ->active()
+                ->whereRaw("LOWER(title) NOT IN ('confirmed', 'cancelled')")
+                ->orderBy('title')
+                ->value('title') ?? 'Chesed';
+        }
 
         $enquiry = Enquiry::query()->create($data);
         Audit::log('created', 'enquiries', $enquiry->ref, $enquiry);

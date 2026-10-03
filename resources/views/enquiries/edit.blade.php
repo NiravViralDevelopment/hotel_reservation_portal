@@ -85,8 +85,6 @@
       </div>
     </div>
 
-    @include('enquiries.partials.commercial-fields', ['enquiry' => $e])
-
     <div class="card mb-4">
       <div class="card-header">
         <h2 class="enquiry-section-title"><i class="bi bi-file-earmark-text"></i> Enquiry details</h2>
@@ -155,19 +153,19 @@
           <div class="col-12">
             <div class="d-flex flex-wrap gap-4">
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="confirm_booking" id="confirm_booking" value="1" @checked(old('confirm_booking'))>
+                <input class="form-check-input" type="checkbox" name="confirm_booking" id="confirm_booking" value="1" @checked(old('confirm_booking', $e->is_confirm))>
                 <label class="form-check-label" for="confirm_booking">Confirm booking</label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="cancel_booking" id="cancel_booking" value="1" @checked(old('cancel_booking'))>
+                <input class="form-check-input" type="checkbox" name="cancel_booking" id="cancel_booking" value="1" @checked(old('cancel_booking', $e->is_cancel))>
                 <label class="form-check-label" for="cancel_booking">Cancel</label>
               </div>
             </div>
-            <div class="form-text">Confirm moves it to Group Bookings. Cancel moves it to Cancelled Bookings.</div>
+            <div class="form-text">Confirm shows Pricing &amp; commission and moves it to Group Bookings. Cancel moves it to Cancelled Bookings.</div>
             @error('confirm_booking')<div class="text-danger small d-block">{{ $message }}</div>@enderror
             @error('cancel_booking')<div class="text-danger small d-block">{{ $message }}</div>@enderror
           </div>
-          <div class="col-12" id="cancellationReasonWrap" style="{{ old('cancel_booking') ? '' : 'display:none;' }}">
+          <div class="col-12" id="cancellationReasonWrap" style="{{ old('cancel_booking', $e->is_cancel) ? '' : 'display:none;' }}">
             <label for="cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
             <textarea name="cancellation_reason" id="cancellation_reason" rows="2" class="form-control @error('cancellation_reason') is-invalid @enderror" placeholder="Enter cancellation reason">{{ old('cancellation_reason', $e->cancellation_reason) }}</textarea>
             @error('cancellation_reason')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -175,6 +173,11 @@
         </div>
       </div>
     </div>
+
+    @include('enquiries.partials.commercial-fields', [
+      'enquiry' => $e,
+      'hidePricingUntilConfirm' => true,
+    ])
 
     <div class="card mb-4">
       <div class="card-header">
@@ -488,10 +491,14 @@
   }
 
   function toggleActionPanels() {
+    var confirmEl = document.getElementById('confirm_booking');
     var cancelEl = document.getElementById('cancel_booking');
     var cancelWrap = document.getElementById('cancellationReasonWrap');
+    var pricingWrap = document.getElementById('pricingCommissionSection');
+    var isConfirm = !!(confirmEl && confirmEl.checked);
     var isCancel = !!(cancelEl && cancelEl.checked);
     if (cancelWrap) cancelWrap.style.display = isCancel ? '' : 'none';
+    if (pricingWrap) pricingWrap.style.display = isConfirm ? '' : 'none';
   }
 
   ['check_in', 'check_out'].forEach(function (id) {

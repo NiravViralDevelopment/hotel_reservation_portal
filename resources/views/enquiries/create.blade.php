@@ -96,11 +96,11 @@
             @error('ref')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="status" class="form-label">Status</label>
-            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror" data-placeholder="Select status">
+            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+            <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror" data-placeholder="Select status" required>
               <option value="">Select status</option>
               @foreach ($statuses as $status)
-                <option value="{{ $status }}" @selected(old('status') === $status)>{{ $status }}</option>
+                <option value="{{ $status }}" @selected(old('status', $statuses->first()) === $status)>{{ $status }}</option>
               @endforeach
             </select>
             @error('status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror

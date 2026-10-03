@@ -1,5 +1,9 @@
 @php
   $e = $enquiry ?? null;
+  $hidePricingUntilConfirm = (bool) ($hidePricingUntilConfirm ?? false);
+  $showPricing = ! $hidePricingUntilConfirm
+      || (bool) old('confirm_booking')
+      || (bool) ($e?->is_confirm);
   $val = function (string $key, $default = null) use ($e) {
       return old($key, $e?->{$key} ?? $default);
   };
@@ -50,7 +54,7 @@
   </div>
 </div>
 
-<div class="card mb-4">
+<div class="card mb-4" id="pricingCommissionSection" style="{{ $showPricing ? '' : 'display:none;' }}">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-cash-stack"></i> Pricing &amp; commission</h2>
   </div>

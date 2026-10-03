@@ -81,7 +81,7 @@ class EnquiryFieldRules
             'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_tax,1,true'],
             'tax_revenue' => ['nullable', 'numeric', 'min:0'],
             'status' => [
-                'nullable',
+                'required',
                 'string',
                 'max:255',
                 Rule::exists('status_masters', 'title')->where(fn ($query) => $query->where('status', 'active')),
