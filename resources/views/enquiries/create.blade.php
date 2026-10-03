@@ -91,7 +91,6 @@
           <div class="col-md-4">
             <label for="ref" class="form-label">Reference</label>
             <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref') }}" placeholder="Enter reference" maxlength="255">
-            <div class="form-text">Optional. Leave blank to auto-generate.</div>
             @error('ref')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">

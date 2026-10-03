@@ -92,7 +92,7 @@
       <div class="card-body">
         <div class="row g-3">
           <div class="col-md-4">
-            <label for="ref" class="form-label">Reference <span class="text-danger">*</span></label>
+            <label for="ref" class="form-label">Reference</label>
             <input type="text" name="ref" id="ref" class="form-control @error('ref') is-invalid @enderror" value="{{ old('ref', $e->ref) }}" placeholder="Enter reference" maxlength="255">
             @error('ref')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>

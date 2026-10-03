@@ -113,11 +113,6 @@ class EnquiryController extends Controller
         if (empty($data['year']) && ! empty($data['enquiry_date'])) {
             $data['year'] = (int) Carbon::parse($data['enquiry_date'])->format('Y');
         }
-        if (empty($data['ref'])) {
-            $data['ref'] = $this->nextEnquiryRef(
-                isset($data['year']) ? (int) $data['year'] : null
-            );
-        }
 
         $data = $this->normalizeEnquiryDefaults($data);
         $data = array_merge($data, $this->applyStayDates($data));
@@ -154,8 +149,12 @@ class EnquiryController extends Controller
     {
         $this->authorize('update', $enquiry);
 
+        if ($request->input('ref') === '') {
+            $request->merge(['ref' => null]);
+        }
+
         $data = $request->validate([
-            'ref' => ['required', 'string', 'max:255', 'unique:enquiries,ref,'.$enquiry->id],
+            'ref' => ['nullable', 'string', 'max:255', 'unique:enquiries,ref,'.$enquiry->id],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'enquiry_date' => ['nullable', 'date'],
             'response_date' => [
@@ -408,24 +407,6 @@ class EnquiryController extends Controller
         $result['nights'] = max(1, $nights);
 
         return $result;
-    }
-
-    private function nextEnquiryRef(?int $year = null): string
-    {
-        $year = $year ?: (int) date('Y');
-        $prefix = 'ENQ-'.$year.'-';
-
-        $latest = Enquiry::query()
-            ->where('ref', 'like', $prefix.'%')
-            ->orderByDesc('ref')
-            ->value('ref');
-
-        $next = 1;
-        if (is_string($latest) && preg_match('/(\d+)$/', $latest, $matches)) {
-            $next = ((int) $matches[1]) + 1;
-        }
-
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     /**

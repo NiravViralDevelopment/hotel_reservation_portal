@@ -76,6 +76,8 @@ class StoreEnquiryRequest extends FormRequest
             'check_out.after' => 'Check-out must be after check-in.',
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'tax_percentage.required_if' => 'Enter the tax percentage.',
+            'ref.unique' => 'This reference is already used. Enter a different one.',
+            'status.required' => 'Please select a status.',
             'status.exists' => 'Select a valid active status.',
         ];
     }
