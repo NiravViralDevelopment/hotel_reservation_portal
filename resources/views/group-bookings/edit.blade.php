@@ -209,7 +209,7 @@
                     <td>{{ $document->created_at?->format('d M Y') ?? '—' }}</td>
                     <td class="text-end text-nowrap">
                       <a href="{{ route('group-bookings.documents.download', [$b, $document]) }}" class="btn btn-sm btn-outline-secondary">Download</a>
-                      <form method="POST" action="{{ route('group-bookings.documents.destroy', [$b, $document]) }}" class="d-inline" onsubmit="return confirm('Remove this document?');">
+                      <form method="POST" action="{{ route('group-bookings.documents.destroy', [$b, $document]) }}" class="d-inline" data-confirm-title="Delete document" data-confirm="{{ sprintf("Are you sure you want to delete the document \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $document->name ?? 'this file') }}" data-confirm-button="Delete">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>

@@ -162,7 +162,7 @@
                   </a>
                 @endcan
                 @can('delete', $enquiry)
-                  <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" onsubmit="return confirm('Delete this enquiry?');">
+                  <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="{{ sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Delete">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">

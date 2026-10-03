@@ -173,7 +173,7 @@
         <i class="bi bi-arrow-left"></i> Back
       </a>
       @can('convert', $enquiry)
-        <form method="POST" action="{{ route('enquiries.convert', $enquiry) }}" onsubmit="return confirm('Confirm this enquiry and create a group booking?');">
+        <form method="POST" action="{{ route('enquiries.convert', $enquiry) }}" data-confirm-title="Confirm enquiry" data-confirm="{{ sprintf('Confirm enquiry "%s" and create a group booking?', $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Confirm booking" data-confirm-variant="primary" data-confirm-icon="bi-check-circle">
           @csrf
           <button type="submit" class="btn btn-accent btn-sm">
             <i class="bi bi-check2-circle"></i> Confirm to booking
@@ -189,7 +189,7 @@
         </a>
       @endcan
       @can('delete', $enquiry)
-        <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" onsubmit="return confirm('Delete this enquiry?');">
+        <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" data-confirm-title="Delete enquiry" data-confirm="{{ sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Delete">
           @csrf
           @method('DELETE')
           <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">

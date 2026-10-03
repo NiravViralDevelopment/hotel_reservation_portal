@@ -535,6 +535,68 @@
     });
   }
 
+  /* ---- Confirm modal for delete / destructive actions ---- */
+  function initConfirmForms() {
+    var modalEl = document.getElementById('confirmActionModal');
+    if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    var headingEl = document.getElementById('confirmActionModalHeading');
+    var messageEl = document.getElementById('confirmActionModalMessage');
+    var confirmBtn = document.getElementById('confirmActionModalConfirm');
+    var confirmLabel = document.getElementById('confirmActionModalConfirmLabel');
+    var confirmIcon = document.getElementById('confirmActionModalConfirmIcon');
+    var pendingForm = null;
+
+    function openConfirm(form) {
+      pendingForm = form;
+
+      var title = form.getAttribute('data-confirm-title') || 'Confirm delete';
+      var message = form.getAttribute('data-confirm') || 'Are you sure you want to delete this record? This action cannot be undone.';
+      var btnLabel = form.getAttribute('data-confirm-button') || 'Delete';
+      var variant = form.getAttribute('data-confirm-variant') || 'danger';
+      var icon = form.getAttribute('data-confirm-icon') || 'bi-trash';
+
+      headingEl.textContent = title;
+      messageEl.textContent = message;
+      confirmLabel.textContent = btnLabel;
+      confirmIcon.className = 'bi ' + icon + ' me-1';
+      confirmBtn.className = 'btn btn-' + (variant === 'warning' ? 'warning' : variant === 'primary' ? 'accent' : 'danger');
+
+      modal.show();
+    }
+
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form || form.tagName !== 'FORM') return;
+      if (!form.hasAttribute('data-confirm')) return;
+      if (form.dataset.confirmAccepted === '1') return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      openConfirm(form);
+    }, true);
+
+    confirmBtn.addEventListener('click', function () {
+      if (!pendingForm) {
+        modal.hide();
+        return;
+      }
+
+      var form = pendingForm;
+      pendingForm = null;
+      form.dataset.confirmAccepted = '1';
+      modal.hide();
+
+      // Native submit bypasses the capture listener that opened the modal.
+      HTMLFormElement.prototype.submit.call(form);
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      pendingForm = null;
+    });
+  }
+
   /* ---- Init ---- */
   document.addEventListener('DOMContentLoaded', function () {
     initTheme();
@@ -544,6 +606,7 @@
     initFlashToasts();
     initSelect2();
     initDatePlaceholders();
+    initConfirmForms();
     if (document.getElementById('hgbms-root')) {
       document.addEventListener('hgbms:layout-ready', function () {
         initSidebar();

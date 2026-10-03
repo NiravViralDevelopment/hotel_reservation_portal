@@ -120,7 +120,7 @@
                     <i class="bi bi-pencil"></i> Edit
                   </a>
                   @if ($user->id !== auth()->id())
-                    <form method="POST" action="{{ route('users.toggle-status', $user) }}" class="d-inline" onsubmit="return confirm('{{ $user->status === 'active' ? 'Deactivate' : 'Activate' }} {{ $user->name }}?');">
+                    <form method="POST" action="{{ route('users.toggle-status', $user) }}" class="d-inline" data-confirm-title="{{ $user->status === 'active' ? 'Deactivate user' : 'Activate user' }}" data-confirm="{{ $user->status === 'active' ? "Are you sure you want to deactivate \"{$user->name}\"?\n\nThey will not be able to sign in until activated again." : "Are you sure you want to activate \"{$user->name}\"?\n\nThey will be able to sign in again." }}" data-confirm-button="{{ $user->status === 'active' ? 'Deactivate' : 'Activate' }}" data-confirm-variant="warning" data-confirm-icon="bi-person-slash">
                       @csrf
                       @method('PATCH')
                       @if ($user->status === 'active')
@@ -137,7 +137,7 @@
                 @endcan
                 @can('delete', $user)
                   @if ($user->canBeDeleted())
-                    <form method="POST" action="{{ route('users.destroy', $user) }}" class="d-inline" onsubmit="return confirm('Delete {{ $user->name }} permanently? This cannot be undone.');">
+                    <form method="POST" action="{{ route('users.destroy', $user) }}" class="d-inline" data-confirm-title="Delete user" data-confirm="{{ "Are you sure you want to delete the user \"{$user->name}\"?\n\nThis will permanently remove their account and cannot be undone." }}" data-confirm-button="Delete">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete user">

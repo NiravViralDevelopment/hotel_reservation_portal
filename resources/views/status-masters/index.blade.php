@@ -65,7 +65,7 @@
                   </a>
                 @endcan
                 @can('delete', $statusMaster)
-                  <form method="POST" action="{{ route('status-masters.destroy', $statusMaster) }}" class="d-inline" onsubmit="return confirm('Delete this status?');">
+                  <form method="POST" action="{{ route('status-masters.destroy', $statusMaster) }}" class="d-inline" data-confirm-title="Delete status" data-confirm="{{ "Are you sure you want to delete the status \"{$statusMaster->title}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">

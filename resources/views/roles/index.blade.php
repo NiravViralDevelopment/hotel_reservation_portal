@@ -88,7 +88,7 @@
                     <i class="bi bi-pencil"></i> Edit
                   </a>
                   @if ($role->name !== 'Administrator')
-                    <form method="POST" action="{{ route('roles.destroy', $role) }}" class="d-inline" onsubmit="return confirm('Remove role {{ $role->name }}?');">
+                    <form method="POST" action="{{ route('roles.destroy', $role) }}" class="d-inline" data-confirm-title="Delete role" data-confirm="{{ "Are you sure you want to delete the role \"{$role->name}\"?\n\nUsers with this role may lose their permissions. This cannot be undone." }}" data-confirm-button="Delete">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove role">

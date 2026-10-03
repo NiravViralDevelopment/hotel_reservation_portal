@@ -152,7 +152,7 @@
       <div class="card border-danger">
         <div class="card-header text-danger">Cancel booking</div>
         <div class="card-body">
-          <form method="POST" action="{{ route('group-bookings.cancel', $b) }}" onsubmit="return confirm('Cancel this group booking?');">
+          <form method="POST" action="{{ route('group-bookings.cancel', $b) }}" data-confirm-title="Cancel group booking" data-confirm="{{ "Are you sure you want to cancel group booking \"{$b->block_id}\"?\n\nIt will move to Cancelled Bookings." }}" data-confirm-button="Cancel booking" data-confirm-variant="warning" data-confirm-icon="bi-x-circle">
             @csrf
             <div class="row g-3">
               <div class="col-md-4">

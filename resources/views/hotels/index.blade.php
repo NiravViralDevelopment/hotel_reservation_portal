@@ -110,7 +110,7 @@
                   </a>
                 @endcan
                 @can('delete', $hotel)
-                  <form method="POST" action="{{ route('hotels.destroy', $hotel) }}" class="d-inline" onsubmit="return confirm('Delete {{ $hotel->name }}? This cannot be undone.');">
+                  <form method="POST" action="{{ route('hotels.destroy', $hotel) }}" class="d-inline" data-confirm-title="Delete hotel" data-confirm="{{ "Are you sure you want to delete the hotel \"{$hotel->name}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete hotel">
