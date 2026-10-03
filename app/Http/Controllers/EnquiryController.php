@@ -82,7 +82,7 @@ class EnquiryController extends Controller
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = StatusMaster::query()
             ->active()
-            ->whereNotIn('title', ['confirmed', 'cancelled'])
+            ->whereRaw("LOWER(title) NOT IN ('confirmed', 'cancelled')")
             ->orderBy('title')
             ->pluck('title');
 
@@ -95,7 +95,11 @@ class EnquiryController extends Controller
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $hotels = Hotel::optionsForSelect();
-        $statuses = StatusMaster::query()->active()->orderBy('title')->pluck('title');
+        $statuses = StatusMaster::query()
+            ->active()
+            ->whereRaw("LOWER(title) NOT IN ('confirmed', 'cancelled')")
+            ->orderBy('title')
+            ->pluck('title');
 
         return view('enquiries.create', compact('travelAgencies', 'hotels', 'statuses'));
     }
@@ -140,7 +144,11 @@ class EnquiryController extends Controller
 
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $hotels = Hotel::optionsForSelect($enquiry->hotel_id);
-        $statuses = StatusMaster::query()->active()->orderBy('title')->pluck('title');
+        $statuses = StatusMaster::query()
+            ->active()
+            ->whereRaw("LOWER(title) NOT IN ('confirmed', 'cancelled')")
+            ->orderBy('title')
+            ->pluck('title');
 
         return view('enquiries.edit', compact('enquiry', 'travelAgencies', 'hotels', 'statuses'));
     }

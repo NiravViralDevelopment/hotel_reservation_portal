@@ -58,7 +58,17 @@ class StatusMasterController extends Controller
         $this->authorize('create', StatusMaster::class);
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255', 'unique:status_masters,title'],
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:status_masters,title',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (in_array(mb_strtolower(trim((string) $value)), ['confirmed', 'cancelled'], true)) {
+                        $fail('Confirmed and Cancelled are system booking statuses and cannot be added here.');
+                    }
+                },
+            ],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'title.unique' => 'This status title already exists.',
@@ -89,7 +99,17 @@ class StatusMasterController extends Controller
         $this->authorize('update', $statusMaster);
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255', Rule::unique('status_masters', 'title')->ignore($statusMaster->id)],
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('status_masters', 'title')->ignore($statusMaster->id),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (in_array(mb_strtolower(trim((string) $value)), ['confirmed', 'cancelled'], true)) {
+                        $fail('Confirmed and Cancelled are system booking statuses and cannot be used here.');
+                    }
+                },
+            ],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'title.unique' => 'This status title already exists.',

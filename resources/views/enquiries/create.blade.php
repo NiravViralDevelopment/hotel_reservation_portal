@@ -98,7 +98,7 @@
             <select name="status" id="status" class="form-select select2 @error('status') is-invalid @enderror" data-placeholder="Select status">
               <option value="">Select status</option>
               @foreach ($statuses as $status)
-                <option value="{{ $status }}" @selected(old('status', 'Chesed') === $status)>{{ $status }}</option>
+                <option value="{{ $status }}" @selected(old('status') === $status)>{{ $status }}</option>
               @endforeach
             </select>
             @error('status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
