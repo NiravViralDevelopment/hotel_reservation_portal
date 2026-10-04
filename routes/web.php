@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CancelledBookingController;
+use App\Http\Controllers\CompanyContractController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartureController;
@@ -54,6 +55,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
+    Route::get('companies/{company}/contracts/{contract}/download', [CompanyContractController::class, 'download'])
+        ->name('companies.contracts.download')
+        ->scopeBindings();
+    Route::resource('companies.contracts', CompanyContractController::class)
+        ->only(['index', 'create', 'store', 'destroy'])
+        ->scoped();
     Route::resource('companies', CompanyController::class);
     Route::resource('hotels', HotelController::class);
     Route::resource('travel-agencies', TravelAgencyController::class);
