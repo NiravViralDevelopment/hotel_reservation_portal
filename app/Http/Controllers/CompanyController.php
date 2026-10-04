@@ -121,6 +121,7 @@ class CompanyController extends Controller
         $this->authorize('delete', $company);
 
         $name = $company->name;
+        $company->contracts()->get()->each->delete();
         $company->delete();
         Audit::log('deleted', 'companies', $name);
 
