@@ -15,6 +15,49 @@
       <h1 class="page-title">Group bookings</h1>
       <p class="page-subtitle">Confirmed enquiries shown as group bookings.</p>
     </div>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#importGroupBookingsModal">
+        <i class="bi bi-upload"></i> Import Excel
+      </button>
+    </div>
+  </div>
+
+  <div class="modal fade" id="importGroupBookingsModal" tabindex="-1" aria-labelledby="importGroupBookingsLabel" aria-hidden="true" @if($errors->has('file')) data-open-on-load="1" @endif>
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form method="POST" action="{{ route('group-bookings.import') }}" enctype="multipart/form-data">
+          @csrf
+          <div class="modal-header">
+            <h5 class="modal-title" id="importGroupBookingsLabel">Import group bookings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-secondary small mb-3">
+              Upload an Excel file mapped to enquiry fields. Every imported row is saved with
+              <strong>is_confirm = 1</strong> and shown here.
+            </p>
+            <div class="mb-3">
+              <label for="import_file" class="form-label">Excel file <span class="text-danger">*</span></label>
+              <input type="file" name="file" id="import_file" class="form-control @error('file') is-invalid @enderror" accept=".xlsx,.xls" required>
+              @error('file')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-0">
+              <label for="import_hotel_id" class="form-label">Hotel</label>
+              <select name="hotel_id" id="import_hotel_id" class="form-select">
+                <option value="">Current / first hotel</option>
+                @foreach ($hotels as $hotel)
+                  <option value="{{ $hotel->id }}" @selected((string) request('hotel_id') === (string) $hotel->id)>{{ $hotel->name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-accent"><i class="bi bi-upload"></i> Import</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -69,3 +112,14 @@
     @include('partials.pagination-footer', ['paginator' => $bookings])
   </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+  var modalEl = document.getElementById('importGroupBookingsModal');
+  if (modalEl && modalEl.getAttribute('data-open-on-load') === '1' && window.bootstrap) {
+    new bootstrap.Modal(modalEl).show();
+  }
+})();
+</script>
+@endpush

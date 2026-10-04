@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
+use App\Support\Audit;
+use App\Support\GroupBookingExcelImporter;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
@@ -76,6 +78,39 @@ class GroupBookingController extends Controller
         HotelAccess::ensure(null, $enquiry->hotel_id);
 
         return redirect()->route('enquiries.show', $enquiry);
+    }
+
+    public function import(Request $request, GroupBookingExcelImporter $importer): RedirectResponse
+    {
+        abort_unless(auth()->user()?->can('bookings.view') || auth()->user()?->can('bookings.create'), 403);
+
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/zip,application/octet-stream,text/csv,text/plain', 'max:10240'],
+            'hotel_id' => ['nullable', 'integer'],
+        ]);
+
+        $hotelId = isset($validated['hotel_id']) ? (int) $validated['hotel_id'] : null;
+        if ($hotelId) {
+            HotelAccess::ensure(null, $hotelId);
+        } else {
+            $hotelId = HotelAccess::currentHotel()?->id;
+        }
+
+        $path = $request->file('file')->getRealPath();
+        $result = $importer->import($path, $hotelId, auth()->id());
+
+        Audit::log(
+            'imported',
+            'group_bookings',
+            sprintf('imported=%d updated=%d skipped=%d', $result['imported'], $result['updated'], $result['skipped'])
+        );
+
+        return redirect()
+            ->route('group-bookings.index')
+            ->with(
+                'success',
+                "Import complete: {$result['imported']} created, {$result['updated']} updated, {$result['skipped']} skipped. All rows set is_confirm = 1."
+            );
     }
 
     public function create(): RedirectResponse
