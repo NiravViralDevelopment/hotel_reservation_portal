@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Enquiry;
 use App\Models\Hotel;
+use App\Models\TravelAgency;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use Illuminate\Http\Request;
@@ -20,9 +21,34 @@ class CancelledBookingController extends Controller
             ->with(['hotel', 'travelAgency'])
             ->cancelledBookings();
 
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($builder) use ($search) {
+                $builder->where('ref', 'like', "%{$search}%")
+                    ->orWhere('block_id', 'like', "%{$search}%")
+                    ->orWhere('group_name', 'like', "%{$search}%")
+                    ->orWhere('client', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('cancellation_reason', 'like', "%{$search}%");
+            });
+        }
+
         if ($request->filled('hotel_id')) {
             HotelAccess::ensure(null, $request->integer('hotel_id'));
             $query->where('hotel_id', $request->integer('hotel_id'));
+        }
+
+        if ($request->filled('travel_agency_id')) {
+            $query->where('travel_agency_id', $request->integer('travel_agency_id'));
+        }
+
+        if ($request->filled('arrival_from')) {
+            $query->whereDate('check_in', '>=', $request->string('arrival_from'));
+        }
+
+        if ($request->filled('arrival_to')) {
+            $query->whereDate('check_in', '<=', $request->string('arrival_to'));
         }
 
         QuerySort::apply($query, $request, [
@@ -41,8 +67,9 @@ class CancelledBookingController extends Controller
 
         $bookings = $query->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();
+        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
 
-        return view('cancelled-bookings.index', compact('bookings', 'hotels'));
+        return view('cancelled-bookings.index', compact('bookings', 'hotels', 'travelAgencies'));
     }
 
     public function show(Enquiry $enquiry): View
