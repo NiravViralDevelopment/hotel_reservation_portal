@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
 
     // Group bookings = confirmed enquiries (same enquiries table)
     Route::get('group-bookings', [GroupBookingController::class, 'index'])->name('group-bookings.index');
+    Route::get('group-bookings/export', [GroupBookingController::class, 'export'])->name('group-bookings.export');
     Route::post('group-bookings/import', [GroupBookingController::class, 'import'])->name('group-bookings.import');
     Route::get('group-bookings/create', [GroupBookingController::class, 'create'])->name('group-bookings.create');
     Route::get('group-bookings/{enquiry}', [GroupBookingController::class, 'show'])->name('group-bookings.show');
