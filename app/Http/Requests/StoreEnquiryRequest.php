@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use App\Support\EnquiryFieldRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreEnquiryRequest extends FormRequest
 {
@@ -15,13 +14,16 @@ class StoreEnquiryRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->input('ref') === '') {
-            $this->merge(['ref' => null]);
+        $nullable = [];
+        foreach (['ref', 'day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date'] as $field) {
+            if ($this->input($field) === '') {
+                $nullable[$field] = null;
+            }
         }
 
-        $this->merge([
-            'has_tax' => $this->boolean('has_tax'),
-        ]);
+        if ($nullable !== []) {
+            $this->merge($nullable);
+        }
     }
 
     /**
@@ -29,14 +31,7 @@ class StoreEnquiryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = EnquiryFieldRules::base();
-        $rules['response_date'] = [
-            'nullable',
-            'date',
-            Rule::when($this->filled('enquiry_date'), ['after_or_equal:enquiry_date']),
-        ];
-
-        return $rules;
+        return EnquiryFieldRules::create();
     }
 
     /**
@@ -45,13 +40,20 @@ class StoreEnquiryRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'group_name.unique' => 'This group name is already used. Enter a different name.',
-            'check_out.after' => 'Check-out must be after check-in.',
+            'enquiry_date.required' => 'Enquiry date is required.',
+            'response_date.required' => 'Response date is required.',
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
-            'tax_percentage.required_if' => 'Enter the tax percentage.',
+            'check_in.required' => 'Arrival date is required.',
+            'nights.required' => 'Nights is required.',
+            'nights.min' => 'Nights must be at least 1.',
+            'group_name.required' => 'Group name is required.',
+            'group_name.unique' => 'This group name is already used. Enter a different name.',
+            'rooms_per_night.required' => 'Total room per night is required.',
+            'email.required' => 'Email ID is required.',
+            'email.email' => 'Enter a valid email address.',
             'ref.unique' => 'This reference is already used. Enter a different one.',
-            'status.required' => 'Please select a status.',
             'status.exists' => 'Select a valid active status.',
+            'basis.in' => 'Select a valid basis.',
         ];
     }
 }

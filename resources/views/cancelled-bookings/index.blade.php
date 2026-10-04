@@ -12,7 +12,7 @@
       </ol>
     </nav>
     <h1 class="page-title">Cancelled bookings</h1>
-    <p class="page-subtitle">Cancelled enquiries.</p>
+    <p class="page-subtitle">Cancelled group bookings, with the cancellation reason.</p>
   </div>
 
   <div class="card">
@@ -39,8 +39,9 @@
       </form>
     </div>
 
-    @include('enquiries.partials.list-table', [
+    @include('group-bookings.partials.list-table', [
       'rows' => $bookings,
+      'showCancellationReason' => true,
       'defaultSort' => 'updated_at',
       'defaultDir' => 'desc',
       'emptyMessage' => 'No cancelled bookings found.',

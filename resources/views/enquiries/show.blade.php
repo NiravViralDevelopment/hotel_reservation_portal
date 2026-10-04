@@ -1,17 +1,10 @@
 @extends('layouts.app')
 
-@section('title', $enquiry->ref)
+@section('title', $enquiry->group_name ?: ($enquiry->ref ?: 'Enquiry'))
 @section('page', 'enquiries')
 
 @push('styles')
 <style>
-  .enq-show .enq-hero {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--card-radius);
-    padding: 1.25rem 1.5rem;
-    box-shadow: var(--shadow-sm);
-  }
   .enq-show .enq-meta {
     display: flex;
     flex-wrap: wrap;
@@ -20,20 +13,6 @@
     color: var(--text-secondary);
     font-size: 0.875rem;
   }
-  .enq-show .enq-meta a { text-decoration: none; }
-  .enq-show .enq-meta-sep { color: var(--border-color); }
-  .enq-show .enq-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-  }
-  @media (max-width: 991.98px) {
-    .enq-show .enq-stat-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 575.98px) {
-    .enq-show .enq-stat-grid { grid-template-columns: 1fr; }
-  }
-  .enq-show .enq-stat .stat-card-value { font-size: 1.35rem; }
   .enq-show .enq-section-title {
     font-size: 0.9375rem;
     font-weight: 600;
@@ -67,20 +46,24 @@
   .enq-show .enq-dl-value.muted { font-weight: 500; color: var(--text-secondary); }
   .enq-show .room-tile {
     background: var(--bg-body);
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     padding: 1rem;
     height: 100%;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-color);
   }
   .enq-show .room-tile-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--text-secondary);
-    margin-bottom: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
   }
-  .enq-show .room-tile-value { font-size: 1.05rem; font-weight: 700; }
-  .enq-show .room-tile-sub { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem; }
+  .enq-show .room-tile-label i { color: var(--brand-accent); }
+  .enq-show .revenue-value {
+    font-size: 1.35rem;
+    font-weight: 650;
+  }
   .enq-show .response-timeline { list-style: none; margin: 0; padding: 0; }
   .enq-show .response-timeline-item {
     position: relative;
@@ -110,62 +93,37 @@
     color: var(--text-primary);
     white-space: pre-wrap;
   }
-  .enq-show .linked-booking {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem 1rem;
-    padding: 0.9rem 1.15rem;
-    border-radius: var(--card-radius);
-    border: 1px solid rgba(13, 148, 136, 0.25);
-    background: rgba(13, 148, 136, 0.08);
-  }
-  .enq-show .awaiting-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #b45309;
-    background: rgba(201, 162, 39, 0.15);
-    border-radius: 999px;
-    padding: 0.25rem 0.7rem;
-  }
 </style>
 @endpush
 
 @section('content')
 @php
-  $statusLabel = ucwords(str_replace('_', ' ', (string) $enquiry->status));
-  $hasResponse = $enquiry->responses->isNotEmpty() || filled($enquiry->client_response);
-  $singleTotal = (float) ($enquiry->single_rooms ?? 0) * (float) ($enquiry->single_rate ?? 0);
-  $doubleTotal = (float) ($enquiry->double_rooms ?? 0) * (float) ($enquiry->double_rate ?? 0);
-  $tripleTotal = (float) ($enquiry->triple_rooms ?? 0) * (float) ($enquiry->triple_rate ?? 0);
+  $money = function ($value) {
+      if ($value === null || $value === '') {
+          return '—';
+      }
+
+      return '£'.number_format((float) $value, 2);
+  };
+  $text = function ($value) {
+      return filled($value) ? $value : '—';
+  };
 @endphp
 
 <div class="enq-show">
-  {{-- Header --}}
-  <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
           <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
           <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
-          <li class="breadcrumb-item active">{{ $enquiry->ref }}</li>
+          <li class="breadcrumb-item active">{{ $enquiry->group_name ?: ($enquiry->ref ?: 'Enquiry') }}</li>
         </ol>
       </nav>
-      <h1 class="page-title mb-2">{{ $enquiry->group_name }}</h1>
+      <h1 class="page-title mb-2">{{ $enquiry->group_name ?: 'Enquiry' }}</h1>
       <div class="enq-meta">
-        <span class="fw-semibold text-primary">{{ $enquiry->ref }}</span>
-        <span class="enq-meta-sep">·</span>
+        <span>{{ $enquiry->ref ?: 'No ref no' }}</span>
         <x-badge-status :status="$enquiry->status" />
-        @if ($enquiry->year)
-          <span class="enq-meta-sep">·</span>
-          <span>{{ $enquiry->year }}</span>
-        @endif
-        @if (! $hasResponse)
-          <span class="awaiting-pill"><i class="bi bi-hourglass-split"></i> Awaiting remark</span>
-        @endif
       </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
@@ -202,292 +160,158 @@
     </div>
   </div>
 
-  @if ($enquiry->is_cancel && filled($enquiry->cancellation_reason))
-    <div class="alert alert-warning mb-4">
-      <div class="fw-semibold mb-1"><i class="bi bi-x-circle me-1"></i> Cancellation reason</div>
-      <div class="mb-0" style="white-space: pre-wrap;">{{ $enquiry->cancellation_reason }}</div>
-    </div>
-  @endif
-
-  {{-- Key figures --}}
-  <div class="enq-stat-grid mb-4">
-    <div class="stat-card enq-stat">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <div class="stat-card-label">Nights</div>
-        <div class="stat-card-icon success"><i class="bi bi-moon-stars"></i></div>
-      </div>
-      <div class="stat-card-value">{{ $enquiry->nights ?? '—' }}</div>
-      <div class="small text-secondary mt-1">
-        @if ($enquiry->check_in && $enquiry->check_out)
-          {{ $enquiry->check_in->format('d M') }} → {{ $enquiry->check_out->format('d M Y') }}
-        @else
-          Stay dates not set
-        @endif
-      </div>
-    </div>
-    <div class="stat-card enq-stat">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <div class="stat-card-label">Rooms / night</div>
-        <div class="stat-card-icon primary"><i class="bi bi-door-closed"></i></div>
-      </div>
-      <div class="stat-card-value">{{ $enquiry->rooms_per_night ?? '—' }}</div>
-      <div class="small text-secondary mt-1">
-        {{ (int) ($enquiry->single_rooms ?? 0) }}S · {{ (int) ($enquiry->double_rooms ?? 0) }}D · {{ (int) ($enquiry->triple_rooms ?? 0) }}T
-      </div>
-    </div>
-    <div class="stat-card enq-stat">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <div class="stat-card-label">Total revenue</div>
-        <div class="stat-card-icon warning"><i class="bi bi-currency-pound"></i></div>
-      </div>
-      <div class="stat-card-value">£{{ number_format((float) ($enquiry->total_revenue ?? 0), 2) }}</div>
-      <div class="small text-secondary mt-1">Status: {{ $statusLabel }}</div>
-    </div>
-    <div class="stat-card enq-stat">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <div class="stat-card-label">Tax</div>
-        <div class="stat-card-icon info"><i class="bi bi-percent"></i></div>
-      </div>
-      <div class="stat-card-value">
-        @if ($enquiry->has_tax)
-          £{{ number_format((float) ($enquiry->tax_revenue ?? 0), 2) }}
-        @else
-          —
-        @endif
-      </div>
-      <div class="small text-secondary mt-1">
-        {{ $enquiry->has_tax ? ((float) ($enquiry->tax_percentage ?? 0)).'% applied' : 'No tax on this enquiry' }}
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    {{-- Overview --}}
-    <div class="col-lg-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <h2 class="enq-section-title"><i class="bi bi-file-earmark-text"></i> Enquiry overview</h2>
-        </div>
-        <div class="card-body">
-          <div class="enq-dl">
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Enquiry date</div>
-              <div class="enq-dl-value">
-                {{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}
-                @if ($enquiry->day)
-                  <span class="muted">({{ $enquiry->day }})</span>
-                @endif
-              </div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Response date</div>
-              <div class="enq-dl-value">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Year</div>
-              <div class="enq-dl-value">{{ $enquiry->year ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Client</div>
-              <div class="enq-dl-value {{ $enquiry->client ? '' : 'muted' }}">{{ $enquiry->client ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Email ID</div>
-              <div class="enq-dl-value">
-                @if ($enquiry->email)
-                  <a href="mailto:{{ $enquiry->email }}">{{ $enquiry->email }}</a>
-                @else
-                  <span class="muted">—</span>
-                @endif
-              </div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Mobile no</div>
-              <div class="enq-dl-value {{ $enquiry->mobile ? '' : 'muted' }}">{{ $enquiry->mobile ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Source</div>
-              <div class="enq-dl-value {{ $enquiry->source ? '' : 'muted' }}">{{ $enquiry->source ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Service person</div>
-              <div class="enq-dl-value {{ $enquiry->service_person ? '' : 'muted' }}">{{ $enquiry->service_person ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Subject</div>
-              <div class="enq-dl-value {{ $enquiry->subject ? '' : 'muted' }}">{{ $enquiry->subject ?? '—' }}</div>
-            </div>
-          </div>
-          @if ($enquiry->client_response)
-            <hr class="my-3">
-            <div class="enq-dl-label">Latest remark</div>
-            <div class="response-body mt-2 mb-0">{{ $enquiry->client_response }}</div>
-          @endif
-        </div>
-      </div>
-    </div>
-
-    {{-- Partners --}}
-    <div class="col-lg-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <h2 class="enq-section-title"><i class="bi bi-people"></i> Partners</h2>
-        </div>
-        <div class="card-body">
-          <div class="enq-dl" style="grid-template-columns: 1fr;">
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Travel agency</div>
-              <div class="enq-dl-value">
-                @if ($enquiry->travelAgency)
-                  <a href="{{ route('travel-agencies.show', $enquiry->travelAgency) }}">{{ $enquiry->travelAgency->name }}</a>
-                  @if ($enquiry->travelAgency->code)
-                    <div class="small text-secondary fw-normal">{{ $enquiry->travelAgency->code }}</div>
-                  @endif
-                @else
-                  <span class="muted">—</span>
-                @endif
-              </div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Hotel</div>
-              <div class="enq-dl-value">
-                @if ($enquiry->hotel)
-                  <a href="{{ route('hotels.show', $enquiry->hotel) }}">{{ $enquiry->hotel->name }}</a>
-                  @if ($enquiry->hotel->code)
-                    <div class="small text-secondary fw-normal">{{ $enquiry->hotel->code }}</div>
-                  @endif
-                @else
-                  <span class="muted">—</span>
-                @endif
-              </div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Booking msg</div>
-              <div class="enq-dl-value {{ $enquiry->booking_msg ? '' : 'muted' }}" style="white-space: pre-wrap;">{{ $enquiry->booking_msg ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Breakdown</div>
-              <div class="enq-dl-value {{ $enquiry->breakdown ? '' : 'muted' }}" style="white-space: pre-wrap;">{{ $enquiry->breakdown ?? '—' }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {{-- Stay --}}
-    <div class="col-lg-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <h2 class="enq-section-title"><i class="bi bi-calendar2-week"></i> Stay details</h2>
-        </div>
-        <div class="card-body">
-          <div class="enq-dl">
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Arrival date</div>
-              <div class="enq-dl-value">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Arrival day</div>
-              <div class="enq-dl-value">{{ $enquiry->check_in_day ?: '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">End date</div>
-              <div class="enq-dl-value">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Days</div>
-              <div class="enq-dl-value">{{ $enquiry->days ?? $enquiry->nights ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Nights</div>
-              <div class="enq-dl-value">{{ $enquiry->nights ?? '—' }}</div>
-            </div>
-            <div class="enq-dl-item">
-              <div class="enq-dl-label">Rooms / night</div>
-              <div class="enq-dl-value">{{ $enquiry->rooms_per_night ?? '—' }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {{-- Pricing & commission --}}
-  <div class="card mb-4">
+  <div class="card mb-3">
     <div class="card-header">
-      <h2 class="enq-section-title"><i class="bi bi-cash-stack"></i> Pricing &amp; commission</h2>
+      <h2 class="enq-section-title"><i class="bi bi-calendar3"></i> Dates</h2>
     </div>
     <div class="card-body">
       <div class="enq-dl">
-        <div class="enq-dl-item"><div class="enq-dl-label">Adults price</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->adults_price ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Child price</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->child_price ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Adults extra</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->adults_extra ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Child extra</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->child_extra ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Total no pax</div><div class="enq-dl-value">{{ $enquiry->total_pax ?? 0 }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Agent price</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->agent_price ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Our cost</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->our_cost ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">P. price</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->package_price ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">GST policy</div><div class="enq-dl-value {{ $enquiry->gst_policy ? '' : 'muted' }}">{{ $enquiry->gst_policy ?? '—' }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Total price</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->total_price ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Net price</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->net_price ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Advance</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->advance ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Remaining</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->remaining ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Agent comm %</div><div class="enq-dl-value">{{ number_format((float) ($enquiry->agent_comm_percent ?? 0), 2) }}%</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Agent comm amt</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->agent_comm_amount ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Payable to agent</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->payable_to_agent ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Service total</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->service_total ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Total tax</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->total_tax ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Grand total</div><div class="enq-dl-value">£{{ number_format((float) ($enquiry->grand_total ?? 0), 2) }}</div></div>
-        <div class="enq-dl-item"><div class="enq-dl-label">Status</div><div class="enq-dl-value"><x-badge-status :status="$enquiry->status" /></div></div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Enquiry Date</div>
+          <div class="enq-dl-value">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Response Date</div>
+          <div class="enq-dl-value">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Arrival Date</div>
+          <div class="enq-dl-value">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Day</div>
+          <div class="enq-dl-value">{{ $text($enquiry->day ?: $enquiry->check_in_day) }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Nights</div>
+          <div class="enq-dl-value">{{ $enquiry->nights ?? '—' }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Total Room per Night</div>
+          <div class="enq-dl-value">{{ $enquiry->rooms_per_night ?? '—' }}</div>
+        </div>
       </div>
     </div>
   </div>
 
-  {{-- Room breakdown --}}
-  <div class="card mb-4">
+  <div class="card mb-3">
     <div class="card-header">
-      <h2 class="enq-section-title"><i class="bi bi-grid-3x3-gap"></i> Room breakdown</h2>
+      <h2 class="enq-section-title"><i class="bi bi-people"></i> Group</h2>
+    </div>
+    <div class="card-body">
+      <div class="enq-dl">
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Group Name</div>
+          <div class="enq-dl-value">{{ $text($enquiry->group_name) }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Ref No</div>
+          <div class="enq-dl-value">{{ $text($enquiry->ref) }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Email ID</div>
+          <div class="enq-dl-value">
+            @if ($enquiry->email)
+              <a href="mailto:{{ $enquiry->email }}">{{ $enquiry->email }}</a>
+            @else
+              <span class="muted">—</span>
+            @endif
+          </div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Status</div>
+          <div class="enq-dl-value"><x-badge-status :status="$enquiry->status" /></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <h2 class="enq-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
     </div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-4">
           <div class="room-tile">
-            <div class="room-tile-label">Single</div>
-            <div class="room-tile-value">{{ (int) ($enquiry->single_rooms ?? 0) }} rooms × £{{ number_format((float) ($enquiry->single_rate ?? 0), 2) }}</div>
-            <div class="room-tile-sub">Subtotal £{{ number_format($singleTotal, 2) }} / night</div>
+            <div class="room-tile-label"><i class="bi bi-person"></i> Single</div>
+            <div class="enq-dl" style="grid-template-columns: 1fr 1fr;">
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">Rooms</div>
+                <div class="enq-dl-value">{{ $enquiry->single_rooms ?? '—' }}</div>
+              </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">Rate</div>
+                <div class="enq-dl-value">{{ $money($enquiry->single_rate) }}</div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="room-tile">
-            <div class="room-tile-label">Double</div>
-            <div class="room-tile-value">{{ (int) ($enquiry->double_rooms ?? 0) }} rooms × £{{ number_format((float) ($enquiry->double_rate ?? 0), 2) }}</div>
-            <div class="room-tile-sub">Subtotal £{{ number_format($doubleTotal, 2) }} / night</div>
+            <div class="room-tile-label"><i class="bi bi-people"></i> Double</div>
+            <div class="enq-dl" style="grid-template-columns: 1fr 1fr;">
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">Rooms</div>
+                <div class="enq-dl-value">{{ $enquiry->double_rooms ?? '—' }}</div>
+              </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">Rate</div>
+                <div class="enq-dl-value">{{ $money($enquiry->double_rate) }}</div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="room-tile">
-            <div class="room-tile-label">Triple</div>
-            <div class="room-tile-value">{{ (int) ($enquiry->triple_rooms ?? 0) }} rooms × £{{ number_format((float) ($enquiry->triple_rate ?? 0), 2) }}</div>
-            <div class="room-tile-sub">Subtotal £{{ number_format($tripleTotal, 2) }} / night</div>
+            <div class="room-tile-label"><i class="bi bi-people-fill"></i> Triple</div>
+            <div class="enq-dl" style="grid-template-columns: 1fr 1fr;">
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">Rooms</div>
+                <div class="enq-dl-value">{{ $enquiry->triple_rooms ?? '—' }}</div>
+              </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">Rate</div>
+                <div class="enq-dl-value">{{ $money($enquiry->triple_rate) }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  @if ($enquiry->remarks)
-    <div class="card mb-4">
-      <div class="card-header">
-        <h2 class="enq-section-title"><i class="bi bi-chat-quote"></i> Remarks</h2>
-      </div>
-      <div class="card-body">
-        <p class="mb-0" style="white-space: pre-wrap;">{{ $enquiry->remarks }}</p>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2 class="enq-section-title"><i class="bi bi-currency-pound"></i> Revenue and terms</h2>
+    </div>
+    <div class="card-body">
+      <div class="enq-dl">
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Basis</div>
+          <div class="enq-dl-value">{{ $text($enquiry->basis) }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Option Date</div>
+          <div class="enq-dl-value">{{ $enquiry->option_date?->format('d M Y') ?? '—' }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">CXL Policy</div>
+          <div class="enq-dl-value">{{ $text($enquiry->cxl_policy) }}</div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">Total Revenue</div>
+          <div class="enq-dl-value revenue-value">{{ $money($enquiry->total_revenue) }}</div>
+        </div>
+        <div class="enq-dl-item" style="grid-column: 1 / -1;">
+          <div class="enq-dl-label">Remarks</div>
+          <div class="enq-dl-value {{ $enquiry->remarks ? '' : 'muted' }}" style="white-space: pre-wrap;">{{ $text($enquiry->remarks) }}</div>
+        </div>
       </div>
     </div>
-  @endif
+  </div>
 
   <div class="row g-4 mb-4">
-    {{-- Add response --}}
     @can('update', $enquiry)
       <div class="col-lg-5">
         <div class="card h-100" id="client-response">
@@ -496,7 +320,7 @@
           </div>
           <div class="card-body">
             <p class="small text-secondary mb-3">
-              Record a remark for this enquiry. Each save is kept in the history for <strong>{{ $enquiry->group_name }}</strong> ({{ $enquiry->ref }}).
+              Record a remark for this enquiry. Each save is kept in the history for <strong>{{ $enquiry->group_name }}</strong>@if ($enquiry->ref) ({{ $enquiry->ref }})@endif.
             </p>
             <form method="POST" action="{{ route('enquiries.response', $enquiry) }}" class="enquiry-form" novalidate>
               @csrf
@@ -537,7 +361,6 @@
       </div>
     @endcan
 
-    {{-- History --}}
     <div class="{{ auth()->user()->can('update', $enquiry) ? 'col-lg-7' : 'col-12' }}">
       <div class="card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
