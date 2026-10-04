@@ -28,6 +28,7 @@ class GroupBookingController extends Controller
             $search = $request->string('q')->trim()->toString();
             $query->where(function ($builder) use ($search) {
                 $builder->where('ref', 'like', "%{$search}%")
+                    ->orWhere('block_id', 'like', "%{$search}%")
                     ->orWhere('group_name', 'like', "%{$search}%")
                     ->orWhere('client', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -53,15 +54,16 @@ class GroupBookingController extends Controller
         }
 
         QuerySort::apply($query, $request, [
-            'ref' => 'ref',
-            'group_name' => 'group_name',
             'check_in' => 'check_in',
             'check_out' => 'check_out',
-            'days' => 'days',
+            'day' => 'day',
             'nights' => 'nights',
-            'total_price' => 'total_price',
-            'grand_total' => 'grand_total',
+            'block_id' => 'block_id',
+            'client' => 'client',
+            'email' => 'email',
             'status' => 'status',
+            'total_rns' => 'total_rns',
+            'total_revenue' => 'total_revenue',
         ], 'check_in', 'asc');
 
         $bookings = $query->paginate(10)->withQueryString();
@@ -71,13 +73,13 @@ class GroupBookingController extends Controller
         return view('group-bookings.index', compact('bookings', 'hotels', 'travelAgencies'));
     }
 
-    public function show(Enquiry $enquiry): RedirectResponse
+    public function show(Enquiry $enquiry): View
     {
         abort_unless(auth()->user()?->can('bookings.view'), 403);
-        abort_unless($enquiry->is_confirm && ! $enquiry->is_cancel, 404);
+        abort_unless($enquiry->is_confirm, 404);
         HotelAccess::ensure(null, $enquiry->hotel_id);
 
-        return redirect()->route('enquiries.show', $enquiry);
+        return view('group-bookings.show', compact('enquiry'));
     }
 
     public function import(Request $request, GroupBookingExcelImporter $importer): RedirectResponse
@@ -123,9 +125,13 @@ class GroupBookingController extends Controller
         return redirect()->route('enquiries.create');
     }
 
-    public function edit(Enquiry $enquiry): RedirectResponse
+    public function edit(Enquiry $enquiry): View
     {
-        return redirect()->route('enquiries.edit', $enquiry);
+        $this->authorize('update', $enquiry);
+        abort_unless($enquiry->is_confirm && ! $enquiry->is_cancel, 404);
+        HotelAccess::ensure(null, $enquiry->hotel_id);
+
+        return view('group-bookings.edit', compact('enquiry'));
     }
 
     public function update(Enquiry $enquiry): RedirectResponse

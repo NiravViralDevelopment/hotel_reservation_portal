@@ -14,6 +14,7 @@
       'items' => [
         ['route' => 'group-bookings.index', 'icon' => 'calendar-check', 'label' => 'Group Bookings', 'permission' => 'bookings.view'],
         ['route' => 'enquiries.index', 'icon' => 'chat-square-text', 'label' => 'Enquiries', 'permission' => 'enquiries.view'],
+        ['route' => 'cancelled-inquiries.index', 'icon' => 'x-octagon', 'label' => 'Cancelled Inquiry', 'permission' => 'enquiries.view'],
         ['route' => 'cancelled-bookings.index', 'icon' => 'x-circle', 'label' => 'Cancelled Bookings', 'permission' => 'bookings.view'],
         ['route' => 'arrivals.index', 'icon' => 'box-arrow-in-right', 'label' => 'Arrivals', 'permission' => 'bookings.view'],
         ['route' => 'departures.index', 'icon' => 'box-arrow-right', 'label' => 'Departures', 'permission' => 'bookings.view'],

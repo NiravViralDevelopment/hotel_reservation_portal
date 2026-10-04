@@ -26,20 +26,34 @@ class CancelledBookingController extends Controller
         }
 
         QuerySort::apply($query, $request, [
-            'ref' => 'ref',
-            'group_name' => 'group_name',
             'check_in' => 'check_in',
             'check_out' => 'check_out',
-            'days' => 'days',
+            'day' => 'day',
             'nights' => 'nights',
-            'total_price' => 'total_price',
-            'grand_total' => 'grand_total',
+            'block_id' => 'block_id',
+            'client' => 'client',
+            'email' => 'email',
             'status' => 'status',
+            'total_rns' => 'total_rns',
+            'total_revenue' => 'total_revenue',
+            'updated_at' => 'updated_at',
         ], 'updated_at', 'desc');
 
         $bookings = $query->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();
 
         return view('cancelled-bookings.index', compact('bookings', 'hotels'));
+    }
+
+    public function show(Enquiry $enquiry): View
+    {
+        abort_unless(auth()->user()?->can('bookings.view'), 403);
+        abort_unless($enquiry->is_confirm && $enquiry->is_cancel, 404);
+        HotelAccess::ensure(null, $enquiry->hotel_id);
+
+        return view('group-bookings.show', [
+            'enquiry' => $enquiry,
+            'cancelledContext' => true,
+        ]);
     }
 }

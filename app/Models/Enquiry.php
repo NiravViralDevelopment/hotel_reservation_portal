@@ -79,6 +79,28 @@ class Enquiry extends Model
         'is_confirm',
         'is_cancel',
         'cancellation_reason',
+        'block_id',
+        'agency_ref',
+        'contact_name',
+        'contract_sent_on',
+        'contract_received_on',
+        'saved_to_doc',
+        'payment_term',
+        'payment_due_date',
+        'payment_status',
+        'cxl_due_date',
+        'cxl_date',
+        'commission',
+        'total_rns',
+        'bb_revenue',
+        'dinner_revenue',
+        'nett_rev_ex_vat',
+        'booking_update',
+        'rooming',
+        'invoice_status',
+        'invoice_sent_on',
+        'invoice_amount',
+        'commission_payable_status',
     ];
 
     /**
@@ -92,6 +114,12 @@ class Enquiry extends Model
             'check_in' => 'date',
             'check_out' => 'date',
             'option_date' => 'date',
+            'contract_sent_on' => 'date',
+            'contract_received_on' => 'date',
+            'payment_due_date' => 'date',
+            'cxl_due_date' => 'date',
+            'cxl_date' => 'date',
+            'invoice_sent_on' => 'date',
             'year' => 'integer',
             'nights' => 'integer',
             'days' => 'integer',
@@ -126,6 +154,12 @@ class Enquiry extends Model
             'service_total' => 'decimal:2',
             'total_tax' => 'decimal:2',
             'grand_total' => 'decimal:2',
+            'commission' => 'decimal:2',
+            'bb_revenue' => 'decimal:2',
+            'dinner_revenue' => 'decimal:2',
+            'nett_rev_ex_vat' => 'decimal:2',
+            'invoice_amount' => 'decimal:2',
+            'total_rns' => 'integer',
         ];
     }
 
@@ -165,7 +199,15 @@ class Enquiry extends Model
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->whereIn($query->getModel()->getTable().'.hotel_id', $ids);
+        $column = $query->getModel()->getTable().'.hotel_id';
+
+        if (HotelAccess::currentHotelId($user) === null && HotelAccess::canAccessAllHotels($user)) {
+            return $query->where(function (Builder $builder) use ($column, $ids) {
+                $builder->whereIn($column, $ids)->orWhereNull($column);
+            });
+        }
+
+        return $query->whereIn($column, $ids);
     }
 
     /**
@@ -192,6 +234,17 @@ class Enquiry extends Model
      */
     public function scopeCancelledBookings(Builder $query): Builder
     {
-        return $query->where('is_cancel', true);
+        return $query->where('is_cancel', true)->where('is_confirm', true);
+    }
+
+    /**
+     * Enquiries cancelled from the edit flow, before they are a group booking.
+     *
+     * @param  Builder<Enquiry>  $query
+     * @return Builder<Enquiry>
+     */
+    public function scopeCancelledInquiries(Builder $query): Builder
+    {
+        return $query->where('is_cancel', true)->where('is_confirm', false);
     }
 }

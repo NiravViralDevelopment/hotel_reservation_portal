@@ -45,6 +45,51 @@ class EnquiryFieldRules
     }
 
     /**
+     * Create-enquiry fields only.
+     *
+     * @return array<string, mixed>
+     */
+    public static function create(?int $ignoreEnquiryId = null): array
+    {
+        $groupName = ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')];
+        $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref'];
+
+        if ($ignoreEnquiryId) {
+            $groupName = ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($ignoreEnquiryId)];
+            $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref,'.$ignoreEnquiryId];
+        }
+
+        return [
+            'enquiry_date' => ['required', 'date'],
+            'response_date' => ['required', 'date', 'after_or_equal:enquiry_date'],
+            'check_in' => ['required', 'date'],
+            'day' => ['nullable', 'string', 'max:20'],
+            'nights' => ['required', 'integer', 'min:1'],
+            'group_name' => $groupName,
+            'ref' => $ref,
+            'rooms_per_night' => ['required', 'integer', 'min:0'],
+            'single_rooms' => ['nullable', 'integer', 'min:0'],
+            'single_rate' => ['nullable', 'numeric', 'min:0'],
+            'double_rooms' => ['nullable', 'integer', 'min:0'],
+            'double_rate' => ['nullable', 'numeric', 'min:0'],
+            'triple_rooms' => ['nullable', 'integer', 'min:0'],
+            'triple_rate' => ['nullable', 'numeric', 'min:0'],
+            'basis' => ['nullable', 'string', Rule::in(['BB', 'DBB', 'HB', 'FB', 'RO'])],
+            'total_revenue' => ['nullable', 'numeric', 'min:0'],
+            'cxl_policy' => ['nullable', 'string', 'max:255'],
+            'option_date' => ['nullable', 'date'],
+            'email' => ['required', 'email', 'max:255'],
+            'remarks' => ['nullable', 'string'],
+            'status' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::exists('status_masters', 'title')->where(fn ($query) => $query->where('status', 'active')),
+            ],
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public static function base(?int $ignoreEnquiryId = null, ?int $currentHotelId = null): array

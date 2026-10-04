@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CancelledBookingController;
+use App\Http\Controllers\CancelledInquiryController;
 use App\Http\Controllers\CompanyContractController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
@@ -73,6 +74,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('enquiries', EnquiryController::class);
     Route::post('enquiries/{enquiry}/response', [EnquiryController::class, 'storeResponse'])->name('enquiries.response');
     Route::post('enquiries/{enquiry}/convert', [EnquiryController::class, 'convert'])->name('enquiries.convert');
+    Route::get('enquiries/{enquiry}/group-booking', [EnquiryController::class, 'groupBooking'])->name('enquiries.group-booking');
+    Route::post('enquiries/{enquiry}/group-booking', [EnquiryController::class, 'storeGroupBooking'])->name('enquiries.group-booking.store');
+    Route::post('enquiries/{enquiry}/cancel', [EnquiryController::class, 'cancel'])->name('enquiries.cancel');
+    Route::post('enquiries/{enquiry}/cancel-booking', [EnquiryController::class, 'cancelBooking'])->name('enquiries.cancel-booking');
+
+    Route::get('cancelled-inquiries', [CancelledInquiryController::class, 'index'])->name('cancelled-inquiries.index');
 
     // Group bookings = confirmed enquiries (same enquiries table)
     Route::get('group-bookings', [GroupBookingController::class, 'index'])->name('group-bookings.index');
@@ -82,6 +89,7 @@ Route::middleware('auth')->group(function () {
     Route::get('group-bookings/{enquiry}/edit', [GroupBookingController::class, 'edit'])->name('group-bookings.edit');
 
     Route::get('cancelled-bookings', [CancelledBookingController::class, 'index'])->name('cancelled-bookings.index');
+    Route::get('cancelled-bookings/{enquiry}', [CancelledBookingController::class, 'show'])->name('cancelled-bookings.show');
     Route::get('arrivals', [ArrivalController::class, 'index'])->name('arrivals.index');
     Route::get('departures', [DepartureController::class, 'index'])->name('departures.index');
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');

@@ -157,13 +157,30 @@
   }
 
   function buildRules(form) {
+    var isCreate = form.getAttribute('data-enquiry-create') === '1';
+
     return {
       group_name: { required: true, max: 255, requiredMessage: 'Group name is required.' },
-      email: { email: true, max: 255 },
+      email: {
+        required: isCreate,
+        email: true,
+        max: 255,
+        requiredMessage: 'Email ID is required.'
+      },
       ref: { max: 255 },
       year: { year: true },
-      nights: { integer: true, min: 1 },
-      rooms_per_night: { integer: true, min: 0 },
+      nights: {
+        required: isCreate,
+        integer: true,
+        min: 1,
+        requiredMessage: 'Nights is required.'
+      },
+      rooms_per_night: {
+        required: isCreate,
+        integer: true,
+        min: 0,
+        requiredMessage: 'Total room per night is required.'
+      },
       single_rooms: { integer: true, min: 0 },
       double_rooms: { integer: true, min: 0 },
       triple_rooms: { integer: true, min: 0 },
@@ -173,7 +190,10 @@
       total_revenue: { decimal: true, min: 0 },
       remarks: { max: 5000 },
       cxl_policy: { max: 255 },
-      check_in: {},
+      basis: { max: 10 },
+      check_in: isCreate
+        ? { required: true, requiredMessage: 'Arrival date is required.' }
+        : {},
       check_out: {
         afterField: 'check_in',
         afterMessage: 'Check-out must be after check-in.'
@@ -197,12 +217,12 @@
         requiredMessage: 'Enter a cancellation reason.'
       },
       client_response: { required: true, max: 2000, requiredMessage: 'Enter the remark.' },
-      enquiry_date: {},
+      enquiry_date: isCreate
+        ? { required: true, requiredMessage: 'Enquiry date is required.' }
+        : {},
       response_date: {
-        required: function () {
-          return !!form.querySelector('[name="client_response"]');
-        },
-        requiredMessage: 'Enter the response date.',
+        required: isCreate || !!form.querySelector('[name="client_response"]'),
+        requiredMessage: 'Response date is required.',
         afterOrEqualField: 'enquiry_date',
         afterOrEqualAttr: 'data-min-date',
         afterOrEqualMessage: 'Response date cannot be before enquiry date.'

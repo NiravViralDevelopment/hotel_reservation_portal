@@ -102,7 +102,7 @@
       </form>
     </div>
 
-    @include('enquiries.partials.list-table', [
+    @include('group-bookings.partials.list-table', [
       'rows' => $bookings,
       'defaultSort' => 'check_in',
       'defaultDir' => 'asc',

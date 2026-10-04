@@ -74,6 +74,7 @@
     </div>
     @include('enquiries.partials.list-table', [
       'rows' => $enquiries,
+      'variant' => 'enquiry',
       'defaultSort' => 'enquiry_date',
       'defaultDir' => 'desc',
       'emptyMessage' => 'No enquiries found.',
