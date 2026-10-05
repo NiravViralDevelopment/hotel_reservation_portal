@@ -54,18 +54,21 @@ class EnquiryController extends Controller
             $query->where('status', $request->string('status'));
         }
 
-        if ($request->filled('enquiry_date_from')) {
-            $query->whereDate('enquiry_date', '>=', $request->string('enquiry_date_from'));
+        $monthStart = now()->startOfMonth()->toDateString();
+        $monthEnd = now()->endOfMonth()->toDateString();
+        $enquiryDateFrom = $request->has('enquiry_date_from')
+            ? $request->string('enquiry_date_from')->toString()
+            : $monthStart;
+        $enquiryDateTo = $request->has('enquiry_date_to')
+            ? $request->string('enquiry_date_to')->toString()
+            : $monthEnd;
+
+        if ($enquiryDateFrom !== '') {
+            $query->whereDate('enquiry_date', '>=', $enquiryDateFrom);
         }
 
-        if ($request->filled('enquiry_date_to')) {
-            $query->whereDate('enquiry_date', '<=', $request->string('enquiry_date_to'));
-        }
-
-        if ($request->string('response') === 'awaiting') {
-            $query->whereNull('response_date');
-        } elseif ($request->string('response') === 'received') {
-            $query->whereNotNull('response_date');
+        if ($enquiryDateTo !== '') {
+            $query->whereDate('enquiry_date', '<=', $enquiryDateTo);
         }
 
         QuerySort::apply($query, $request, [
@@ -124,7 +127,15 @@ class EnquiryController extends Controller
             ->unique()
             ->values();
 
-        return view('enquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'statuses', 'reminders'));
+        return view('enquiries.index', compact(
+            'enquiries',
+            'hotels',
+            'travelAgencies',
+            'statuses',
+            'reminders',
+            'enquiryDateFrom',
+            'enquiryDateTo'
+        ));
     }
 
     public function create(): View
