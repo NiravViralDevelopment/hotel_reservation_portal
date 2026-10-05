@@ -78,6 +78,7 @@ class EnquiryFieldRules
             'total_revenue' => ['nullable', 'numeric', 'min:0'],
             'cxl_policy' => ['nullable', 'string', 'max:255'],
             'option_date' => ['nullable', 'date'],
+            'cxl_due_date' => ['nullable', 'date'],
             'email' => ['required', 'email', 'max:255'],
             'remarks' => ['nullable', 'string'],
             'status' => [

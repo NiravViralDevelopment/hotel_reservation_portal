@@ -81,9 +81,38 @@ class EnquiryController extends Controller
             'status' => 'status',
             'total_revenue' => 'total_revenue',
             'option_date' => 'option_date',
+            'cxl_due_date' => 'cxl_due_date',
         ], 'enquiry_date', 'desc');
 
         $enquiries = $query->paginate(10)->withQueryString();
+
+        $reminderBase = Enquiry::query()->accessibleBy()->openPipeline();
+        $today = now()->toDateString();
+        $in7 = now()->addDays(7)->toDateString();
+
+        $reminders = [
+            'arrivals' => (clone $reminderBase)
+                ->whereNotNull('check_in')
+                ->whereDate('check_in', '>=', $today)
+                ->whereDate('check_in', '<=', $in7)
+                ->count(),
+            'options' => (clone $reminderBase)
+                ->whereNotNull('option_date')
+                ->whereDate('option_date', '<=', $in7)
+                ->count(),
+            'cxl' => (clone $reminderBase)
+                ->whereNotNull('cxl_due_date')
+                ->whereDate('cxl_due_date', '<=', $in7)
+                ->count(),
+            'options_overdue' => (clone $reminderBase)
+                ->whereNotNull('option_date')
+                ->whereDate('option_date', '<', $today)
+                ->count(),
+            'cxl_overdue' => (clone $reminderBase)
+                ->whereNotNull('cxl_due_date')
+                ->whereDate('cxl_due_date', '<', $today)
+                ->count(),
+        ];
 
         $hotels = Hotel::optionsForSelect();
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
@@ -95,7 +124,7 @@ class EnquiryController extends Controller
             ->unique()
             ->values();
 
-        return view('enquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'statuses'));
+        return view('enquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'statuses', 'reminders'));
     }
 
     public function create(): View

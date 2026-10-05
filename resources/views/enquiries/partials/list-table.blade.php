@@ -39,6 +39,7 @@
         <th>Basis</th>
         <x-sortable-th column="option_date" label="Option Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <th>CXL Policy</th>
+        <x-sortable-th column="cxl_due_date" label="CXL Due Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="total_revenue" label="Total Revenue" :default="$defaultSort" :default-dir="$defaultDir" />
         <th>Remarks</th>
         @if ($showCancellationReason)
@@ -52,7 +53,7 @@
         <tr>
           <td class="text-nowrap">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</td>
-          <td class="text-nowrap">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</td>
+          <td><x-date-alert :date="$enquiry->check_in" /></td>
           <td class="text-nowrap">{{ $enquiry->day ?: '—' }}</td>
           <td>{{ $enquiry->nights ?? '—' }}</td>
           <td>{{ $enquiry->rooms_per_night ?? '—' }}</td>
@@ -67,8 +68,9 @@
           <td>{{ $enquiry->triple_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->triple_rate) }}</td>
           <td class="text-nowrap">{{ $enquiry->basis ?: '—' }}</td>
-          <td class="text-nowrap">{{ $enquiry->option_date?->format('d M Y') ?? '—' }}</td>
+          <td><x-date-alert :date="$enquiry->option_date" /></td>
           <td style="max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cxl_policy }}">{{ $enquiry->cxl_policy ?: '—' }}</td>
+          <td><x-date-alert :date="$enquiry->cxl_due_date" /></td>
           <td class="text-nowrap fw-semibold">{{ $money($enquiry->total_revenue) }}</td>
           <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->remarks }}">{{ $enquiry->remarks ?: '—' }}</td>
           @if ($showCancellationReason)
@@ -100,7 +102,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ $showCancellationReason ? 23 : 22 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ $showCancellationReason ? 24 : 23 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
   </table>

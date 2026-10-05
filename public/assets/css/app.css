@@ -2019,3 +2019,118 @@ form.is-submitting input[type="submit"] {
 @keyframes hgbms-btn-spin {
   to { transform: rotate(360deg); }
 }
+
+/* ---- Date alerts (arrival / option / CXL due) ---- */
+.date-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.45rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.date-alert-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.date-alert-hint {
+  font-size: 0.68rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.date-alert-overdue {
+  background: rgba(239, 68, 68, 0.16);
+  color: #b91c1c;
+  box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.25);
+}
+
+.date-alert-overdue .date-alert-dot {
+  background: #dc2626;
+}
+
+.date-alert-today {
+  background: rgba(239, 68, 68, 0.2);
+  color: #991b1b;
+  animation: date-alert-pulse 1.6s ease-in-out infinite;
+}
+
+.date-alert-today .date-alert-dot {
+  background: #ef4444;
+}
+
+.date-alert-urgent {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+  box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.22);
+}
+
+.date-alert-urgent .date-alert-dot {
+  background: #f59e0b;
+}
+
+.date-alert-soon {
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.18);
+}
+
+.date-alert-soon .date-alert-dot {
+  background: #3b82f6;
+}
+
+@keyframes date-alert-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.25); }
+  50% { box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.55), 0 0 0 3px rgba(239, 68, 68, 0.12); }
+}
+
+.enquiry-reminder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.enquiry-reminder-card {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-card, #fff);
+}
+
+.enquiry-reminder-card .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 0.25rem;
+}
+
+.enquiry-reminder-card .value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.enquiry-reminder-card .meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 0.2rem;
+}
+
+.enquiry-reminder-card.is-danger .value { color: #dc2626; }
+.enquiry-reminder-card.is-warning .value { color: #d97706; }
+.enquiry-reminder-card.is-info .value { color: #2563eb; }
+
+@media (max-width: 768px) {
+  .enquiry-reminder-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -176,7 +176,7 @@
         </div>
         <div class="enq-dl-item">
           <div class="enq-dl-label">Arrival Date</div>
-          <div class="enq-dl-value">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</div>
+          <div class="enq-dl-value"><x-date-alert :date="$enquiry->check_in" /></div>
         </div>
         <div class="enq-dl-item">
           <div class="enq-dl-label">Day</div>
@@ -293,7 +293,11 @@
         </div>
         <div class="enq-dl-item">
           <div class="enq-dl-label">Option Date</div>
-          <div class="enq-dl-value">{{ $enquiry->option_date?->format('d M Y') ?? '—' }}</div>
+          <div class="enq-dl-value"><x-date-alert :date="$enquiry->option_date" /></div>
+        </div>
+        <div class="enq-dl-item">
+          <div class="enq-dl-label">CXL Due Date</div>
+          <div class="enq-dl-value"><x-date-alert :date="$enquiry->cxl_due_date" /></div>
         </div>
         <div class="enq-dl-item">
           <div class="enq-dl-label">CXL Policy</div>

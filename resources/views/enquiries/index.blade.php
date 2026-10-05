@@ -13,11 +13,41 @@
         </ol>
       </nav>
       <h1 class="page-title">Enquiries</h1>
-      <p class="page-subtitle">Enquiry records — confirm or cancel updates status only.</p>
+      <p class="page-subtitle">Watch Arrival, Option Date, and CXL Due Date highlights so deadlines are not missed.</p>
     </div>
     @can('create', App\Models\Enquiry::class)
       <a href="{{ route('enquiries.create') }}" class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> Add enquiry</a>
     @endcan
+  </div>
+
+  <div class="enquiry-reminder-grid">
+    <div class="enquiry-reminder-card is-info">
+      <div class="label">Arrivals (next 7 days)</div>
+      <div class="value">{{ number_format($reminders['arrivals'] ?? 0) }}</div>
+      <div class="meta">Highlighted in the Arrival Date column</div>
+    </div>
+    <div class="enquiry-reminder-card {{ ($reminders['options_overdue'] ?? 0) > 0 ? 'is-danger' : 'is-warning' }}">
+      <div class="label">Option dates due</div>
+      <div class="value">{{ number_format($reminders['options'] ?? 0) }}</div>
+      <div class="meta">
+        @if (($reminders['options_overdue'] ?? 0) > 0)
+          {{ $reminders['options_overdue'] }} overdue
+        @else
+          Within 7 days / overdue
+        @endif
+      </div>
+    </div>
+    <div class="enquiry-reminder-card {{ ($reminders['cxl_overdue'] ?? 0) > 0 ? 'is-danger' : 'is-warning' }}">
+      <div class="label">CXL due dates</div>
+      <div class="value">{{ number_format($reminders['cxl'] ?? 0) }}</div>
+      <div class="meta">
+        @if (($reminders['cxl_overdue'] ?? 0) > 0)
+          {{ $reminders['cxl_overdue'] }} overdue
+        @else
+          Within 7 days / overdue
+        @endif
+      </div>
+    </div>
   </div>
 
   <div class="card">
