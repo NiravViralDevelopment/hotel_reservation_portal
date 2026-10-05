@@ -166,9 +166,14 @@ class EnquiryController extends Controller
     {
         $this->authorize('update', $enquiry);
 
+        $excluded = ['confirmed', 'cancelled'];
+        if ($enquiry->is_cancel && ! $enquiry->is_confirm) {
+            $excluded[] = 'chesed';
+        }
+
         $statuses = StatusMaster::query()
             ->active()
-            ->whereRaw("LOWER(title) NOT IN ('confirmed', 'cancelled')")
+            ->whereRaw('LOWER(title) NOT IN ('.implode(',', array_fill(0, count($excluded), '?')).')', $excluded)
             ->orderBy('title')
             ->pluck('title');
 
