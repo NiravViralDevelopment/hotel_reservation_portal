@@ -25,8 +25,9 @@ class GroupBookingController extends Controller
         $bookings = $this->filteredQuery($request)->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $reminders = $this->reminders();
 
-        return view('group-bookings.index', compact('bookings', 'hotels', 'travelAgencies'));
+        return view('group-bookings.index', compact('bookings', 'hotels', 'travelAgencies', 'reminders'));
     }
 
     public function show(Enquiry $enquiry): View
@@ -199,6 +200,40 @@ class GroupBookingController extends Controller
     public function destroy(Enquiry $enquiry): RedirectResponse
     {
         return redirect()->route('enquiries.show', $enquiry);
+    }
+
+    /**
+     * @return array{arrivals: int, payments: int, payments_overdue: int, cxl: int, cxl_overdue: int}
+     */
+    private function reminders(): array
+    {
+        $base = Enquiry::query()->accessibleBy()->groupBookings();
+        $today = now()->toDateString();
+        $in7 = now()->addDays(7)->toDateString();
+
+        return [
+            'arrivals' => (clone $base)
+                ->whereNotNull('check_in')
+                ->whereDate('check_in', '>=', $today)
+                ->whereDate('check_in', '<=', $in7)
+                ->count(),
+            'payments' => (clone $base)
+                ->whereNotNull('payment_due_date')
+                ->whereDate('payment_due_date', '<=', $in7)
+                ->count(),
+            'payments_overdue' => (clone $base)
+                ->whereNotNull('payment_due_date')
+                ->whereDate('payment_due_date', '<', $today)
+                ->count(),
+            'cxl' => (clone $base)
+                ->whereNotNull('cxl_due_date')
+                ->whereDate('cxl_due_date', '<=', $in7)
+                ->count(),
+            'cxl_overdue' => (clone $base)
+                ->whereNotNull('cxl_due_date')
+                ->whereDate('cxl_due_date', '<', $today)
+                ->count(),
+        ];
     }
 
     /**

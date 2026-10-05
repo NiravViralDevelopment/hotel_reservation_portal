@@ -13,7 +13,7 @@
         </ol>
       </nav>
       <h1 class="page-title">Group bookings</h1>
-      <p class="page-subtitle">Confirmed enquiries shown as group bookings.</p>
+      <p class="page-subtitle">Watch arrival, payment due, and CXL due date highlights so deadlines are not missed.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
@@ -26,6 +26,36 @@
       <button type="button" class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#importGroupBookingsModal">
         <i class="bi bi-upload"></i> Import Excel
       </button>
+    </div>
+  </div>
+
+  <div class="enquiry-reminder-grid">
+    <div class="enquiry-reminder-card is-info">
+      <div class="label">Arrivals (next 7 days)</div>
+      <div class="value">{{ number_format($reminders['arrivals'] ?? 0) }}</div>
+      <div class="meta">Highlighted in the Date of Arrival column</div>
+    </div>
+    <div class="enquiry-reminder-card {{ ($reminders['payments_overdue'] ?? 0) > 0 ? 'is-danger' : 'is-warning' }}">
+      <div class="label">Payment due dates</div>
+      <div class="value">{{ number_format($reminders['payments'] ?? 0) }}</div>
+      <div class="meta">
+        @if (($reminders['payments_overdue'] ?? 0) > 0)
+          {{ $reminders['payments_overdue'] }} overdue
+        @else
+          Within 7 days / overdue
+        @endif
+      </div>
+    </div>
+    <div class="enquiry-reminder-card {{ ($reminders['cxl_overdue'] ?? 0) > 0 ? 'is-danger' : 'is-warning' }}">
+      <div class="label">CXL due dates</div>
+      <div class="value">{{ number_format($reminders['cxl'] ?? 0) }}</div>
+      <div class="meta">
+        @if (($reminders['cxl_overdue'] ?? 0) > 0)
+          {{ $reminders['cxl_overdue'] }} overdue
+        @else
+          Within 7 days / overdue
+        @endif
+      </div>
     </div>
   </div>
 
@@ -111,6 +141,7 @@
 
     @include('group-bookings.partials.list-table', [
       'rows' => $bookings,
+      'highlightDates' => true,
       'defaultSort' => 'check_in',
       'defaultDir' => 'asc',
       'emptyMessage' => 'No confirmed bookings found.',

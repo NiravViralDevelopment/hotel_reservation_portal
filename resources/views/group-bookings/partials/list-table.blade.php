@@ -4,6 +4,7 @@
   $defaultDir = $defaultDir ?? 'asc';
   $emptyMessage = $emptyMessage ?? 'No confirmed bookings found.';
   $showCancellationReason = $showCancellationReason ?? false;
+  $highlightDates = $highlightDates ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
   $text = function ($value) {
       return filled($value) ? $value : '—';
@@ -72,7 +73,7 @@
     <tbody>
       @forelse ($rows as $enquiry)
         <tr>
-          <td class="text-nowrap">{{ $date($enquiry->check_in) }}</td>
+          <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->check_in" />@else{{ $date($enquiry->check_in) }}@endif</td>
           <td class="text-nowrap">{{ $date($enquiry->check_out) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->day) }}</td>
           <td>{{ $enquiry->nights ?? '—' }}</td>
@@ -86,10 +87,10 @@
           <td class="text-nowrap">{{ $date($enquiry->contract_received_on) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->saved_to_doc) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->payment_term) }}</td>
-          <td class="text-nowrap">{{ $date($enquiry->payment_due_date) }}</td>
+          <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->payment_due_date" />@else{{ $date($enquiry->payment_due_date) }}@endif</td>
           <td class="text-nowrap">{{ $text($enquiry->payment_status) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->cxl_policy) }}</td>
-          <td class="text-nowrap">{{ $date($enquiry->cxl_due_date) }}</td>
+          <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->cxl_due_date" />@else{{ $date($enquiry->cxl_due_date) }}@endif</td>
           <td class="text-nowrap">{{ $date($enquiry->cxl_date) }}</td>
           <td class="text-nowrap">{{ $money($enquiry->commission) }}</td>
           <td>{{ $enquiry->single_rooms ?? '—' }}</td>
