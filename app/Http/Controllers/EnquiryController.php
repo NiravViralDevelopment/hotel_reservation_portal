@@ -200,7 +200,7 @@ class EnquiryController extends Controller
         }
 
         $data = $request->validate([
-            'check_in' => ['required', 'date'],
+            'check_in' => ['required', 'date', 'after_or_equal:today'],
             'check_out' => ['required', 'date', 'after_or_equal:check_in'],
             'day' => ['nullable', 'string', 'max:20'],
             'nights' => ['required', 'integer', 'min:0'],
@@ -225,9 +225,9 @@ class EnquiryController extends Controller
             'double_rate' => ['nullable', 'numeric', 'min:0'],
             'triple_rooms' => ['nullable', 'integer', 'min:0'],
             'triple_rate' => ['nullable', 'numeric', 'min:0'],
-            'bb_revenue' => ['nullable', 'numeric', 'min:0'],
-            'dinner_revenue' => ['nullable', 'numeric', 'min:0'],
-            'nett_rev_ex_vat' => ['nullable', 'numeric', 'min:0'],
+            'bb_revenue' => ['nullable', 'numeric'],
+            'dinner_revenue' => ['nullable', 'numeric'],
+            'nett_rev_ex_vat' => ['nullable', 'numeric'],
             'basis' => ['nullable', 'string', Rule::in(['BB', 'DBB'])],
             'booking_update' => ['nullable', 'string', 'max:255'],
             'rooming' => ['nullable', 'string', 'max:255'],
@@ -237,6 +237,7 @@ class EnquiryController extends Controller
             'commission_payable_status' => ['nullable', 'string', 'max:255'],
         ], [
             'check_in.required' => 'Date of arrival is required.',
+            'check_in.after_or_equal' => 'Date of arrival cannot be before today.',
             'check_out.required' => 'Date of departure is required.',
             'check_out.after_or_equal' => 'Date of departure cannot be before the date of arrival.',
             'nights.required' => 'No. of nights is required.',
@@ -263,6 +264,13 @@ class EnquiryController extends Controller
             + ($data['double_rooms'] * $data['double_rate'])
             + ($data['triple_rooms'] * $data['triple_rate'])
         ) * $nights, 2);
+        $data['bb_revenue'] = round((
+            ($data['single_rooms'] * 10)
+            + ($data['double_rooms'] * 20)
+            + ($data['triple_rooms'] * 30)
+        ) * $nights, 2);
+        $data['dinner_revenue'] = 0;
+        $data['nett_rev_ex_vat'] = round((($data['total_revenue'] * 100) / 120) - $data['bb_revenue'], 2);
         $data['status'] = 'Confirmed';
         $data['is_confirm'] = true;
         $data['is_cancel'] = false;
@@ -342,6 +350,7 @@ class EnquiryController extends Controller
             'response_date.required' => 'Response date is required.',
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'check_in.required' => 'Arrival date is required.',
+            'check_in.after_or_equal' => 'Arrival date cannot be before today.',
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',

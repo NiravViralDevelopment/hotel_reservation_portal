@@ -64,6 +64,18 @@
     if (displayEl) displayEl.value = formatPounds(total);
   }
 
+  function localToday() {
+    var now = new Date();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var day = String(now.getDate()).padStart(2, '0');
+    return now.getFullYear() + '-' + month + '-' + day;
+  }
+
+  var arrivalLimit = document.getElementById('check_in');
+  if (arrivalLimit) {
+    arrivalLimit.min = localToday();
+  }
+
   var arrivalEl = document.getElementById('check_in');
   if (arrivalEl) {
     arrivalEl.addEventListener('change', updateDay);

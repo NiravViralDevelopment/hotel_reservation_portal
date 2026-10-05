@@ -45,7 +45,7 @@
       <div class="col-md-6 col-xl-3">
         <label for="check_in" class="form-label">Arrival Date <span class="text-danger">*</span></label>
         <div class="date-placeholder-wrap">
-          <input type="date" name="check_in" id="check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ $v('check_in') }}" required>
+          <input type="date" name="check_in" id="check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ $v('check_in') }}" min="{{ now()->toDateString() }}" required>
           <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
         </div>
         @error('check_in')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
