@@ -81,15 +81,10 @@
             <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
           @endforeach
         </select>
-        <select name="response" class="form-select form-select-sm select2" style="width:auto; min-width: 150px;">
-          <option value="">All responses</option>
-          <option value="awaiting" @selected(request('response') === 'awaiting')>Awaiting response</option>
-          <option value="received" @selected(request('response') === 'received')>Response received</option>
-        </select>
-        <input type="date" name="enquiry_date_from" class="form-control form-control-sm" style="width:auto;" value="{{ request('enquiry_date_from') }}" title="Enquiry date from">
-        <input type="date" name="enquiry_date_to" class="form-control form-control-sm" style="width:auto;" value="{{ request('enquiry_date_to') }}" title="Enquiry date to">
+        <input type="date" name="enquiry_date_from" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryDateFrom }}" title="Enquiry date from">
+        <input type="date" name="enquiry_date_to" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryDateTo }}" title="Enquiry date to">
         <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        @if (request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'status', 'response', 'enquiry_date_from', 'enquiry_date_to']))
+        @if (request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'status', 'enquiry_date_from', 'enquiry_date_to']))
           <a href="{{ route('enquiries.index') }}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-x-circle"></i> Clear
           </a>
