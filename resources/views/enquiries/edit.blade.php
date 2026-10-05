@@ -18,25 +18,31 @@
       </ol>
     </nav>
     <h1 class="page-title">Edit enquiry</h1>
-    <p class="page-subtitle mb-0">Use Group Bookings to confirm this enquiry, or Cancel Inquiry to record a cancellation reason.</p>
+    <p class="page-subtitle mb-0">Save changes to this enquiry, open Group Bookings, or cancel the inquiry.</p>
   </div>
 
-  <div class="enquiry-form">
+  <form method="POST" action="{{ route('enquiries.update', $enquiry) }}" class="enquiry-form" data-enquiry-create="1" novalidate>
+    @csrf
+    @method('PUT')
+    <input type="hidden" name="form_context" value="enquiry">
     @include('enquiries.partials.entry-form')
     <div class="enquiry-sticky-actions">
-      <button type="button" class="btn btn-accent" id="show-group-booking">
+      <button type="submit" class="btn btn-accent">
+        <i class="bi bi-check-lg"></i> Save enquiry
+      </button>
+      <button type="button" class="btn btn-outline-secondary" id="show-group-booking">
         <i class="bi bi-calendar-check"></i> Group Bookings
       </button>
       <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelInquiryModal">
         <i class="bi bi-x-circle"></i> Cancel Inquiry
       </button>
     </div>
-  </div>
+  </form>
 
   @php
     $showGroupBooking = request()->boolean('group')
         || old('cancel_scope') === 'group'
-        || ($errors->any() && ! $errors->has('cancellation_reason'));
+        || old('form_context') === 'group';
   @endphp
   <div id="group-booking-section" class="mt-2 {{ $showGroupBooking ? '' : 'd-none' }}">
     <div class="page-header mb-3">

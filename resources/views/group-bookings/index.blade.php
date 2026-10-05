@@ -16,6 +16,13 @@
       <p class="page-subtitle">Confirmed enquiries shown as group bookings.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
+      <a
+        href="{{ route('group-bookings.export', request()->only(['q', 'hotel_id', 'travel_agency_id', 'arrival_from', 'arrival_to', 'sort', 'dir'])) }}"
+        class="btn btn-outline-secondary btn-sm"
+        title="Download the filtered list as Excel"
+      >
+        <i class="bi bi-download"></i> Export Excel
+      </a>
       <button type="button" class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#importGroupBookingsModal">
         <i class="bi bi-upload"></i> Import Excel
       </button>

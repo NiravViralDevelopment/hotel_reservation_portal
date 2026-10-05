@@ -23,6 +23,7 @@
 
 <form method="POST" action="{{ route('enquiries.group-booking.store', $enquiry) }}" class="enquiry-form" id="group-booking-form">
   @csrf
+  <input type="hidden" name="form_context" value="group">
 
   <div class="card mb-3">
     <div class="card-header">
