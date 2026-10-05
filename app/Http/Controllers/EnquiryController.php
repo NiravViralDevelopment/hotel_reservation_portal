@@ -10,11 +10,14 @@ use App\Models\TravelAgency;
 use App\Support\Audit;
 use App\Support\EnquiryFieldRules;
 use App\Support\QuerySort;
+use App\Support\SimpleXlsxWriter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EnquiryController extends Controller
 {
@@ -22,72 +25,8 @@ class EnquiryController extends Controller
     {
         $this->authorize('viewAny', Enquiry::class);
 
-        $query = Enquiry::query()
-            ->accessibleBy()
-            ->with(['travelAgency', 'hotel', 'assignedTo'])
-            ->openPipeline();
-
-        if ($request->filled('q')) {
-            $search = $request->string('q')->trim()->toString();
-            $query->where(function ($builder) use ($search) {
-                $builder->where('ref', 'like', "%{$search}%")
-                    ->orWhere('group_name', 'like', "%{$search}%")
-                    ->orWhere('client', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('mobile', 'like', "%{$search}%")
-                    ->orWhere('subject', 'like', "%{$search}%")
-                    ->orWhere('source', 'like', "%{$search}%")
-                    ->orWhere('service_person', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('hotel_id')) {
-            \App\Support\HotelAccess::ensure(null, $request->integer('hotel_id'));
-            $query->where('hotel_id', $request->integer('hotel_id'));
-        }
-
-        if ($request->filled('travel_agency_id')) {
-            $query->where('travel_agency_id', $request->integer('travel_agency_id'));
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
-        }
-
-        $monthStart = now()->startOfMonth()->toDateString();
-        $monthEnd = now()->endOfMonth()->toDateString();
-        $enquiryDateFrom = $request->has('enquiry_date_from')
-            ? $request->string('enquiry_date_from')->toString()
-            : $monthStart;
-        $enquiryDateTo = $request->has('enquiry_date_to')
-            ? $request->string('enquiry_date_to')->toString()
-            : $monthEnd;
-
-        if ($enquiryDateFrom !== '') {
-            $query->whereDate('enquiry_date', '>=', $enquiryDateFrom);
-        }
-
-        if ($enquiryDateTo !== '') {
-            $query->whereDate('enquiry_date', '<=', $enquiryDateTo);
-        }
-
-        QuerySort::apply($query, $request, [
-            'ref' => 'ref',
-            'group_name' => 'group_name',
-            'enquiry_date' => 'enquiry_date',
-            'response_date' => 'response_date',
-            'check_in' => 'check_in',
-            'day' => 'day',
-            'nights' => 'nights',
-            'rooms_per_night' => 'rooms_per_night',
-            'email' => 'email',
-            'status' => 'status',
-            'total_revenue' => 'total_revenue',
-            'option_date' => 'option_date',
-            'cxl_due_date' => 'cxl_due_date',
-        ], 'enquiry_date', 'desc');
-
-        $enquiries = $query->paginate(10)->withQueryString();
+        [$enquiryDateFrom, $enquiryDateTo] = $this->enquiryDateBounds($request);
+        $enquiries = $this->filteredQuery($request)->paginate(10)->withQueryString();
 
         $reminderBase = Enquiry::query()->accessibleBy()->openPipeline();
         $today = now()->toDateString();
@@ -136,6 +75,23 @@ class EnquiryController extends Controller
             'enquiryDateFrom',
             'enquiryDateTo'
         ));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Enquiry::class);
+
+        $rows = $this->filteredQuery($request)->get()->map(function (Enquiry $enquiry) {
+            return $this->enquiryExportRow($enquiry);
+        })->all();
+
+        Audit::log('exported', 'enquiries', 'rows='.count($rows));
+
+        return SimpleXlsxWriter::download(
+            'enquiries-'.now()->format('Y-m-d').'.xlsx',
+            $this->enquiryExportHeaders(),
+            $rows
+        );
     }
 
     public function create(): View
@@ -684,5 +640,168 @@ class EnquiryController extends Controller
                 ? round($nightly * $nights, 2)
                 : round((float) ($data['total_revenue'] ?? 0), 2),
         ];
+    }
+
+    /**
+     * @return Builder<Enquiry>
+     */
+    private function filteredQuery(Request $request): Builder
+    {
+        $query = Enquiry::query()
+            ->accessibleBy()
+            ->with(['travelAgency', 'hotel', 'assignedTo'])
+            ->openPipeline();
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($builder) use ($search) {
+                $builder->where('ref', 'like', "%{$search}%")
+                    ->orWhere('group_name', 'like', "%{$search}%")
+                    ->orWhere('client', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%")
+                    ->orWhere('source', 'like', "%{$search}%")
+                    ->orWhere('service_person', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('hotel_id')) {
+            \App\Support\HotelAccess::ensure(null, $request->integer('hotel_id'));
+            $query->where('hotel_id', $request->integer('hotel_id'));
+        }
+
+        if ($request->filled('travel_agency_id')) {
+            $query->where('travel_agency_id', $request->integer('travel_agency_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        [$enquiryDateFrom, $enquiryDateTo] = $this->enquiryDateBounds($request);
+
+        if ($enquiryDateFrom !== '') {
+            $query->whereDate('enquiry_date', '>=', $enquiryDateFrom);
+        }
+
+        if ($enquiryDateTo !== '') {
+            $query->whereDate('enquiry_date', '<=', $enquiryDateTo);
+        }
+
+        QuerySort::apply($query, $request, [
+            'ref' => 'ref',
+            'group_name' => 'group_name',
+            'enquiry_date' => 'enquiry_date',
+            'response_date' => 'response_date',
+            'check_in' => 'check_in',
+            'day' => 'day',
+            'nights' => 'nights',
+            'rooms_per_night' => 'rooms_per_night',
+            'email' => 'email',
+            'status' => 'status',
+            'total_revenue' => 'total_revenue',
+            'option_date' => 'option_date',
+            'cxl_due_date' => 'cxl_due_date',
+        ], 'enquiry_date', 'desc');
+
+        return $query;
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function enquiryDateBounds(Request $request): array
+    {
+        $enquiryDateFrom = $request->has('enquiry_date_from')
+            ? $request->string('enquiry_date_from')->toString()
+            : now()->startOfMonth()->toDateString();
+        $enquiryDateTo = $request->has('enquiry_date_to')
+            ? $request->string('enquiry_date_to')->toString()
+            : now()->endOfMonth()->toDateString();
+
+        return [$enquiryDateFrom, $enquiryDateTo];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function enquiryExportHeaders(): array
+    {
+        return [
+            'Enquiry Date',
+            'Response Date',
+            'Arrival Date',
+            'Day',
+            'Nights',
+            'Total Room per Night',
+            'Group Name',
+            'Ref No',
+            'Email ID',
+            'Status',
+            'Single',
+            'Single Rate',
+            'Double',
+            'Double Rate',
+            'Triple',
+            'Triple Rate',
+            'Basis',
+            'Option Date',
+            'CXL Policy',
+            'CXL Due Date',
+            'Total Revenue',
+            'Remarks',
+        ];
+    }
+
+    /**
+     * @return list<string|int|float|null>
+     */
+    private function enquiryExportRow(Enquiry $enquiry): array
+    {
+        $status = str_replace(['_', '-'], ' ', (string) $enquiry->status);
+
+        return [
+            $enquiry->enquiry_date?->format('Y-m-d'),
+            $enquiry->response_date?->format('Y-m-d'),
+            $enquiry->check_in?->format('Y-m-d'),
+            $enquiry->day,
+            $this->exportInt($enquiry->nights),
+            $this->exportInt($enquiry->rooms_per_night),
+            $enquiry->group_name,
+            $enquiry->ref,
+            $enquiry->email,
+            $status !== '' ? ucwords($status) : null,
+            $this->exportInt($enquiry->single_rooms),
+            $this->exportMoney($enquiry->single_rate),
+            $this->exportInt($enquiry->double_rooms),
+            $this->exportMoney($enquiry->double_rate),
+            $this->exportInt($enquiry->triple_rooms),
+            $this->exportMoney($enquiry->triple_rate),
+            $enquiry->basis,
+            $enquiry->option_date?->format('Y-m-d'),
+            $enquiry->cxl_policy,
+            $enquiry->cxl_due_date?->format('Y-m-d'),
+            $this->exportMoney($enquiry->total_revenue),
+            $enquiry->remarks,
+        ];
+    }
+
+    private function exportMoney(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return round((float) $value, 2);
+    }
+
+    private function exportInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
     }
 }

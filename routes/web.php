@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
         ->where('any', '.*')
         ->name('contacts.hidden');
 
+    Route::get('enquiries/export', [EnquiryController::class, 'export'])->name('enquiries.export');
     Route::resource('enquiries', EnquiryController::class);
     Route::post('enquiries/{enquiry}/response', [EnquiryController::class, 'storeResponse'])->name('enquiries.response');
     Route::post('enquiries/{enquiry}/convert', [EnquiryController::class, 'convert'])->name('enquiries.convert');
@@ -80,6 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::post('enquiries/{enquiry}/cancel-booking', [EnquiryController::class, 'cancelBooking'])->name('enquiries.cancel-booking');
 
     Route::get('cancelled-inquiries', [CancelledInquiryController::class, 'index'])->name('cancelled-inquiries.index');
+    Route::get('cancelled-inquiries/export', [CancelledInquiryController::class, 'export'])->name('cancelled-inquiries.export');
 
     // Group bookings = confirmed enquiries (same enquiries table)
     Route::get('group-bookings', [GroupBookingController::class, 'index'])->name('group-bookings.index');
@@ -90,6 +92,7 @@ Route::middleware('auth')->group(function () {
     Route::get('group-bookings/{enquiry}/edit', [GroupBookingController::class, 'edit'])->name('group-bookings.edit');
 
     Route::get('cancelled-bookings', [CancelledBookingController::class, 'index'])->name('cancelled-bookings.index');
+    Route::get('cancelled-bookings/export', [CancelledBookingController::class, 'export'])->name('cancelled-bookings.export');
     Route::get('cancelled-bookings/{enquiry}', [CancelledBookingController::class, 'show'])->name('cancelled-bookings.show');
     Route::get('arrivals', [ArrivalController::class, 'index'])->name('arrivals.index');
     Route::get('departures', [DepartureController::class, 'index'])->name('departures.index');

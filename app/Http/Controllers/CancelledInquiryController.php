@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
+use App\Support\Audit;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
+use App\Support\SimpleXlsxWriter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CancelledInquiryController extends Controller
 {
@@ -16,6 +20,85 @@ class CancelledInquiryController extends Controller
     {
         $this->authorize('viewAny', Enquiry::class);
 
+        $enquiries = $this->filteredQuery($request)->paginate(10)->withQueryString();
+        $hotels = Hotel::optionsForSelect();
+        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+
+        return view('cancelled-inquiries.index', compact('enquiries', 'hotels', 'travelAgencies'));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Enquiry::class);
+
+        $rows = $this->filteredQuery($request)->get()->map(function (Enquiry $enquiry) {
+            $status = str_replace(['_', '-'], ' ', (string) $enquiry->status);
+
+            return [
+                $enquiry->enquiry_date?->format('Y-m-d'),
+                $enquiry->response_date?->format('Y-m-d'),
+                $enquiry->check_in?->format('Y-m-d'),
+                $enquiry->day,
+                $this->exportInt($enquiry->nights),
+                $this->exportInt($enquiry->rooms_per_night),
+                $enquiry->group_name,
+                $enquiry->ref,
+                $enquiry->email,
+                $status !== '' ? ucwords($status) : null,
+                $this->exportInt($enquiry->single_rooms),
+                $this->exportMoney($enquiry->single_rate),
+                $this->exportInt($enquiry->double_rooms),
+                $this->exportMoney($enquiry->double_rate),
+                $this->exportInt($enquiry->triple_rooms),
+                $this->exportMoney($enquiry->triple_rate),
+                $enquiry->basis,
+                $enquiry->option_date?->format('Y-m-d'),
+                $enquiry->cxl_policy,
+                $enquiry->cxl_due_date?->format('Y-m-d'),
+                $this->exportMoney($enquiry->total_revenue),
+                $enquiry->remarks,
+                $enquiry->cancellation_reason,
+            ];
+        })->all();
+
+        Audit::log('exported', 'cancelled_inquiries', 'rows='.count($rows));
+
+        return SimpleXlsxWriter::download(
+            'cancelled-inquiries-'.now()->format('Y-m-d').'.xlsx',
+            [
+                'Enquiry Date',
+                'Response Date',
+                'Arrival Date',
+                'Day',
+                'Nights',
+                'Total Room per Night',
+                'Group Name',
+                'Ref No',
+                'Email ID',
+                'Status',
+                'Single',
+                'Single Rate',
+                'Double',
+                'Double Rate',
+                'Triple',
+                'Triple Rate',
+                'Basis',
+                'Option Date',
+                'CXL Policy',
+                'CXL Due Date',
+                'Total Revenue',
+                'Remarks',
+                'Cancellation Reason',
+            ],
+            $rows
+        );
+    }
+
+    /**
+     * @return Builder<Enquiry>
+     */
+    private function filteredQuery(Request $request): Builder
+    {
         $query = Enquiry::query()
             ->accessibleBy()
             ->cancelledInquiries();
@@ -74,10 +157,24 @@ class CancelledInquiryController extends Controller
             'updated_at' => 'updated_at',
         ], 'updated_at', 'desc');
 
-        $enquiries = $query->paginate(10)->withQueryString();
-        $hotels = Hotel::optionsForSelect();
-        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+        return $query;
+    }
 
-        return view('cancelled-inquiries.index', compact('enquiries', 'hotels', 'travelAgencies'));
+    private function exportMoney(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return round((float) $value, 2);
+    }
+
+    private function exportInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
     }
 }

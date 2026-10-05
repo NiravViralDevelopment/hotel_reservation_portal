@@ -15,9 +15,18 @@
       <h1 class="page-title">Enquiries</h1>
       <p class="page-subtitle">Watch Arrival, Option Date, and CXL Due Date highlights so deadlines are not missed.</p>
     </div>
-    @can('create', App\Models\Enquiry::class)
-      <a href="{{ route('enquiries.create') }}" class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> Add enquiry</a>
-    @endcan
+    <div class="d-flex flex-wrap gap-2">
+      <a
+        href="{{ route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'travel_agency_id', 'status', 'sort', 'dir']), ['enquiry_date_from' => $enquiryDateFrom, 'enquiry_date_to' => $enquiryDateTo])) }}"
+        class="btn btn-outline-secondary btn-sm"
+        title="Download the filtered list as Excel"
+      >
+        <i class="bi bi-download"></i> Export Excel
+      </a>
+      @can('create', App\Models\Enquiry::class)
+        <a href="{{ route('enquiries.create') }}" class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> Add enquiry</a>
+      @endcan
+    </div>
   </div>
 
   <div class="enquiry-reminder-grid">
