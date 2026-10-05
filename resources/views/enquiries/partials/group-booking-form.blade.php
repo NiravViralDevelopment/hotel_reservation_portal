@@ -35,7 +35,7 @@
         <div class="col-md-6 col-xl-3">
           <label for="gb_check_in" class="form-label">Date of Arrival <span class="text-danger">*</span></label>
           <div class="date-placeholder-wrap">
-            <input type="date" name="check_in" id="gb_check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ $v('check_in') }}" required>
+            <input type="date" name="check_in" id="gb_check_in" class="form-control @error('check_in') is-invalid @enderror" value="{{ $v('check_in') }}" min="{{ now()->toDateString() }}" required>
             <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
           </div>
           @error('check_in')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -190,7 +190,7 @@
   <div class="card mb-3">
     <div class="card-header">
       <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-      <span class="enquiry-section-hint">Total RNs and Total Rev update from the room counts, rates, and nights.</span>
+      <span class="enquiry-section-hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
     </div>
     <div class="card-body">
       <div class="row g-3">
@@ -242,19 +242,31 @@
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
-          <label for="gb_bb_revenue" class="form-label">BB Revenue (Nett £10)</label>
-          <input type="text" name="bb_revenue" id="gb_bb_revenue" inputmode="decimal" class="form-control js-decimal @error('bb_revenue') is-invalid @enderror" value="{{ $v('bb_revenue') }}">
-          @error('bb_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          <div class="revenue-panel">
+            <label for="gb_bb_revenue_display" class="form-label">BB Revenue (Nett £)</label>
+            <input type="text" id="gb_bb_revenue_display" class="form-control @error('bb_revenue') is-invalid @enderror" value="" readonly>
+            <input type="hidden" name="bb_revenue" id="gb_bb_revenue" value="{{ $v('bb_revenue') }}">
+            <div class="form-text">(Single × 10 + Double × 20 + Triple × 30) × nights</div>
+            @error('bb_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
         </div>
         <div class="col-md-6 col-xl-3">
-          <label for="gb_dinner_revenue" class="form-label">Dinner Revenue (Nett £)</label>
-          <input type="text" name="dinner_revenue" id="gb_dinner_revenue" inputmode="decimal" class="form-control js-decimal @error('dinner_revenue') is-invalid @enderror" value="{{ $v('dinner_revenue') }}">
-          @error('dinner_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          <div class="revenue-panel">
+            <label for="gb_dinner_revenue_display" class="form-label">Dinner Revenue (Nett £)</label>
+            <input type="text" id="gb_dinner_revenue_display" class="form-control @error('dinner_revenue') is-invalid @enderror" value="" readonly>
+            <input type="hidden" name="dinner_revenue" id="gb_dinner_revenue" value="{{ $v('dinner_revenue') }}">
+            <div class="form-text">£0</div>
+            @error('dinner_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
         </div>
         <div class="col-md-6 col-xl-3">
-          <label for="gb_nett_rev_ex_vat" class="form-label">Nett Rev EX VAT &amp; BF</label>
-          <input type="text" name="nett_rev_ex_vat" id="gb_nett_rev_ex_vat" inputmode="decimal" class="form-control js-decimal @error('nett_rev_ex_vat') is-invalid @enderror" value="{{ $v('nett_rev_ex_vat') }}">
-          @error('nett_rev_ex_vat')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          <div class="revenue-panel">
+            <label for="gb_nett_rev_ex_vat_display" class="form-label">Nett Rev EX VAT &amp; BF</label>
+            <input type="text" id="gb_nett_rev_ex_vat_display" class="form-control @error('nett_rev_ex_vat') is-invalid @enderror" value="" readonly>
+            <input type="hidden" name="nett_rev_ex_vat" id="gb_nett_rev_ex_vat" value="{{ $v('nett_rev_ex_vat') }}">
+            <div class="form-text">(Total Rev × 100 / 120) − BB Revenue</div>
+            @error('nett_rev_ex_vat')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
         </div>
         <div class="col-md-6 col-xl-3">
           <label for="gb_basis" class="form-label">BB/DBB</label>

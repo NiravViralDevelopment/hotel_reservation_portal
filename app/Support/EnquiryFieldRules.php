@@ -62,7 +62,7 @@ class EnquiryFieldRules
         return [
             'enquiry_date' => ['required', 'date'],
             'response_date' => ['required', 'date', 'after_or_equal:enquiry_date'],
-            'check_in' => ['required', 'date'],
+            'check_in' => ['required', 'date', 'after_or_equal:today'],
             'day' => ['nullable', 'string', 'max:20'],
             'nights' => ['required', 'integer', 'min:1'],
             'group_name' => $groupName,
