@@ -94,11 +94,9 @@ class EnquiryFieldRules
      */
     public static function create(?int $ignoreEnquiryId = null, array $input = []): array
     {
-        $groupName = ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')];
         $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref'];
 
         if ($ignoreEnquiryId) {
-            $groupName = ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($ignoreEnquiryId)];
             $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref,'.$ignoreEnquiryId];
         }
 
@@ -109,7 +107,7 @@ class EnquiryFieldRules
             'check_out' => ['required', 'date', 'after:check_in'],
             'day' => ['nullable', 'string', 'max:20'],
             'nights' => ['required', 'integer', 'min:1'],
-            'group_name' => $groupName,
+            'group_name' => ['required', 'string', 'max:255'],
             'ref' => $ref,
             'rooms_per_night' => ['required', 'integer', 'min:0'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],
@@ -139,11 +137,9 @@ class EnquiryFieldRules
      */
     public static function base(?int $ignoreEnquiryId = null, ?int $currentHotelId = null): array
     {
-        $groupName = ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')];
         $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref'];
 
         if ($ignoreEnquiryId) {
-            $groupName = ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')->ignore($ignoreEnquiryId)];
             $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref,'.$ignoreEnquiryId];
         }
 
@@ -155,7 +151,7 @@ class EnquiryFieldRules
             'check_in' => ['nullable', 'date'],
             'check_in_day' => ['nullable', 'string', 'max:20'],
             'check_out' => ['nullable', 'date', 'after:check_in'],
-            'group_name' => $groupName,
+            'group_name' => ['required', 'string', 'max:255'],
             'travel_agency_id' => ['nullable', 'integer', 'exists:travel_agencies,id'],
             'hotel_id' => ['nullable', 'integer', Rule::in(HotelAccess::selectableHotelIds(null, $currentHotelId))],
             'nights' => ['nullable', 'integer', 'min:1'],

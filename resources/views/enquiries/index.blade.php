@@ -17,7 +17,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="{{ route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'travel_agency_id', 'status', 'sort', 'dir']), ['enquiry_date_from' => $enquiryDateFrom, 'enquiry_date_to' => $enquiryDateTo])) }}"
+        href="{{ route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'travel_agency_id', 'status', 'sort', 'dir']), ['month' => $enquiryMonth])) }}"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -90,10 +90,12 @@
             <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
           @endforeach
         </select>
-        <input type="date" name="enquiry_date_from" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryDateFrom }}" title="Enquiry date from">
-        <input type="date" name="enquiry_date_to" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryDateTo }}" title="Enquiry date to">
+        <div class="d-flex align-items-center gap-1">
+          <label for="enquiry_month" class="form-label mb-0 small text-secondary">Month</label>
+          <input type="month" name="month" id="enquiry_month" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryMonth }}" title="Enquiry month">
+        </div>
         <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        @if (request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'status', 'enquiry_date_from', 'enquiry_date_to']))
+        @if (request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'status', 'month']))
           <a href="{{ route('enquiries.index') }}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-x-circle"></i> Clear
           </a>

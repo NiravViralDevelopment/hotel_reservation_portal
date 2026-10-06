@@ -25,7 +25,7 @@ class EnquiryController extends Controller
     {
         $this->authorize('viewAny', Enquiry::class);
 
-        [$enquiryDateFrom, $enquiryDateTo] = $this->enquiryDateBounds($request);
+        $enquiryMonth = $this->enquiryMonthValue($request);
         $enquiries = $this->filteredQuery($request)->paginate(10)->withQueryString();
 
         $reminderBase = Enquiry::query()->accessibleBy()->openPipeline();
@@ -72,8 +72,7 @@ class EnquiryController extends Controller
             'travelAgencies',
             'statuses',
             'reminders',
-            'enquiryDateFrom',
-            'enquiryDateTo'
+            'enquiryMonth'
         ));
     }
 
@@ -360,7 +359,6 @@ class EnquiryController extends Controller
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',
-            'group_name.unique' => 'This group name is already used. Enter a different name.',
             'rooms_per_night.required' => 'Total room per night is required.',
             'email.required' => 'Email ID is required.',
             'email.email' => 'Enter a valid email address.',
@@ -873,14 +871,10 @@ class EnquiryController extends Controller
             $query->where('status', $request->string('status'));
         }
 
-        [$enquiryDateFrom, $enquiryDateTo] = $this->enquiryDateBounds($request);
-
-        if ($enquiryDateFrom !== '') {
-            $query->whereDate('enquiry_date', '>=', $enquiryDateFrom);
-        }
-
-        if ($enquiryDateTo !== '') {
-            $query->whereDate('enquiry_date', '<=', $enquiryDateTo);
+        $enquiryMonth = $this->selectedEnquiryMonth($request);
+        if ($enquiryMonth) {
+            $query->whereYear('enquiry_date', $enquiryMonth->year)
+                ->whereMonth('enquiry_date', $enquiryMonth->month);
         }
 
         QuerySort::apply($query, $request, [
@@ -903,19 +897,29 @@ class EnquiryController extends Controller
         return $query;
     }
 
-    /**
-     * @return array{0: string, 1: string}
-     */
-    private function enquiryDateBounds(Request $request): array
+    private function enquiryMonthValue(Request $request): string
     {
-        $enquiryDateFrom = $request->has('enquiry_date_from')
-            ? $request->string('enquiry_date_from')->toString()
-            : now()->startOfMonth()->toDateString();
-        $enquiryDateTo = $request->has('enquiry_date_to')
-            ? $request->string('enquiry_date_to')->toString()
-            : now()->endOfMonth()->toDateString();
+        if (! $request->exists('month')) {
+            return now()->format('Y-m');
+        }
 
-        return [$enquiryDateFrom, $enquiryDateTo];
+        return $request->string('month')->toString();
+    }
+
+    private function selectedEnquiryMonth(Request $request): ?Carbon
+    {
+        if (! $request->exists('month')) {
+            return now()->startOfMonth();
+        }
+
+        $value = $request->string('month')->toString();
+        if (! preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
+            return null;
+        }
+
+        $month = Carbon::createFromFormat('!Y-m', $value);
+
+        return $month ? $month->startOfMonth() : null;
     }
 
     /**

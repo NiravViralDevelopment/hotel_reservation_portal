@@ -50,7 +50,6 @@ class StoreEnquiryRequest extends FormRequest
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',
-            'group_name.unique' => 'This group name is already used. Enter a different name.',
             'rooms_per_night.required' => 'Total room per night is required.',
             'email.required' => 'Email ID is required.',
             'email.email' => 'Enter a valid email address.',
