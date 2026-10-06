@@ -2040,9 +2040,12 @@ form.is-submitting input[type="submit"] {
 }
 
 .date-alert-hint {
-  font-size: 0.68rem;
-  font-weight: 600;
-  opacity: 0.9;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .date-alert-overdue {
@@ -2083,6 +2086,20 @@ form.is-submitting input[type="submit"] {
 
 .date-alert-soon .date-alert-dot {
   background: #3b82f6;
+}
+
+.date-alert-upcoming {
+  background: rgba(13, 148, 136, 0.12);
+  color: #0f766e;
+  box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.2);
+}
+
+.date-alert-upcoming .date-alert-dot {
+  background: #14b8a6;
+}
+
+[data-theme="dark"] .date-alert-hint {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 @keyframes date-alert-pulse {

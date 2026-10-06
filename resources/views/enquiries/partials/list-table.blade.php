@@ -54,7 +54,7 @@
         <tr>
           <td class="text-nowrap">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</td>
-          <td><x-date-alert :date="$enquiry->check_in" /></td>
+          <td><x-date-alert :date="$enquiry->check_in" :window="14" /></td>
           <td class="text-nowrap">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->day ?: '—' }}</td>
           <td>{{ $enquiry->nights ?? '—' }}</td>
@@ -70,9 +70,9 @@
           <td>{{ $enquiry->triple_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->triple_rate) }}</td>
           <td class="text-nowrap">{{ $enquiry->basis ?: '—' }}</td>
-          <td><x-date-alert :date="$enquiry->option_date" /></td>
+          <td><x-date-alert :date="$enquiry->option_date" :window="30" /></td>
           <td style="max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cxl_policy }}">{{ $enquiry->cxl_policy ?: '—' }}</td>
-          <td><x-date-alert :date="$enquiry->cxl_due_date" /></td>
+          <td><x-date-alert :date="$enquiry->cxl_due_date" :window="30" /></td>
           <td class="text-nowrap fw-semibold">{{ $money($enquiry->total_revenue) }}</td>
           <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->remarks }}">{{ $enquiry->remarks ?: '—' }}</td>
           @if ($showCancellationReason)
