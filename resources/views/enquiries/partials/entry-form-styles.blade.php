@@ -78,4 +78,32 @@
   .enquiry-form-layout .revenue-panel .form-text {
     margin-bottom: 0;
   }
+  .enquiry-form-layout .stay-date-breakdown {
+    margin-top: 1.25rem;
+  }
+  .enquiry-form-layout .stay-date-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0 0 0.2rem;
+  }
+  .enquiry-form-layout .stay-date-hint {
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  .enquiry-form-layout .stay-date-table {
+    width: 100%;
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+  .enquiry-form-layout .stay-date-table th {
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
+  .enquiry-form-layout .stay-date-table td {
+    vertical-align: middle;
+  }
+  .enquiry-form-layout .stay-date-table .form-control {
+    min-width: 4.75rem;
+  }
 </style>

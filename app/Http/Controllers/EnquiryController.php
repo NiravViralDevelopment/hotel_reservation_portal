@@ -132,6 +132,7 @@ class EnquiryController extends Controller
         }
         $data = $this->applyCxlDueDate($data);
         $data = $this->applyRoomPeriods($data);
+        $data = $this->applyDailyRooms($data);
         $data['total_revenue'] = $this->revenueFromRoomNights($data);
         $data = array_merge($data, $this->applyTaxRevenue($data));
         $data = array_merge($data, $this->applyCommercialTotals($data));
@@ -380,6 +381,7 @@ class EnquiryController extends Controller
         }
         $data = $this->applyCxlDueDate($data);
         $data = $this->applyRoomPeriods($data);
+        $data = $this->applyDailyRooms($data);
         $data['total_revenue'] = $this->revenueFromRoomNights($data);
 
         if (empty($data['status'])) {
@@ -714,18 +716,96 @@ class EnquiryController extends Controller
     }
 
     /**
-     * (Single × Single Rate + Double × Double Rate + Triple × Triple Rate) × Nights
+     * Sum each stay date's rooms × rates. Older enquiries without daily rows use one rate × nights.
      *
      * @param  array<string, mixed>  $data
      */
     private function revenueFromRoomNights(array $data): float
     {
+        $rows = $data['daily_room_rates'] ?? null;
+        if (is_array($rows) && $rows !== []) {
+            $total = 0.0;
+            foreach ($rows as $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+                $total += ((int) ($row['single_rooms'] ?? 0) * (float) ($row['single_rate'] ?? 0))
+                    + ((int) ($row['double_rooms'] ?? 0) * (float) ($row['double_rate'] ?? 0))
+                    + ((int) ($row['triple_rooms'] ?? 0) * (float) ($row['triple_rate'] ?? 0));
+            }
+
+            return round($total, 2);
+        }
+
         $nights = max(0, (int) ($data['nights'] ?? 0));
         $nightly = ((int) ($data['single_rooms'] ?? 0) * (float) ($data['single_rate'] ?? 0))
             + ((int) ($data['double_rooms'] ?? 0) * (float) ($data['double_rate'] ?? 0))
             + ((int) ($data['triple_rooms'] ?? 0) * (float) ($data['triple_rate'] ?? 0));
 
         return round($nightly * $nights, 2);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function applyDailyRooms(array $data): array
+    {
+        if (! array_key_exists('daily_rooms', $data)) {
+            return $data;
+        }
+
+        $rows = $data['daily_rooms'];
+        unset($data['daily_rooms']);
+
+        if (! is_array($rows) || empty($data['check_in']) || empty($data['check_out'])) {
+            $data['daily_room_rates'] = [];
+
+            return $data;
+        }
+
+        $start = Carbon::parse($data['check_in'])->startOfDay();
+        $end = Carbon::parse($data['check_out'])->startOfDay();
+        $clean = [];
+
+        foreach ($rows as $date => $row) {
+            if (! is_array($row) || ! is_string($date)) {
+                continue;
+            }
+
+            try {
+                $day = Carbon::parse($date)->startOfDay();
+            } catch (\Throwable) {
+                continue;
+            }
+
+            if ($day->lt($start) || $day->gt($end)) {
+                continue;
+            }
+
+            $item = ['date' => $day->toDateString()];
+            foreach (['single', 'double', 'triple'] as $type) {
+                $item[$type.'_rooms'] = max(0, (int) ($row[$type.'_rooms'] ?? 0));
+                $item[$type.'_rate'] = round(max(0, (float) ($row[$type.'_rate'] ?? 0)), 2);
+            }
+            $clean[$item['date']] = $item;
+
+            if (count($clean) >= 400) {
+                break;
+            }
+        }
+
+        ksort($clean);
+        $data['daily_room_rates'] = array_values($clean);
+        $first = $data['daily_room_rates'][0] ?? null;
+        if (is_array($first)) {
+            foreach (['single', 'double', 'triple'] as $type) {
+                $data[$type.'_rooms'] = $first[$type.'_rooms'];
+                $data[$type.'_rate'] = $first[$type.'_rate'];
+            }
+        }
+
+        return $data;
     }
 
     /**

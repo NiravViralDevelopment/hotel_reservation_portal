@@ -131,7 +131,7 @@ class EnquiryFieldRules
                 'max:255',
                 Rule::exists('status_masters', 'title')->where(fn ($query) => $query->where('status', 'active')),
             ],
-        ], self::roomPeriodRules($input));
+        ], self::roomPeriodRules($input), self::dailyRoomRules());
     }
 
     /**
@@ -179,5 +179,24 @@ class EnquiryFieldRules
             'email' => ['nullable', 'email', 'max:255'],
             'remarks' => ['nullable', 'string'],
         ], self::commercial());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function dailyRoomRules(): array
+    {
+        $room = ['nullable', 'integer', 'min:0'];
+        $rate = ['nullable', 'numeric', 'min:0'];
+
+        return [
+            'daily_rooms' => ['nullable', 'array', 'max:400'],
+            'daily_rooms.*.single_rooms' => $room,
+            'daily_rooms.*.single_rate' => $rate,
+            'daily_rooms.*.double_rooms' => $room,
+            'daily_rooms.*.double_rate' => $rate,
+            'daily_rooms.*.triple_rooms' => $room,
+            'daily_rooms.*.triple_rate' => $rate,
+        ];
     }
 }

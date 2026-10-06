@@ -122,56 +122,23 @@
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-    <span class="enquiry-section-hint">Arrival and departure fill Single. Choose both dates for each room type. Double can only start after Single ends, and Triple can only start after Double ends.</span>
+    <span class="enquiry-section-hint">Each date from arrival through departure has its own Single, Double, and Triple rooms and rates.</span>
   </div>
   <div class="card-body">
-    <div class="row g-3">
-      @foreach ([
-        'single' => ['label' => 'Single', 'icon' => 'bi-person'],
-        'double' => ['label' => 'Double', 'icon' => 'bi-people'],
-        'triple' => ['label' => 'Triple', 'icon' => 'bi-people-fill'],
-      ] as $type => $meta)
-        <div class="col-md-4">
-          <div class="room-rate-card">
-            <h3><i class="bi {{ $meta['icon'] }}"></i> {{ $meta['label'] }}</h3>
-            <div class="mb-3">
-              <label for="{{ $type }}_rooms" class="form-label">Rooms</label>
-              <input type="text" name="{{ $type }}_rooms" id="{{ $type }}_rooms" inputmode="numeric" class="form-control js-digits enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ $v($type.'_rooms') }}" placeholder="Rooms">
-              @error($type.'_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-            <div class="mb-3">
-              <label for="{{ $type }}_rate" class="form-label">Rate</label>
-              <input type="text" name="{{ $type }}_rate" id="{{ $type }}_rate" inputmode="decimal" class="form-control js-decimal enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ $v($type.'_rate') }}" placeholder="Nightly rate">
-              @error($type.'_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-            @php
-              $periodHints = [
-                'single' => ['from' => 'Select a date from arrival onward.', 'to' => 'Select a date up to departure.'],
-                'double' => ['from' => 'Starts the day after Single ends.', 'to' => 'Select a date up to departure.'],
-                'triple' => ['from' => 'Starts the day after Double ends.', 'to' => 'Select a date up to departure.'],
-              ];
-            @endphp
-            <div class="mb-3">
-              <label for="{{ $type }}_from_date" class="form-label">From Date</label>
-              <div class="date-placeholder-wrap">
-                <input type="date" name="{{ $type }}_from_date" id="{{ $type }}_from_date" class="form-control room-period-date @error($type.'_from_date') is-invalid @enderror" value="{{ $v($type.'_from_date') }}" data-room-type="{{ $type }}" data-period="from">
-                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
-              </div>
-              <div class="form-text">{{ $periodHints[$type]['from'] }}</div>
-              @error($type.'_from_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-            <div>
-              <label for="{{ $type }}_to_date" class="form-label">To Date</label>
-              <div class="date-placeholder-wrap">
-                <input type="date" name="{{ $type }}_to_date" id="{{ $type }}_to_date" class="form-control room-period-date @error($type.'_to_date') is-invalid @enderror" value="{{ $v($type.'_to_date') }}" data-room-type="{{ $type }}" data-period="to">
-                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
-              </div>
-              <div class="form-text">{{ $periodHints[$type]['to'] }}</div>
-              @error($type.'_to_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-          </div>
-        </div>
-      @endforeach
+    @php
+      $dailySeed = old('daily_rooms');
+      if (! is_array($dailySeed)) {
+          $dailySeed = [];
+          foreach (($e?->daily_room_rates ?? []) as $row) {
+              if (is_array($row) && ! empty($row['date'])) {
+                  $dailySeed[$row['date']] = $row;
+              }
+          }
+      }
+    @endphp
+    <script type="application/json" id="daily-room-seed">@json($dailySeed)</script>
+    <div class="stay-date-breakdown" id="stay-date-breakdown">
+      <div id="stay-date-list"></div>
     </div>
   </div>
 </div>

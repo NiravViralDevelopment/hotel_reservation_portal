@@ -235,77 +235,68 @@
       <h2 class="enq-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
     </div>
     <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="room-tile">
-            <div class="room-tile-label"><i class="bi bi-person"></i> Single</div>
-            <div class="enq-dl" style="grid-template-columns: 1fr 1fr;">
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">Rooms</div>
-                <div class="enq-dl-value">{{ $enquiry->single_rooms ?? '—' }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">Rate</div>
-                <div class="enq-dl-value">{{ $money($enquiry->single_rate) }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">From Date</div>
-                <div class="enq-dl-value">{{ $enquiry->single_from_date?->format('d M Y') ?? '—' }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">To Date</div>
-                <div class="enq-dl-value">{{ $enquiry->single_to_date?->format('d M Y') ?? '—' }}</div>
-              </div>
-            </div>
-          </div>
+      @if ($enquiry->check_in && $enquiry->check_out && $enquiry->check_out->gte($enquiry->check_in))
+        @php
+          $dailyByDate = [];
+          foreach (($enquiry->daily_room_rates ?? []) as $row) {
+              if (is_array($row) && ! empty($row['date'])) {
+                  $dailyByDate[\Illuminate\Support\Carbon::parse($row['date'])->toDateString()] = $row;
+              }
+          }
+          $stayCursor = $enquiry->check_in->copy()->startOfDay();
+          $stayEnd = $enquiry->check_out->copy()->startOfDay();
+          $stayCount = 0;
+        @endphp
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead>
+              <tr>
+                <th rowspan="2">Date</th>
+                <th colspan="2">Single Room &amp; Rate</th>
+                <th colspan="2">Double Room &amp; Rate</th>
+                <th colspan="2">Triple Room &amp; Rate</th>
+              </tr>
+              <tr>
+                <th>Rooms</th>
+                <th>Rate</th>
+                <th>Rooms</th>
+                <th>Rate</th>
+                <th>Rooms</th>
+                <th>Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              @while ($stayCursor->lte($stayEnd) && $stayCount < 400)
+                @php
+                  $dayKey = $stayCursor->toDateString();
+                  $dayRow = $dailyByDate[$dayKey] ?? null;
+                  $singleRooms = $dayRow['single_rooms'] ?? $enquiry->single_rooms;
+                  $singleRate = $dayRow['single_rate'] ?? $enquiry->single_rate;
+                  $doubleRooms = $dayRow['double_rooms'] ?? $enquiry->double_rooms;
+                  $doubleRate = $dayRow['double_rate'] ?? $enquiry->double_rate;
+                  $tripleRooms = $dayRow['triple_rooms'] ?? $enquiry->triple_rooms;
+                  $tripleRate = $dayRow['triple_rate'] ?? $enquiry->triple_rate;
+                @endphp
+                <tr>
+                  <td class="fw-semibold text-nowrap">{{ $stayCursor->format('d-m-Y') }}</td>
+                  <td>{{ $singleRooms ?? '—' }}</td>
+                  <td>{{ $money($singleRate) }}</td>
+                  <td>{{ $doubleRooms ?? '—' }}</td>
+                  <td>{{ $money($doubleRate) }}</td>
+                  <td>{{ $tripleRooms ?? '—' }}</td>
+                  <td>{{ $money($tripleRate) }}</td>
+                </tr>
+                @php
+                  $stayCursor->addDay();
+                  $stayCount++;
+                @endphp
+              @endwhile
+            </tbody>
+          </table>
         </div>
-        <div class="col-md-4">
-          <div class="room-tile">
-            <div class="room-tile-label"><i class="bi bi-people"></i> Double</div>
-            <div class="enq-dl" style="grid-template-columns: 1fr 1fr;">
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">Rooms</div>
-                <div class="enq-dl-value">{{ $enquiry->double_rooms ?? '—' }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">Rate</div>
-                <div class="enq-dl-value">{{ $money($enquiry->double_rate) }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">From Date</div>
-                <div class="enq-dl-value">{{ $enquiry->double_from_date?->format('d M Y') ?? '—' }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">To Date</div>
-                <div class="enq-dl-value">{{ $enquiry->double_to_date?->format('d M Y') ?? '—' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="room-tile">
-            <div class="room-tile-label"><i class="bi bi-people-fill"></i> Triple</div>
-            <div class="enq-dl" style="grid-template-columns: 1fr 1fr;">
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">Rooms</div>
-                <div class="enq-dl-value">{{ $enquiry->triple_rooms ?? '—' }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">Rate</div>
-                <div class="enq-dl-value">{{ $money($enquiry->triple_rate) }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">From Date</div>
-                <div class="enq-dl-value">{{ $enquiry->triple_from_date?->format('d M Y') ?? '—' }}</div>
-              </div>
-              <div class="enq-dl-item">
-                <div class="enq-dl-label">To Date</div>
-                <div class="enq-dl-value">{{ $enquiry->triple_to_date?->format('d M Y') ?? '—' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      @else
+        <p class="text-secondary mb-0">Arrival and departure dates are not set.</p>
+      @endif
     </div>
   </div>
 

@@ -70,92 +70,101 @@
     recalcRevenue();
   }
 
-  var applyingRoomChain = false;
-
-  function addDays(iso, days) {
-    var date = parseDate(iso);
-    if (!date) return '';
-    date.setDate(date.getDate() + days);
-    return isoDate(date);
-  }
-
-  function roomDate(type, edge) {
-    return document.getElementById(type + '_' + edge + '_date');
-  }
-
-  function setPickerBounds(el, min, max) {
-    if (!el) return;
-    if (min) el.min = min;
-    else el.removeAttribute('min');
-    if (max) el.max = max;
-    else el.removeAttribute('max');
-  }
-
-  function clearPeriod(fromEl, toEl) {
-    fromEl.value = '';
-    toEl.value = '';
-    setPickerBounds(fromEl, '', '');
-    setPickerBounds(toEl, '', '');
-  }
-
-  function placePeriod(fromEl, toEl, min, max, fillFrom) {
-    if (!fromEl || !toEl) return false;
-    if (!min || !max || min > max) {
-      clearPeriod(fromEl, toEl);
-      return false;
-    }
-    if (fromEl.value && (fromEl.value < min || fromEl.value > max)) fromEl.value = '';
-    if (toEl.value && (toEl.value < min || toEl.value > max)) toEl.value = '';
-    if (!fromEl.value && fillFrom) fromEl.value = min;
-    if (fromEl.value && toEl.value && toEl.value < fromEl.value) toEl.value = '';
-    var fromMax = toEl.value && toEl.value < max ? toEl.value : max;
-    var toMin = fromEl.value && fromEl.value > min ? fromEl.value : min;
-    setPickerBounds(fromEl, min, fromMax);
-    setPickerBounds(toEl, toMin, max);
-    return true;
-  }
-
-  function touchDate(el) {
-    if (!el) return;
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-
   function applyRoomChain() {
-    if (applyingRoomChain) return;
-    applyingRoomChain = true;
+    renderStayDates();
+  }
 
-    var arrivalEl = document.getElementById('check_in');
-    var departureEl = document.getElementById('check_out');
-    var arrival = arrivalEl && arrivalEl.value ? arrivalEl.value : '';
-    var departure = departureEl && departureEl.value ? departureEl.value : '';
-    var singleFrom = roomDate('single', 'from');
-    var singleTo = roomDate('single', 'to');
-    var doubleFrom = roomDate('double', 'from');
-    var doubleTo = roomDate('double', 'to');
-    var tripleFrom = roomDate('triple', 'from');
-    var tripleTo = roomDate('triple', 'to');
-    if (!singleFrom || !singleTo || !doubleFrom || !doubleTo || !tripleFrom || !tripleTo || !arrival || !departure) {
-      applyingRoomChain = false;
+  function formatDmY(iso) {
+    var parts = iso.split('-');
+    if (parts.length !== 3) return iso;
+    return parts[2] + '-' + parts[1] + '-' + parts[0];
+  }
+
+  function escAttr(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;');
+  }
+
+  function dailySeedMap() {
+    var node = document.getElementById('daily-room-seed');
+    if (!node) return {};
+    try {
+      var parsed = JSON.parse(node.textContent || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  var dailyCache = null;
+
+  function collectDailyValues() {
+    if (!dailyCache) dailyCache = dailySeedMap();
+    document.querySelectorAll('#stay-date-list [data-stay-date]').forEach(function (row) {
+      var date = row.getAttribute('data-stay-date');
+      var current = Object.assign({}, dailyCache[date] || {});
+      row.querySelectorAll('[data-field]').forEach(function (input) {
+        current[input.getAttribute('data-field')] = input.value;
+      });
+      dailyCache[date] = current;
+    });
+    return dailyCache;
+  }
+
+  function stayInput(iso, field, value, numeric) {
+    return '<input type="text" inputmode="' + (numeric ? 'numeric' : 'decimal') + '" class="form-control form-control-sm ' + (numeric ? 'js-digits' : 'js-decimal') + ' stay-room-input" name="daily_rooms[' + iso + '][' + field + ']" data-field="' + field + '" value="' + escAttr(value) + '">';
+  }
+
+  function renderStayDates() {
+    var list = document.getElementById('stay-date-list');
+    var arrival = document.getElementById('check_in');
+    var departure = document.getElementById('check_out');
+    if (!list || !arrival || !departure) return;
+    if (!arrival.value || !departure.value || departure.value < arrival.value) {
+      list.innerHTML = '<p class="text-secondary small mb-0">Select the arrival date and departure date to enter rooms and rates for each date.</p>';
+      recalcRevenue();
       return;
     }
 
-    if (arrival && !singleFrom.value) singleFrom.value = arrival;
-    if (departure && !singleTo.value) singleTo.value = departure;
-    placePeriod(singleFrom, singleTo, arrival, departure, false);
+    var start = parseDate(arrival.value);
+    var end = parseDate(departure.value);
+    if (!start || !end) return;
 
-    var dayAfterSingle = singleTo.value ? addDays(singleTo.value, 1) : '';
-    placePeriod(doubleFrom, doubleTo, dayAfterSingle || arrival, departure, !!dayAfterSingle);
-
-    var dayAfterDouble = doubleTo.value ? addDays(doubleTo.value, 1) : '';
-    if (!doubleTo.value) {
-      clearPeriod(tripleFrom, tripleTo);
-    } else {
-      placePeriod(tripleFrom, tripleTo, dayAfterDouble, departure, true);
+    var saved = collectDailyValues();
+    var rows = '';
+    var cursor = new Date(start.getTime());
+    var count = 0;
+    var fields = ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'];
+    while (cursor <= end && count < 400) {
+      var iso = isoDate(cursor);
+      var row = saved[iso] || {};
+      rows += '<tr data-stay-date="' + iso + '"><td class="fw-semibold text-nowrap">' + formatDmY(iso) + '</td>';
+      fields.forEach(function (field) {
+        rows += '<td>' + stayInput(iso, field, row[field] == null ? '' : row[field], field.indexOf('rooms') !== -1) + '</td>';
+      });
+      rows += '</tr>';
+      cursor.setDate(cursor.getDate() + 1);
+      count += 1;
     }
 
-    [singleFrom, singleTo, doubleFrom, doubleTo, tripleFrom, tripleTo].forEach(touchDate);
-    applyingRoomChain = false;
+    var note = count >= 400
+      ? '<p class="text-secondary small mb-2">Showing the first 400 dates.</p>'
+      : '';
+    list.innerHTML = note
+      + '<div class="table-responsive"><table class="table table-sm table-hover stay-date-table mb-0">'
+      + '<thead><tr>'
+      + '<th rowspan="2">Date</th>'
+      + '<th colspan="2">Single Room &amp; Rate</th>'
+      + '<th colspan="2">Double Room &amp; Rate</th>'
+      + '<th colspan="2">Triple Room &amp; Rate</th>'
+      + '</tr><tr>'
+      + '<th>Rooms</th><th>Rate</th>'
+      + '<th>Rooms</th><th>Rate</th>'
+      + '<th>Rooms</th><th>Rate</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    recalcRevenue();
   }
 
   function updateCxlDueDate() {
@@ -183,20 +192,32 @@
     return '£' + parts.join('.');
   }
 
+  function rowAmount(row, roomsField, rateField) {
+    var rooms = row.querySelector('[data-field="' + roomsField + '"]');
+    var rate = row.querySelector('[data-field="' + rateField + '"]');
+    var roomCount = rooms ? parseFloat(rooms.value) : 0;
+    var rateValue = rate ? parseFloat(rate.value) : 0;
+    if (isNaN(roomCount)) roomCount = 0;
+    if (isNaN(rateValue)) rateValue = 0;
+    return roomCount * rateValue;
+  }
+
   function recalcRevenue() {
-    var nightsEl = document.getElementById('nights');
     var totalEl = document.getElementById('total_revenue');
     var displayEl = document.getElementById('total_revenue_display');
     if (!totalEl) return;
-    if (!nightsEl || nightsEl.value === '') {
+    var rows = document.querySelectorAll('#stay-date-list tbody tr');
+    if (!rows.length) {
       totalEl.value = '';
       if (displayEl) displayEl.value = '';
       return;
     }
-    var nightly = (num('single_rooms') * num('single_rate'))
-      + (num('double_rooms') * num('double_rate'))
-      + (num('triple_rooms') * num('triple_rate'));
-    var total = nightly * num('nights');
+    var total = 0;
+    rows.forEach(function (row) {
+      total += rowAmount(row, 'single_rooms', 'single_rate');
+      total += rowAmount(row, 'double_rooms', 'double_rate');
+      total += rowAmount(row, 'triple_rooms', 'triple_rate');
+    });
     totalEl.value = total.toFixed(2);
     if (displayEl) displayEl.value = formatPounds(total);
   }
@@ -252,14 +273,27 @@
     });
   }
 
-  document.querySelectorAll('.enquiry-calc').forEach(function (el) {
-    el.addEventListener('input', recalcRevenue);
-    el.addEventListener('change', recalcRevenue);
-  });
+  var stayList = document.getElementById('stay-date-list');
+  if (stayList) {
+    stayList.addEventListener('input', function (event) {
+      var input = event.target;
+      if (!input || !input.getAttribute) return;
+      if (input.classList.contains('js-digits')) {
+        input.value = input.value.replace(/\D/g, '');
+      }
+      if (input.classList.contains('js-decimal')) {
+        var cleaned = input.value.replace(/[^\d.]/g, '');
+        var parts = cleaned.split('.');
+        input.value = parts.length > 1 ? parts[0] + '.' + parts.slice(1).join('') : parts[0];
+      }
+      recalcRevenue();
+    });
+  }
 
   updateDay();
   updateNights();
   updateCxlDueDate();
   applyRoomChain();
+  renderStayDates();
 })();
 </script>
