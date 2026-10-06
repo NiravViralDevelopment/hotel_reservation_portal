@@ -45,11 +45,54 @@ class EnquiryFieldRules
     }
 
     /**
-     * Create-enquiry fields only.
+     * From and to dates for each room type, kept inside the stay.
      *
+     * @param  array<string, mixed>  $input
      * @return array<string, mixed>
      */
-    public static function create(?int $ignoreEnquiryId = null): array
+    public static function roomPeriodRules(array $input = []): array
+    {
+        $rules = [];
+
+        foreach (['single', 'double', 'triple'] as $type) {
+            $to = ['nullable', 'date', 'after_or_equal:check_in', 'before_or_equal:check_out'];
+            if (! empty($input[$type.'_from_date'])) {
+                $to[] = 'after_or_equal:'.$type.'_from_date';
+            }
+
+            $rules[$type.'_from_date'] = ['nullable', 'date', 'after_or_equal:check_in', 'before_or_equal:check_out'];
+            $rules[$type.'_to_date'] = $to;
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function roomPeriodMessages(): array
+    {
+        $messages = [];
+
+        foreach (['single' => 'Single', 'double' => 'Double', 'triple' => 'Triple'] as $type => $label) {
+            $messages[$type.'_from_date.required_with'] = 'Enter the '.$label.' from date.';
+            $messages[$type.'_from_date.after_or_equal'] = $label.' from date must be on or after the arrival date.';
+            $messages[$type.'_from_date.before_or_equal'] = $label.' from date must be on or before the departure date.';
+            $messages[$type.'_to_date.required_with'] = 'Enter the '.$label.' to date.';
+            $messages[$type.'_to_date.after_or_equal'] = $label.' to date must be on or after the from date, and not before the arrival date.';
+            $messages[$type.'_to_date.before_or_equal'] = $label.' to date must be on or before the departure date.';
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Create-enquiry fields only.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    public static function create(?int $ignoreEnquiryId = null, array $input = []): array
     {
         $groupName = ['required', 'string', 'max:255', Rule::unique('enquiries', 'group_name')];
         $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref'];
@@ -59,7 +102,7 @@ class EnquiryFieldRules
             $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref,'.$ignoreEnquiryId];
         }
 
-        return [
+        return array_merge([
             'enquiry_date' => ['required', 'date'],
             'response_date' => ['required', 'date', 'after_or_equal:enquiry_date'],
             'check_in' => ['required', 'date', 'after_or_equal:today'],
@@ -88,7 +131,7 @@ class EnquiryFieldRules
                 'max:255',
                 Rule::exists('status_masters', 'title')->where(fn ($query) => $query->where('status', 'active')),
             ],
-        ];
+        ], self::roomPeriodRules($input));
     }
 
     /**

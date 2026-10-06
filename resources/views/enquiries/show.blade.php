@@ -248,6 +248,14 @@
                 <div class="enq-dl-label">Rate</div>
                 <div class="enq-dl-value">{{ $money($enquiry->single_rate) }}</div>
               </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">From Date</div>
+                <div class="enq-dl-value">{{ $enquiry->single_from_date?->format('d M Y') ?? '—' }}</div>
+              </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">To Date</div>
+                <div class="enq-dl-value">{{ $enquiry->single_to_date?->format('d M Y') ?? '—' }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -263,6 +271,14 @@
                 <div class="enq-dl-label">Rate</div>
                 <div class="enq-dl-value">{{ $money($enquiry->double_rate) }}</div>
               </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">From Date</div>
+                <div class="enq-dl-value">{{ $enquiry->double_from_date?->format('d M Y') ?? '—' }}</div>
+              </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">To Date</div>
+                <div class="enq-dl-value">{{ $enquiry->double_to_date?->format('d M Y') ?? '—' }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -277,6 +293,14 @@
               <div class="enq-dl-item">
                 <div class="enq-dl-label">Rate</div>
                 <div class="enq-dl-value">{{ $money($enquiry->triple_rate) }}</div>
+              </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">From Date</div>
+                <div class="enq-dl-value">{{ $enquiry->triple_from_date?->format('d M Y') ?? '—' }}</div>
+              </div>
+              <div class="enq-dl-item">
+                <div class="enq-dl-label">To Date</div>
+                <div class="enq-dl-value">{{ $enquiry->triple_to_date?->format('d M Y') ?? '—' }}</div>
               </div>
             </div>
           </div>

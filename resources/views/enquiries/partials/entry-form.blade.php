@@ -122,7 +122,7 @@
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-    <span class="enquiry-section-hint">Enter the room count and nightly rate for each type.</span>
+    <span class="enquiry-section-hint">Arrival and departure fill Single. Choose both dates for each room type. Double can only start after Single ends, and Triple can only start after Double ends.</span>
   </div>
   <div class="card-body">
     <div class="row g-3">
@@ -139,10 +139,35 @@
               <input type="text" name="{{ $type }}_rooms" id="{{ $type }}_rooms" inputmode="numeric" class="form-control js-digits enquiry-calc @error($type.'_rooms') is-invalid @enderror" value="{{ $v($type.'_rooms') }}" placeholder="Rooms">
               @error($type.'_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
-            <div>
+            <div class="mb-3">
               <label for="{{ $type }}_rate" class="form-label">Rate</label>
               <input type="text" name="{{ $type }}_rate" id="{{ $type }}_rate" inputmode="decimal" class="form-control js-decimal enquiry-calc @error($type.'_rate') is-invalid @enderror" value="{{ $v($type.'_rate') }}" placeholder="Nightly rate">
               @error($type.'_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </div>
+            @php
+              $periodHints = [
+                'single' => ['from' => 'Select a date from arrival onward.', 'to' => 'Select a date up to departure.'],
+                'double' => ['from' => 'Starts the day after Single ends.', 'to' => 'Select a date up to departure.'],
+                'triple' => ['from' => 'Starts the day after Double ends.', 'to' => 'Select a date up to departure.'],
+              ];
+            @endphp
+            <div class="mb-3">
+              <label for="{{ $type }}_from_date" class="form-label">From Date</label>
+              <div class="date-placeholder-wrap">
+                <input type="date" name="{{ $type }}_from_date" id="{{ $type }}_from_date" class="form-control room-period-date @error($type.'_from_date') is-invalid @enderror" value="{{ $v($type.'_from_date') }}" data-room-type="{{ $type }}" data-period="from">
+                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+              </div>
+              <div class="form-text">{{ $periodHints[$type]['from'] }}</div>
+              @error($type.'_from_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </div>
+            <div>
+              <label for="{{ $type }}_to_date" class="form-label">To Date</label>
+              <div class="date-placeholder-wrap">
+                <input type="date" name="{{ $type }}_to_date" id="{{ $type }}_to_date" class="form-control room-period-date @error($type.'_to_date') is-invalid @enderror" value="{{ $v($type.'_to_date') }}" data-room-type="{{ $type }}" data-period="to">
+                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+              </div>
+              <div class="form-text">{{ $periodHints[$type]['to'] }}</div>
+              @error($type.'_to_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
           </div>
         </div>

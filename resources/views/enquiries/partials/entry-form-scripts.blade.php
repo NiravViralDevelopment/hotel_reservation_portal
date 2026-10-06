@@ -70,6 +70,94 @@
     recalcRevenue();
   }
 
+  var applyingRoomChain = false;
+
+  function addDays(iso, days) {
+    var date = parseDate(iso);
+    if (!date) return '';
+    date.setDate(date.getDate() + days);
+    return isoDate(date);
+  }
+
+  function roomDate(type, edge) {
+    return document.getElementById(type + '_' + edge + '_date');
+  }
+
+  function setPickerBounds(el, min, max) {
+    if (!el) return;
+    if (min) el.min = min;
+    else el.removeAttribute('min');
+    if (max) el.max = max;
+    else el.removeAttribute('max');
+  }
+
+  function clearPeriod(fromEl, toEl) {
+    fromEl.value = '';
+    toEl.value = '';
+    setPickerBounds(fromEl, '', '');
+    setPickerBounds(toEl, '', '');
+  }
+
+  function placePeriod(fromEl, toEl, min, max, fillFrom) {
+    if (!fromEl || !toEl) return false;
+    if (!min || !max || min > max) {
+      clearPeriod(fromEl, toEl);
+      return false;
+    }
+    if (fromEl.value && (fromEl.value < min || fromEl.value > max)) fromEl.value = '';
+    if (toEl.value && (toEl.value < min || toEl.value > max)) toEl.value = '';
+    if (!fromEl.value && fillFrom) fromEl.value = min;
+    if (fromEl.value && toEl.value && toEl.value < fromEl.value) toEl.value = '';
+    var fromMax = toEl.value && toEl.value < max ? toEl.value : max;
+    var toMin = fromEl.value && fromEl.value > min ? fromEl.value : min;
+    setPickerBounds(fromEl, min, fromMax);
+    setPickerBounds(toEl, toMin, max);
+    return true;
+  }
+
+  function touchDate(el) {
+    if (!el) return;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function applyRoomChain() {
+    if (applyingRoomChain) return;
+    applyingRoomChain = true;
+
+    var arrivalEl = document.getElementById('check_in');
+    var departureEl = document.getElementById('check_out');
+    var arrival = arrivalEl && arrivalEl.value ? arrivalEl.value : '';
+    var departure = departureEl && departureEl.value ? departureEl.value : '';
+    var singleFrom = roomDate('single', 'from');
+    var singleTo = roomDate('single', 'to');
+    var doubleFrom = roomDate('double', 'from');
+    var doubleTo = roomDate('double', 'to');
+    var tripleFrom = roomDate('triple', 'from');
+    var tripleTo = roomDate('triple', 'to');
+    if (!singleFrom || !singleTo || !doubleFrom || !doubleTo || !tripleFrom || !tripleTo || !arrival || !departure) {
+      applyingRoomChain = false;
+      return;
+    }
+
+    if (arrival && !singleFrom.value) singleFrom.value = arrival;
+    if (departure && !singleTo.value) singleTo.value = departure;
+    placePeriod(singleFrom, singleTo, arrival, departure, false);
+
+    var dayAfterSingle = singleTo.value ? addDays(singleTo.value, 1) : '';
+    placePeriod(doubleFrom, doubleTo, dayAfterSingle || arrival, departure, !!dayAfterSingle);
+
+    var dayAfterDouble = doubleTo.value ? addDays(doubleTo.value, 1) : '';
+    if (!doubleTo.value) {
+      clearPeriod(tripleFrom, tripleTo);
+    } else {
+      placePeriod(tripleFrom, tripleTo, dayAfterDouble, departure, true);
+    }
+
+    [singleFrom, singleTo, doubleFrom, doubleTo, tripleFrom, tripleTo].forEach(touchDate);
+    applyingRoomChain = false;
+  }
+
   function updateCxlDueDate() {
     var policy = document.getElementById('cxl_policy');
     var arrival = document.getElementById('check_in');
@@ -131,11 +219,13 @@
       updateDay();
       updateNights();
       updateCxlDueDate();
+      applyRoomChain();
     });
     arrivalEl.addEventListener('input', function () {
       updateDay();
       updateNights();
       updateCxlDueDate();
+      applyRoomChain();
     });
   }
 
@@ -145,10 +235,21 @@
     cxlPolicyEl.addEventListener('change', updateCxlDueDate);
   }
 
+  document.querySelectorAll('.room-period-date').forEach(function (el) {
+    el.addEventListener('change', applyRoomChain);
+    el.addEventListener('input', applyRoomChain);
+  });
+
   var departureEl = document.getElementById('check_out');
   if (departureEl) {
-    departureEl.addEventListener('change', updateNights);
-    departureEl.addEventListener('input', updateNights);
+    departureEl.addEventListener('change', function () {
+      updateNights();
+      applyRoomChain();
+    });
+    departureEl.addEventListener('input', function () {
+      updateNights();
+      applyRoomChain();
+    });
   }
 
   document.querySelectorAll('.enquiry-calc').forEach(function (el) {
@@ -159,5 +260,6 @@
   updateDay();
   updateNights();
   updateCxlDueDate();
+  applyRoomChain();
 })();
 </script>

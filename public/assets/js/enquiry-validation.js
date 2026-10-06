@@ -137,23 +137,54 @@
       }
     }
 
-    if (rules.afterOrEqualField || rules.afterOrEqualAttr) {
-      var afterForm = el.form;
-      var afterOther = (rules.afterOrEqualField && afterForm)
-        ? afterForm.querySelector('[name="' + rules.afterOrEqualField + '"]')
-        : null;
-      var afterOtherVal = afterOther ? trim(afterOther.value) : '';
-      if (!afterOtherVal && rules.afterOrEqualAttr) {
-        afterOtherVal = trim(el.getAttribute(rules.afterOrEqualAttr) || '');
-      }
-      if (afterOtherVal && value < afterOtherVal) {
-        setError(el, rules.afterOrEqualMessage || 'Must be on or after the related date.');
-        return false;
-      }
+    var beforeNames = rules.beforeOrEqualFields || (rules.beforeOrEqualField ? [rules.beforeOrEqualField] : []);
+    if (dateBoundFails(el, beforeNames, function (otherVal) { return value > otherVal; })) {
+      setError(el, rules.beforeOrEqualMessage || 'Must be on or before the related date.');
+      return false;
+    }
+
+    var afterNames = rules.afterOrEqualFields || (rules.afterOrEqualField ? [rules.afterOrEqualField] : []);
+    var afterAttr = '';
+    if (!afterNames.length && rules.afterOrEqualAttr) {
+      afterAttr = trim(el.getAttribute(rules.afterOrEqualAttr) || '');
+    }
+    if ((afterNames.length && dateBoundFails(el, afterNames, function (otherVal) { return value < otherVal; }))
+      || (afterAttr && value < afterAttr)) {
+      setError(el, rules.afterOrEqualMessage || 'Must be on or after the related date.');
+      return false;
     }
 
     clearError(el);
     return true;
+  }
+
+  function dateBoundFails(el, names, isInvalid) {
+    var form = el.form;
+    for (var i = 0; i < names.length; i++) {
+      var other = form ? form.querySelector('[name="' + names[i] + '"]') : null;
+      var otherVal = other ? trim(other.value) : '';
+      if (otherVal && isInvalid(otherVal)) return true;
+    }
+    return false;
+  }
+
+  function roomPeriodRule(form, type, label, edge) {
+    var stayMessage = label + ' ' + edge + ' date must be between the arrival date and the departure date.';
+    if (edge === 'from') {
+      return {
+        afterOrEqualField: 'check_in',
+        beforeOrEqualFields: ['check_out', type + '_to_date'],
+        afterOrEqualMessage: stayMessage,
+        beforeOrEqualMessage: label + ' from date must be on or before the to date, and between arrival and departure.'
+      };
+    }
+
+    return {
+      afterOrEqualFields: ['check_in', type + '_from_date'],
+      beforeOrEqualField: 'check_out',
+      afterOrEqualMessage: label + ' to date must be on or after the from date, and between arrival and departure.',
+      beforeOrEqualMessage: stayMessage
+    };
   }
 
   function buildRules(form) {
@@ -187,6 +218,12 @@
       single_rate: { decimal: true, min: 0 },
       double_rate: { decimal: true, min: 0 },
       triple_rate: { decimal: true, min: 0 },
+      single_from_date: roomPeriodRule(form, 'single', 'Single', 'from'),
+      single_to_date: roomPeriodRule(form, 'single', 'Single', 'to'),
+      double_from_date: roomPeriodRule(form, 'double', 'Double', 'from'),
+      double_to_date: roomPeriodRule(form, 'double', 'Double', 'to'),
+      triple_from_date: roomPeriodRule(form, 'triple', 'Triple', 'from'),
+      triple_to_date: roomPeriodRule(form, 'triple', 'Triple', 'to'),
       total_revenue: { decimal: true, min: 0 },
       remarks: { max: 5000 },
       cxl_policy: { max: 255 },
@@ -280,12 +317,20 @@
       });
     }
 
+    function recheckStayDates() {
+      ['check_out', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'].forEach(function (name) {
+        var field = form.querySelector('[name="' + name + '"]');
+        if (field && field.value) runField(field);
+      });
+    }
+
     var checkInEl = form.querySelector('#check_in');
     if (checkInEl) {
-      checkInEl.addEventListener('change', function () {
-        var checkOut = form.querySelector('#check_out');
-        if (checkOut && checkOut.value) runField(checkOut);
-      });
+      checkInEl.addEventListener('change', recheckStayDates);
+    }
+    var checkOutEl = form.querySelector('#check_out');
+    if (checkOutEl) {
+      checkOutEl.addEventListener('change', recheckStayDates);
     }
 
     var enquiryDateEl = form.querySelector('#enquiry_date');

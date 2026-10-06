@@ -131,6 +131,7 @@ class EnquiryController extends Controller
             $data['check_in_day'] = $data['day'];
         }
         $data = $this->applyCxlDueDate($data);
+        $data = $this->applyRoomPeriods($data);
         $data['total_revenue'] = $this->revenueFromRoomNights($data);
         $data = array_merge($data, $this->applyTaxRevenue($data));
         $data = array_merge($data, $this->applyCommercialTotals($data));
@@ -341,13 +342,13 @@ class EnquiryController extends Controller
             $request->merge(['ref' => null]);
         }
 
-        foreach (['day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date'] as $field) {
+        foreach (['day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'] as $field) {
             if ($request->input($field) === '') {
                 $request->merge([$field => null]);
             }
         }
 
-        $data = $request->validate(EnquiryFieldRules::create($enquiry->id), [
+        $data = $request->validate(EnquiryFieldRules::create($enquiry->id, $request->all()), [
             'enquiry_date.required' => 'Enquiry date is required.',
             'response_date.required' => 'Response date is required.',
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
@@ -365,7 +366,7 @@ class EnquiryController extends Controller
             'ref.unique' => 'This reference is already used. Enter a different one.',
             'status.exists' => 'Select a valid active status.',
             'basis.in' => 'Select a valid basis.',
-        ]);
+        ] + EnquiryFieldRules::roomPeriodMessages());
 
         if (empty($data['year']) && ! empty($data['enquiry_date'])) {
             $data['year'] = (int) Carbon::parse($data['enquiry_date'])->format('Y');
@@ -378,6 +379,7 @@ class EnquiryController extends Controller
             $data['check_in_day'] = $data['day'];
         }
         $data = $this->applyCxlDueDate($data);
+        $data = $this->applyRoomPeriods($data);
         $data['total_revenue'] = $this->revenueFromRoomNights($data);
 
         if (empty($data['status'])) {
@@ -505,6 +507,91 @@ class EnquiryController extends Controller
             ->toDateString();
 
         return $data;
+    }
+
+    /**
+     * Keep each room-type range inside the stay, and stop a later type using dates already taken by the previous type.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function applyRoomPeriods(array $data): array
+    {
+        if (empty($data['check_in']) || empty($data['check_out'])) {
+            return $data;
+        }
+
+        $arrival = Carbon::parse($data['check_in'])->startOfDay();
+        $departure = Carbon::parse($data['check_out'])->startOfDay();
+
+        [$singleFrom, $singleTo] = $this->clampRoomPeriod(
+            $data['single_from_date'] ?? null,
+            $data['single_to_date'] ?? null,
+            $arrival,
+            $departure
+        );
+
+        $doubleStart = $singleTo ? $singleTo->copy()->addDay() : $arrival->copy();
+        if ($doubleStart->gt($departure)) {
+            $doubleFrom = null;
+            $doubleTo = null;
+        } else {
+            [$doubleFrom, $doubleTo] = $this->clampRoomPeriod(
+                $data['double_from_date'] ?? null,
+                $data['double_to_date'] ?? null,
+                $doubleStart,
+                $departure
+            );
+        }
+
+        $tripleStart = $doubleTo ? $doubleTo->copy()->addDay() : $doubleStart->copy();
+        if ($tripleStart->gt($departure) || $doubleTo === null) {
+            $tripleFrom = null;
+            $tripleTo = null;
+        } else {
+            [$tripleFrom, $tripleTo] = $this->clampRoomPeriod(
+                $data['triple_from_date'] ?? null,
+                $data['triple_to_date'] ?? null,
+                $tripleStart,
+                $departure
+            );
+        }
+
+        $data['single_from_date'] = $singleFrom?->toDateString();
+        $data['single_to_date'] = $singleTo?->toDateString();
+        $data['double_from_date'] = $doubleFrom?->toDateString();
+        $data['double_to_date'] = $doubleTo?->toDateString();
+        $data['triple_from_date'] = $tripleFrom?->toDateString();
+        $data['triple_to_date'] = $tripleTo?->toDateString();
+
+        return $data;
+    }
+
+    /**
+     * @return array{0: ?\Carbon\Carbon, 1: ?\Carbon\Carbon}
+     */
+    private function clampRoomPeriod(mixed $from, mixed $to, Carbon $min, Carbon $max): array
+    {
+        $fromDate = $from ? Carbon::parse($from)->startOfDay() : null;
+        $toDate = $to ? Carbon::parse($to)->startOfDay() : null;
+
+        if ($fromDate && $fromDate->lt($min)) {
+            $fromDate = $min->copy();
+        }
+        if ($fromDate && $fromDate->gt($max)) {
+            $fromDate = null;
+        }
+        if ($toDate && $toDate->gt($max)) {
+            $toDate = $max->copy();
+        }
+        if ($toDate && $toDate->lt($min)) {
+            $toDate = $min->copy();
+        }
+        if ($fromDate && $toDate && $toDate->lt($fromDate)) {
+            $toDate = $fromDate->copy();
+        }
+
+        return [$fromDate, $toDate];
     }
 
     /**

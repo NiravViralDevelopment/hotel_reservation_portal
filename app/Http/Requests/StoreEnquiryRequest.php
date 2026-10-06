@@ -15,7 +15,7 @@ class StoreEnquiryRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $nullable = [];
-        foreach (['ref', 'day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date'] as $field) {
+        foreach (['ref', 'day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'] as $field) {
             if ($this->input($field) === '') {
                 $nullable[$field] = null;
             }
@@ -31,7 +31,7 @@ class StoreEnquiryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return EnquiryFieldRules::create();
+        return EnquiryFieldRules::create(null, $this->all());
     }
 
     /**
@@ -57,6 +57,6 @@ class StoreEnquiryRequest extends FormRequest
             'ref.unique' => 'This reference is already used. Enter a different one.',
             'status.exists' => 'Select a valid active status.',
             'basis.in' => 'Select a valid basis.',
-        ];
+        ] + EnquiryFieldRules::roomPeriodMessages();
     }
 }
