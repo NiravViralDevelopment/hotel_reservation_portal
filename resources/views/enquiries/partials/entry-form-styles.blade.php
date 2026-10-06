@@ -41,7 +41,8 @@
     background: linear-gradient(180deg, transparent, var(--bg-body) 28%);
   }
   .enquiry-form-layout select.day-auto,
-  .enquiry-form-layout input.nights-auto {
+  .enquiry-form-layout input.nights-auto,
+  .enquiry-form-layout input.cxl-due-auto {
     pointer-events: none;
     background-color: var(--bs-secondary-bg);
   }

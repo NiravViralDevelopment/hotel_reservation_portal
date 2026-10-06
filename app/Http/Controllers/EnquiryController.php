@@ -130,6 +130,7 @@ class EnquiryController extends Controller
             $data['day'] = Carbon::parse($data['check_in'])->format('l');
             $data['check_in_day'] = $data['day'];
         }
+        $data = $this->applyCxlDueDate($data);
         $data['total_revenue'] = $this->revenueFromRoomNights($data);
         $data = array_merge($data, $this->applyTaxRevenue($data));
         $data = array_merge($data, $this->applyCommercialTotals($data));
@@ -376,6 +377,7 @@ class EnquiryController extends Controller
             $data['day'] = Carbon::parse($data['check_in'])->format('l');
             $data['check_in_day'] = $data['day'];
         }
+        $data = $this->applyCxlDueDate($data);
         $data['total_revenue'] = $this->revenueFromRoomNights($data);
 
         if (empty($data['status'])) {
@@ -480,6 +482,29 @@ class EnquiryController extends Controller
         $result['days'] = max(1, $nights);
 
         return $result;
+    }
+
+    /**
+     * CXL due date is the arrival date minus the number of days written in the CXL policy.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function applyCxlDueDate(array $data): array
+    {
+        $policy = trim((string) ($data['cxl_policy'] ?? ''));
+        if ($policy === '' || empty($data['check_in']) || ! preg_match('/\d+/', $policy, $matches)) {
+            $data['cxl_due_date'] = null;
+
+            return $data;
+        }
+
+        $data['cxl_due_date'] = Carbon::parse($data['check_in'])
+            ->startOfDay()
+            ->subDays((int) $matches[0])
+            ->toDateString();
+
+        return $data;
     }
 
     /**

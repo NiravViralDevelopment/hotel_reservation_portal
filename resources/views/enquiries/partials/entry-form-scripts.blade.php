@@ -70,6 +70,25 @@
     recalcRevenue();
   }
 
+  function updateCxlDueDate() {
+    var policy = document.getElementById('cxl_policy');
+    var arrival = document.getElementById('check_in');
+    var due = document.getElementById('cxl_due_date');
+    if (!policy || !arrival || !due) return;
+
+    var match = String(policy.value).match(/\d+/);
+    var start = parseDate(arrival.value);
+    if (!match || !start) {
+      due.value = '';
+    } else {
+      var date = new Date(start.getTime());
+      date.setDate(date.getDate() - parseInt(match[0], 10));
+      due.value = isoDate(date);
+    }
+    due.dispatchEvent(new Event('input', { bubbles: true }));
+    due.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
   function formatPounds(amount) {
     var parts = amount.toFixed(2).split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -111,11 +130,19 @@
     arrivalEl.addEventListener('change', function () {
       updateDay();
       updateNights();
+      updateCxlDueDate();
     });
     arrivalEl.addEventListener('input', function () {
       updateDay();
       updateNights();
+      updateCxlDueDate();
     });
+  }
+
+  var cxlPolicyEl = document.getElementById('cxl_policy');
+  if (cxlPolicyEl) {
+    cxlPolicyEl.addEventListener('input', updateCxlDueDate);
+    cxlPolicyEl.addEventListener('change', updateCxlDueDate);
   }
 
   var departureEl = document.getElementById('check_out');
@@ -131,5 +158,6 @@
 
   updateDay();
   updateNights();
+  updateCxlDueDate();
 })();
 </script>

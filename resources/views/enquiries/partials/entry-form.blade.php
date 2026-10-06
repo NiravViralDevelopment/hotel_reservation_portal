@@ -176,18 +176,20 @@
         </div>
         @error('option_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
-      <div class="col-md-6 col-xl-3">
-        <label for="cxl_due_date" class="form-label">CXL Due Date</label>
-        <div class="date-placeholder-wrap">
-          <input type="date" name="cxl_due_date" id="cxl_due_date" class="form-control @error('cxl_due_date') is-invalid @enderror" value="{{ $v('cxl_due_date') }}">
-          <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
-        </div>
-        @error('cxl_due_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-      </div>
       <div class="col-xl-6">
         <label for="cxl_policy" class="form-label">CXL Policy</label>
-        <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ $v('cxl_policy') }}" placeholder="Enter CXL policy" maxlength="255">
+        <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ $v('cxl_policy') }}" placeholder="e.g. 30 days" maxlength="255">
+        <div class="form-text">Enter the number of days before arrival.</div>
         @error('cxl_policy')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <label for="cxl_due_date" class="form-label">CXL Due Date <span class="field-auto-badge">Auto</span></label>
+        <div class="date-placeholder-wrap">
+          <input type="date" name="cxl_due_date" id="cxl_due_date" class="form-control cxl-due-auto @error('cxl_due_date') is-invalid @enderror" value="{{ $v('cxl_due_date') }}" readonly tabindex="-1" aria-readonly="true">
+          <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+        </div>
+        <div class="form-text">Arrival date minus the CXL Policy days.</div>
+        @error('cxl_due_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
       <div class="col-md-6 col-xl-3">
         <div class="revenue-panel">
