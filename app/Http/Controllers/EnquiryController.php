@@ -352,6 +352,8 @@ class EnquiryController extends Controller
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'check_in.required' => 'Arrival date is required.',
             'check_in.after_or_equal' => 'Arrival date cannot be before today.',
+            'check_out.required' => 'Departure date is required.',
+            'check_out.after' => 'Departure date must be after the arrival date.',
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',
@@ -472,7 +474,7 @@ class EnquiryController extends Controller
 
         $checkIn = Carbon::parse($data['check_in'])->startOfDay();
         $checkOut = Carbon::parse($data['check_out'])->startOfDay();
-        $nights = $checkIn->diffInDays($checkOut);
+        $nights = (int) $checkIn->diff($checkOut)->days;
 
         $result['nights'] = max(1, $nights);
         $result['days'] = max(1, $nights);
@@ -695,6 +697,7 @@ class EnquiryController extends Controller
             'enquiry_date' => 'enquiry_date',
             'response_date' => 'response_date',
             'check_in' => 'check_in',
+            'check_out' => 'check_out',
             'day' => 'day',
             'nights' => 'nights',
             'rooms_per_night' => 'rooms_per_night',
@@ -732,6 +735,7 @@ class EnquiryController extends Controller
             'Enquiry Date',
             'Response Date',
             'Arrival Date',
+            'Departure Date',
             'Day',
             'Nights',
             'Total Room per Night',
@@ -765,6 +769,7 @@ class EnquiryController extends Controller
             $enquiry->enquiry_date?->format('Y-m-d'),
             $enquiry->response_date?->format('Y-m-d'),
             $enquiry->check_in?->format('Y-m-d'),
+            $enquiry->check_out?->format('Y-m-d'),
             $enquiry->day,
             $this->exportInt($enquiry->nights),
             $this->exportInt($enquiry->rooms_per_night),

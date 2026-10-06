@@ -194,10 +194,17 @@
       check_in: isCreate
         ? { required: true, requiredMessage: 'Arrival date is required.' }
         : {},
-      check_out: {
-        afterField: 'check_in',
-        afterMessage: 'Check-out must be after check-in.'
-      },
+      check_out: isCreate
+        ? {
+            required: true,
+            requiredMessage: 'Departure date is required.',
+            afterField: 'check_in',
+            afterMessage: 'Departure date must be after the arrival date.'
+          }
+        : {
+            afterField: 'check_in',
+            afterMessage: 'Departure date must be after the arrival date.'
+          },
       tax_percentage: {
         required: function () {
           var hasTax = form.querySelector('#has_tax');

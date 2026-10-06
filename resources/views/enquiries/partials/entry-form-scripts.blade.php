@@ -24,20 +24,50 @@
     return isNaN(value) ? 0 : value;
   }
 
+  function parseDate(value) {
+    if (!value) return null;
+    var date = new Date(value + 'T00:00:00');
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  function isoDate(date) {
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return date.getFullYear() + '-' + month + '-' + day;
+  }
+
   function updateDay() {
     var arrival = document.getElementById('check_in');
     var dayEl = document.getElementById('day');
     if (!arrival || !dayEl) return;
-    if (!arrival.value) {
-      dayEl.value = '';
-      return;
+    var date = parseDate(arrival.value);
+    dayEl.value = date ? weekdays[date.getDay()] : '';
+  }
+
+  function updateNights() {
+    var arrival = document.getElementById('check_in');
+    var departure = document.getElementById('check_out');
+    var nightsEl = document.getElementById('nights');
+    if (!arrival || !departure || !nightsEl) return;
+
+    var start = parseDate(arrival.value);
+    if (start) {
+      var minDeparture = new Date(start.getTime());
+      minDeparture.setDate(minDeparture.getDate() + 1);
+      departure.min = isoDate(minDeparture);
+    } else {
+      departure.removeAttribute('min');
     }
-    var date = new Date(arrival.value + 'T00:00:00');
-    if (isNaN(date.getTime())) {
-      dayEl.value = '';
-      return;
+
+    var end = parseDate(departure.value);
+    if (!start || !end || end <= start) {
+      nightsEl.value = '';
+    } else {
+      nightsEl.value = String(Math.round((end.getTime() - start.getTime()) / 86400000));
     }
-    dayEl.value = weekdays[date.getDay()];
+    nightsEl.dispatchEvent(new Event('input', { bubbles: true }));
+    nightsEl.dispatchEvent(new Event('change', { bubbles: true }));
+    recalcRevenue();
   }
 
   function formatPounds(amount) {
@@ -78,8 +108,20 @@
 
   var arrivalEl = document.getElementById('check_in');
   if (arrivalEl) {
-    arrivalEl.addEventListener('change', updateDay);
-    arrivalEl.addEventListener('input', updateDay);
+    arrivalEl.addEventListener('change', function () {
+      updateDay();
+      updateNights();
+    });
+    arrivalEl.addEventListener('input', function () {
+      updateDay();
+      updateNights();
+    });
+  }
+
+  var departureEl = document.getElementById('check_out');
+  if (departureEl) {
+    departureEl.addEventListener('change', updateNights);
+    departureEl.addEventListener('input', updateNights);
   }
 
   document.querySelectorAll('.enquiry-calc').forEach(function (el) {
@@ -88,6 +130,6 @@
   });
 
   updateDay();
-  recalcRevenue();
+  updateNights();
 })();
 </script>

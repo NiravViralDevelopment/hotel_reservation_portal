@@ -23,6 +23,7 @@
         <x-sortable-th column="enquiry_date" label="Enquiry Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="response_date" label="Response Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_in" label="Arrival Date" :default="$defaultSort" :default-dir="$defaultDir" />
+        <x-sortable-th column="check_out" label="Departure Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="day" label="Day" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="nights" label="Nights" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="rooms_per_night" label="Total Room per Night" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -54,6 +55,7 @@
           <td class="text-nowrap">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</td>
           <td><x-date-alert :date="$enquiry->check_in" /></td>
+          <td class="text-nowrap">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->day ?: '—' }}</td>
           <td>{{ $enquiry->nights ?? '—' }}</td>
           <td>{{ $enquiry->rooms_per_night ?? '—' }}</td>

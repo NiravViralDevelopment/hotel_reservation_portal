@@ -22,7 +22,7 @@
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-calendar3"></i> Dates</h2>
-    <span class="enquiry-section-hint">Day is filled in from the arrival date.</span>
+    <span class="enquiry-section-hint">Day comes from the arrival date. Nights are calculated from arrival and departure.</span>
   </div>
   <div class="card-body">
     <div class="row g-3">
@@ -51,6 +51,14 @@
         @error('check_in')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
       <div class="col-md-6 col-xl-3">
+        <label for="check_out" class="form-label">Departure Date <span class="text-danger">*</span></label>
+        <div class="date-placeholder-wrap">
+          <input type="date" name="check_out" id="check_out" class="form-control @error('check_out') is-invalid @enderror" value="{{ $v('check_out') }}" @if ($v('check_in')) min="{{ \Illuminate\Support\Carbon::parse($v('check_in'))->addDay()->toDateString() }}" @endif required>
+          <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+        </div>
+        @error('check_out')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      </div>
+      <div class="col-md-6 col-xl-3">
         <label for="day" class="form-label">Day <span class="field-auto-badge">Auto</span></label>
         <select name="day" id="day" class="form-select day-auto @error('day') is-invalid @enderror" tabindex="-1" aria-readonly="true">
           <option value="">From arrival date</option>
@@ -61,8 +69,8 @@
         @error('day')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
       <div class="col-md-6 col-xl-3">
-        <label for="nights" class="form-label">Nights <span class="text-danger">*</span></label>
-        <input type="text" name="nights" id="nights" inputmode="numeric" class="form-control js-digits enquiry-calc @error('nights') is-invalid @enderror" value="{{ $v('nights') }}" placeholder="Enter nights" required>
+        <label for="nights" class="form-label">Nights <span class="field-auto-badge">Auto</span></label>
+        <input type="text" name="nights" id="nights" inputmode="numeric" class="form-control nights-auto enquiry-calc @error('nights') is-invalid @enderror" value="{{ $v('nights') }}" placeholder="From dates" readonly tabindex="-1" aria-readonly="true" required>
         @error('nights')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
       <div class="col-md-6 col-xl-3">

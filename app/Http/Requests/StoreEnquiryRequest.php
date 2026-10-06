@@ -45,6 +45,8 @@ class StoreEnquiryRequest extends FormRequest
             'response_date.after_or_equal' => 'Response date cannot be before enquiry date.',
             'check_in.required' => 'Arrival date is required.',
             'check_in.after_or_equal' => 'Arrival date cannot be before today.',
+            'check_out.required' => 'Departure date is required.',
+            'check_out.after' => 'Departure date must be after the arrival date.',
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',

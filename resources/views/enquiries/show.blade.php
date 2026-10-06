@@ -179,6 +179,10 @@
           <div class="enq-dl-value"><x-date-alert :date="$enquiry->check_in" /></div>
         </div>
         <div class="enq-dl-item">
+          <div class="enq-dl-label">Departure Date</div>
+          <div class="enq-dl-value">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</div>
+        </div>
+        <div class="enq-dl-item">
           <div class="enq-dl-label">Day</div>
           <div class="enq-dl-value">{{ $text($enquiry->day ?: $enquiry->check_in_day) }}</div>
         </div>
