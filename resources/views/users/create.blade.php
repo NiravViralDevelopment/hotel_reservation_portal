@@ -76,11 +76,6 @@
                 @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
               </div>
               <div class="col-md-6">
-                <label for="job_title" class="form-label">Job title</label>
-                <input type="text" name="job_title" id="job_title" class="form-control @error('job_title') is-invalid @enderror" value="{{ old('job_title') }}" placeholder="Enter job title" maxlength="255">
-                @error('job_title')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-              </div>
-              <div class="col-md-6">
                 <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
                 <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
                   <option value="active" @selected(old('status', 'active') === 'active')>Active</option>
