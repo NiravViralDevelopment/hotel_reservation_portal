@@ -70,7 +70,7 @@
           <td>{{ $enquiry->triple_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->triple_rate) }}</td>
           <td class="text-nowrap">{{ $enquiry->basis ?: '—' }}</td>
-          <td><x-date-alert :date="$enquiry->option_date" :window="30" /></td>
+          <td><x-date-alert :date="$enquiry->option_date" scale="option" /></td>
           <td style="max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cxl_policy }}">{{ $enquiry->cxl_policy ?: '—' }}</td>
           <td><x-date-alert :date="$enquiry->cxl_due_date" :window="30" /></td>
           <td class="text-nowrap fw-semibold">{{ $money($enquiry->total_revenue) }}</td>
