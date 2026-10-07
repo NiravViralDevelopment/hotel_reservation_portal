@@ -103,7 +103,9 @@ class EnquiryController extends Controller
             ->orderBy('title')
             ->pluck('title');
 
-        return view('enquiries.create', compact('statuses'));
+        $existingPairs = $this->existingGroupRefPairs();
+
+        return view('enquiries.create', compact('statuses', 'existingPairs'));
     }
 
     public function store(StoreEnquiryRequest $request): RedirectResponse
@@ -175,7 +177,9 @@ class EnquiryController extends Controller
             ->orderBy('title')
             ->pluck('title');
 
-        return view('enquiries.edit', compact('enquiry', 'statuses'));
+        $existingPairs = $this->existingGroupRefPairs($enquiry->id);
+
+        return view('enquiries.edit', compact('enquiry', 'statuses', 'existingPairs'));
     }
 
     public function groupBooking(Enquiry $enquiry): RedirectResponse
@@ -338,6 +342,11 @@ class EnquiryController extends Controller
     {
         $this->authorize('update', $enquiry);
 
+        $request->merge([
+            'group_name' => trim((string) $request->input('group_name', '')),
+            'ref' => trim((string) $request->input('ref', '')),
+        ]);
+
         if ($request->input('ref') === '') {
             $request->merge(['ref' => null]);
         }
@@ -359,10 +368,12 @@ class EnquiryController extends Controller
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',
+            'group_name.unique' => 'This group name and ref no combination already exists.',
             'rooms_per_night.required' => 'Total room per night is required.',
             'email.required' => 'Email ID is required.',
             'email.email' => 'Enter a valid email address.',
-            'ref.unique' => 'This reference is already used. Enter a different one.',
+            'ref.required' => 'Ref no is required.',
+            'ref.unique' => 'This group name and ref no combination already exists.',
             'status.exists' => 'Select a valid active status.',
             'basis.in' => 'Select a valid basis.',
         ] + EnquiryFieldRules::roomPeriodMessages());
@@ -1004,5 +1015,29 @@ class EnquiryController extends Controller
         }
 
         return (int) $value;
+    }
+
+    /**
+     * @return list<array{group_name: string, ref: string}>
+     */
+    private function existingGroupRefPairs(?int $ignoreEnquiryId = null): array
+    {
+        $query = Enquiry::query()
+            ->select(['group_name', 'ref'])
+            ->whereNotNull('ref')
+            ->where('ref', '!=', '');
+
+        if ($ignoreEnquiryId !== null) {
+            $query->where('id', '!=', $ignoreEnquiryId);
+        }
+
+        return $query
+            ->get()
+            ->map(fn (Enquiry $enquiry) => [
+                'group_name' => mb_strtolower(trim((string) $enquiry->group_name)),
+                'ref' => mb_strtolower(trim((string) $enquiry->ref)),
+            ])
+            ->values()
+            ->all();
     }
 }

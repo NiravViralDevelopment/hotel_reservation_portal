@@ -21,7 +21,7 @@
     <p class="page-subtitle mb-0">Save changes to this enquiry, open Group Bookings, or cancel the inquiry.</p>
   </div>
 
-  <form method="POST" action="{{ route('enquiries.update', $enquiry) }}" class="enquiry-form" data-enquiry-create="1" novalidate>
+  <form method="POST" action="{{ route('enquiries.update', $enquiry) }}" class="enquiry-form" data-enquiry-create="1" novalidate data-existing-pairs='@json($existingPairs)'>
     @csrf
     @method('PUT')
     <input type="hidden" name="form_context" value="enquiry">
