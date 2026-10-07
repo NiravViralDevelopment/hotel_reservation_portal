@@ -271,15 +271,35 @@
     paymentDaysEl.addEventListener('change', updatePaymentDue);
   }
 
+  function syncDepartureMin() {
+    var arrival = field('gb_check_in');
+    var departure = field('gb_check_out');
+    if (!arrival || !departure) return;
+    if (!arrival.value) {
+      departure.removeAttribute('min');
+      return;
+    }
+    var minDeparture = shiftDate(arrival.value, 1);
+    if (!minDeparture) return;
+    departure.min = minDeparture;
+    if (departure.value && departure.value < minDeparture) {
+      departure.value = '';
+      departure.dispatchEvent(new Event('input', { bubbles: true }));
+      departure.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
   var arrivalEl = field('gb_check_in');
   if (arrivalEl) {
     arrivalEl.min = localToday();
     arrivalEl.addEventListener('change', function () {
       updateDay();
+      syncDepartureMin();
       updatePaymentDue();
     });
     arrivalEl.addEventListener('input', function () {
       updateDay();
+      syncDepartureMin();
       updatePaymentDue();
     });
   }
@@ -288,6 +308,7 @@
     departureEl.addEventListener('change', updatePaymentDue);
     departureEl.addEventListener('input', updatePaymentDue);
   }
+  syncDepartureMin();
   updatePaymentDue();
   paymentDueReady = true;
 

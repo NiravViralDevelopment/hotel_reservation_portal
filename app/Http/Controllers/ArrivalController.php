@@ -7,6 +7,7 @@ use App\Models\Hotel;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class ArrivalController extends Controller
@@ -15,13 +16,18 @@ class ArrivalController extends Controller
     {
         abort_unless(auth()->user()?->can('bookings.view'), 403);
 
-        $date = $request->date('date')?->toDateString() ?? now()->toDateString();
+        $month = $this->selectedMonth($request);
 
         $query = Enquiry::query()
             ->accessibleBy()
             ->with(['hotel', 'travelAgency'])
             ->groupBookings()
-            ->whereDate('check_in', $date);
+            ->whereYear('check_in', $month->year)
+            ->whereMonth('check_in', $month->month)
+            ->where(function ($query) {
+                $query->whereNull('check_out')
+                    ->orWhereDate('check_out', '>', now()->toDateString());
+            });
 
         if ($request->filled('hotel_id')) {
             HotelAccess::ensure(null, $request->integer('hotel_id'));
@@ -31,13 +37,28 @@ class ArrivalController extends Controller
         QuerySort::apply($query, $request, [
             'ref' => 'ref',
             'group_name' => 'group_name',
+            'check_in' => 'check_in',
             'nights' => 'nights',
             'status' => 'status',
-        ], 'group_name');
+        ], 'check_in');
 
         $bookings = $query->get();
         $hotels = Hotel::optionsForSelect();
+        $monthValue = $month->format('Y-m');
 
-        return view('arrivals.index', compact('bookings', 'hotels', 'date'));
+        return view('arrivals.index', compact('bookings', 'hotels', 'month', 'monthValue'));
+    }
+
+    private function selectedMonth(Request $request): Carbon
+    {
+        $value = $request->string('month')->toString();
+        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
+            $month = Carbon::createFromFormat('!Y-m', $value);
+            if ($month) {
+                return $month->startOfMonth();
+            }
+        }
+
+        return now()->startOfMonth();
     }
 }

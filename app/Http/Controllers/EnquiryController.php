@@ -208,7 +208,7 @@ class EnquiryController extends Controller
 
         $data = $request->validate([
             'check_in' => ['required', 'date', 'after_or_equal:today'],
-            'check_out' => ['required', 'date', 'after_or_equal:check_in'],
+            'check_out' => ['required', 'date', 'after:check_in'],
             'day' => ['nullable', 'string', 'max:20'],
             'nights' => ['required', 'integer', 'min:0'],
             'block_id' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'block_id')->ignore($enquiry->id)],
@@ -254,7 +254,7 @@ class EnquiryController extends Controller
             'check_in.required' => 'Date of arrival is required.',
             'check_in.after_or_equal' => 'Date of arrival cannot be before today.',
             'check_out.required' => 'Date of departure is required.',
-            'check_out.after_or_equal' => 'Date of departure cannot be before the date of arrival.',
+            'check_out.after' => 'Date of departure must be after the date of arrival.',
             'nights.required' => 'No. of nights is required.',
             'block_id.required' => 'Block ID is required.',
             'block_id.unique' => 'This block ID is already used.',

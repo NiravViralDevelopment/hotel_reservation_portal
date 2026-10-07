@@ -45,7 +45,7 @@
         <div class="col-md-6 col-xl-3">
           <label for="gb_check_out" class="form-label">Date of Departure <span class="text-danger">*</span></label>
           <div class="date-placeholder-wrap">
-            <input type="date" name="check_out" id="gb_check_out" class="form-control @error('check_out') is-invalid @enderror" value="{{ $v('check_out') }}" required>
+            <input type="date" name="check_out" id="gb_check_out" class="form-control @error('check_out') is-invalid @enderror" value="{{ $v('check_out') }}" @if ($v('check_in')) min="{{ \Illuminate\Support\Carbon::parse($v('check_in'))->addDay()->toDateString() }}" @endif required>
             <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
           </div>
           @error('check_out')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
