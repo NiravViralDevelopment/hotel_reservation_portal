@@ -94,12 +94,129 @@
     return now.getFullYear() + '-' + month + '-' + day;
   }
 
+  function selectedPaymentTerm() {
+    var checked = form.querySelector('.js-payment-term:checked');
+    return checked ? checked.value : '';
+  }
+
+  function shiftDate(iso, days) {
+    if (!iso) return '';
+    var parts = String(iso).split('-');
+    if (parts.length !== 3) return '';
+    var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (isNaN(date.getTime())) return '';
+    date.setDate(date.getDate() + days);
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return date.getFullYear() + '-' + month + '-' + day;
+  }
+
+  var paymentDueReady = false;
+
+  function updatePaymentDue() {
+    var wrap = field('gb_payment_term_days_wrap');
+    var daysEl = field('gb_payment_term_days');
+    var due = field('gb_payment_due_date');
+    var hint = field('gb_payment_due_hint');
+    var term = selectedPaymentTerm();
+
+    if (wrap) wrap.hidden = term === '';
+    if (!due) return;
+
+    function showDue(value) {
+      due.value = value;
+      due.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    if (term === '') {
+      if (paymentDueReady) showDue('');
+      if (hint) hint.textContent = 'Select a payment term and enter the number of days.';
+      return;
+    }
+
+    if (!daysEl || daysEl.value === '') {
+      showDue('');
+      if (hint) hint.textContent = 'Enter the number of days.';
+      return;
+    }
+
+    var days = parseInt(daysEl.value, 10);
+    if (isNaN(days)) {
+      showDue('');
+      return;
+    }
+
+    var base = field(term === 'Pre Arrival' ? 'gb_check_in' : 'gb_check_out');
+    showDue(base && base.value ? shiftDate(base.value, term === 'Pre Arrival' ? -days : days) : '');
+    if (hint) {
+      hint.textContent = term === 'Pre Arrival'
+        ? 'Arrival date minus the number of days.'
+        : 'Departure date plus the number of days.';
+    }
+  }
+
+  form.querySelectorAll('.js-payment-term').forEach(function (box) {
+    box.addEventListener('change', function () {
+      if (box.checked) {
+        form.querySelectorAll('.js-payment-term').forEach(function (other) {
+          if (other !== box) other.checked = false;
+        });
+      }
+      updatePaymentDue();
+    });
+  });
+
+  var paymentDaysEl = field('gb_payment_term_days');
+  if (paymentDaysEl) {
+    paymentDaysEl.addEventListener('input', updatePaymentDue);
+    paymentDaysEl.addEventListener('change', updatePaymentDue);
+  }
+
   var arrivalEl = field('gb_check_in');
   if (arrivalEl) {
     arrivalEl.min = localToday();
-    arrivalEl.addEventListener('change', updateDay);
-    arrivalEl.addEventListener('input', updateDay);
+    arrivalEl.addEventListener('change', function () {
+      updateDay();
+      updatePaymentDue();
+    });
+    arrivalEl.addEventListener('input', function () {
+      updateDay();
+      updatePaymentDue();
+    });
   }
+  var departureEl = field('gb_check_out');
+  if (departureEl) {
+    departureEl.addEventListener('change', updatePaymentDue);
+    departureEl.addEventListener('input', updatePaymentDue);
+  }
+  updatePaymentDue();
+  paymentDueReady = true;
+
+  function selectedHasCommission() {
+    var checked = form.querySelector('.js-has-commission:checked');
+    return checked ? checked.value : '';
+  }
+
+  function updateCommissionPayable() {
+    var wrap = field('gb_commission_payable_wrap');
+    var status = field('gb_commission_payable_status');
+    var hasCommission = selectedHasCommission() === '1';
+    if (wrap) wrap.hidden = !hasCommission;
+    if (!hasCommission && status) status.value = '';
+  }
+
+  form.querySelectorAll('.js-has-commission').forEach(function (box) {
+    box.addEventListener('change', function () {
+      if (box.checked) {
+        form.querySelectorAll('.js-has-commission').forEach(function (other) {
+          if (other !== box) other.checked = false;
+        });
+      }
+      updateCommissionPayable();
+    });
+  });
+  updateCommissionPayable();
+
   form.querySelectorAll('.gb-calc').forEach(function (el) {
     el.addEventListener('input', recalc);
     el.addEventListener('change', recalc);

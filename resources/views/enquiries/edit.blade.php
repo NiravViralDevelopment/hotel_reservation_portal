@@ -64,6 +64,12 @@
         </div>
         <div class="modal-body">
           <p class="text-secondary">Cancel enquiry <strong>{{ $enquiry->group_name ?: 'this enquiry' }}</strong>? It will move to Cancelled Inquiry.</p>
+          <label for="inquiry_cxl_date" class="form-label">CXL Date</label>
+          <div class="date-placeholder-wrap mb-3">
+            <input type="date" name="cxl_date" id="inquiry_cxl_date" class="form-control @error('cxl_date') is-invalid @enderror" value="{{ old('cxl_date') }}">
+            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          </div>
+          @error('cxl_date')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
           <label for="cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
           <textarea name="cancellation_reason" id="cancellation_reason" rows="4" class="form-control @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancellation_reason') }}</textarea>
           @error('cancellation_reason')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -81,7 +87,7 @@
 @push('scripts')
   @include('enquiries.partials.entry-form-scripts')
   @include('enquiries.partials.group-booking-scripts')
-  @if ($errors->has('cancellation_reason'))
+  @if ($errors->has('cancellation_reason') || $errors->has('cxl_date'))
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         var modalId = @json(old('cancel_scope') === 'group' ? 'cancelGroupBookingModal' : 'cancelInquiryModal');

@@ -109,7 +109,7 @@ class GroupBookingController extends Controller
                 $enquiry->cxl_policy,
                 $enquiry->cxl_due_date?->format('Y-m-d'),
                 $enquiry->cxl_date?->format('Y-m-d'),
-                $this->exportMoney($enquiry->commission),
+                $enquiry->has_commission === null ? null : ($enquiry->has_commission ? 'Yes' : 'No'),
                 $enquiry->single_rooms,
                 $this->exportMoney($enquiry->single_rate),
                 $enquiry->double_rooms,

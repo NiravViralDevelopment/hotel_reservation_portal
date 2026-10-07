@@ -129,17 +129,35 @@
           <input type="text" name="saved_to_doc" id="gb_saved_to_doc" class="form-control @error('saved_to_doc') is-invalid @enderror" value="{{ $v('saved_to_doc') }}" maxlength="255">
           @error('saved_to_doc')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
+        @php
+          $termSubmitted = old('form_context') === 'group';
+          $selectedPaymentTerm = $termSubmitted ? old('payment_term') : ($enquiry->payment_term ?? null);
+          $paymentTermDays = $termSubmitted ? old('payment_term_days') : ($enquiry->payment_term_days ?? '');
+        @endphp
         <div class="col-md-6 col-xl-4">
-          <label for="gb_payment_term" class="form-label">Payment Term</label>
-          <input type="text" name="payment_term" id="gb_payment_term" class="form-control @error('payment_term') is-invalid @enderror" value="{{ $v('payment_term') }}" maxlength="255">
+          <span class="form-label d-block">Payment Term</span>
+          <div class="form-check">
+            <input class="form-check-input js-payment-term" type="checkbox" name="payment_term" id="gb_payment_term_pre" value="Pre Arrival" @checked($selectedPaymentTerm === 'Pre Arrival')>
+            <label class="form-check-label" for="gb_payment_term_pre">Pre Arrival</label>
+          </div>
+          <div class="form-check mb-0">
+            <input class="form-check-input js-payment-term" type="checkbox" name="payment_term" id="gb_payment_term_post" value="Post Departure" @checked($selectedPaymentTerm === 'Post Departure')>
+            <label class="form-check-label" for="gb_payment_term_post">Post Departure</label>
+          </div>
           @error('payment_term')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          <div id="gb_payment_term_days_wrap" class="mt-2" @unless (in_array($selectedPaymentTerm, ['Pre Arrival', 'Post Departure'], true)) hidden @endunless>
+            <label for="gb_payment_term_days" class="form-label">Number of days</label>
+            <input type="text" name="payment_term_days" id="gb_payment_term_days" inputmode="numeric" class="form-control js-digits @error('payment_term_days') is-invalid @enderror" value="{{ $paymentTermDays }}" placeholder="Enter days" maxlength="3">
+            @error('payment_term_days')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
         </div>
         <div class="col-md-6 col-xl-4">
-          <label for="gb_payment_due_date" class="form-label">Due Date</label>
+          <label for="gb_payment_due_date" class="form-label">Due Date <span class="field-auto-badge">Auto</span></label>
           <div class="date-placeholder-wrap">
-            <input type="date" name="payment_due_date" id="gb_payment_due_date" class="form-control @error('payment_due_date') is-invalid @enderror" value="{{ $v('payment_due_date') }}">
+            <input type="date" name="payment_due_date" id="gb_payment_due_date" class="form-control cxl-due-auto @error('payment_due_date') is-invalid @enderror" value="{{ $v('payment_due_date') }}" readonly tabindex="-1" aria-readonly="true">
             <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
           </div>
+          <div class="form-text" id="gb_payment_due_hint">Select a payment term and enter the number of days.</div>
           @error('payment_due_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-4">
@@ -170,18 +188,26 @@
           </div>
           @error('cxl_due_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
+        @php
+          $commissionSubmitted = old('form_context') === 'group';
+          $selectedHasCommission = $commissionSubmitted
+              ? old('has_commission')
+              : ($enquiry->has_commission === null ? null : ($enquiry->has_commission ? '1' : '0'));
+          $selectedCommissionPayable = $commissionSubmitted
+              ? old('commission_payable_status')
+              : ($enquiry->commission_payable_status ?? '');
+        @endphp
         <div class="col-md-6 col-xl-3">
-          <label for="gb_cxl_date" class="form-label">CXL Date</label>
-          <div class="date-placeholder-wrap">
-            <input type="date" name="cxl_date" id="gb_cxl_date" class="form-control @error('cxl_date') is-invalid @enderror" value="{{ $v('cxl_date') }}">
-            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          <span class="form-label d-block">Commission</span>
+          <div class="form-check">
+            <input class="form-check-input js-has-commission" type="checkbox" name="has_commission" id="gb_has_commission_yes" value="1" @checked($selectedHasCommission === '1' || $selectedHasCommission === 1 || $selectedHasCommission === true)>
+            <label class="form-check-label" for="gb_has_commission_yes">Yes</label>
           </div>
-          @error('cxl_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <label for="gb_commission" class="form-label">Commission</label>
-          <input type="text" name="commission" id="gb_commission" inputmode="decimal" class="form-control js-decimal @error('commission') is-invalid @enderror" value="{{ $v('commission') }}">
-          @error('commission')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          <div class="form-check mb-0">
+            <input class="form-check-input js-has-commission" type="checkbox" name="has_commission" id="gb_has_commission_no" value="0" @checked($selectedHasCommission === '0' || $selectedHasCommission === 0 || $selectedHasCommission === false)>
+            <label class="form-check-label" for="gb_has_commission_no">No</label>
+          </div>
+          @error('has_commission')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>
     </div>
@@ -316,9 +342,13 @@
           <input type="text" name="invoice_amount" id="gb_invoice_amount" inputmode="decimal" class="form-control js-decimal @error('invoice_amount') is-invalid @enderror" value="{{ $v('invoice_amount') }}">
           @error('invoice_amount')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-6 col-xl-4">
+        <div class="col-md-6 col-xl-4" id="gb_commission_payable_wrap" @unless ($selectedHasCommission === '1' || $selectedHasCommission === 1 || $selectedHasCommission === true) hidden @endunless>
           <label for="gb_commission_payable_status" class="form-label">Commission Payable Status</label>
-          <input type="text" name="commission_payable_status" id="gb_commission_payable_status" class="form-control @error('commission_payable_status') is-invalid @enderror" value="{{ $v('commission_payable_status') }}" maxlength="255">
+          <select name="commission_payable_status" id="gb_commission_payable_status" class="form-select @error('commission_payable_status') is-invalid @enderror">
+            <option value="">Select status</option>
+            <option value="Pending" @selected($selectedCommissionPayable === 'Pending')>Pending</option>
+            <option value="Received" @selected($selectedCommissionPayable === 'Received')>Received</option>
+          </select>
           @error('commission_payable_status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>

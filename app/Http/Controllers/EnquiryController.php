@@ -194,11 +194,11 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         foreach ([
-            'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_status',
+            'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status',
             'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'commission_payable_status',
             'basis', 'client', 'email', 'day',
             'contract_sent_on', 'contract_received_on', 'payment_due_date', 'cxl_due_date', 'cxl_date', 'invoice_sent_on',
-            'commission', 'bb_revenue', 'dinner_revenue', 'nett_rev_ex_vat', 'invoice_amount',
+            'bb_revenue', 'dinner_revenue', 'nett_rev_ex_vat', 'invoice_amount',
             'single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate',
         ] as $field) {
             if ($request->input($field) === '') {
@@ -219,13 +219,14 @@ class EnquiryController extends Controller
             'contract_sent_on' => ['nullable', 'date'],
             'contract_received_on' => ['nullable', 'date'],
             'saved_to_doc' => ['nullable', 'string', 'max:255'],
-            'payment_term' => ['nullable', 'string', 'max:255'],
+            'payment_term' => ['nullable', 'string', Rule::in(['Pre Arrival', 'Post Departure'])],
+            'payment_term_days' => ['nullable', 'integer', 'min:0', 'max:999', 'required_with:payment_term'],
             'payment_due_date' => ['nullable', 'date'],
             'payment_status' => ['nullable', 'string', 'max:255'],
             'cxl_policy' => ['nullable', 'string', 'max:255'],
             'cxl_due_date' => ['nullable', 'date'],
             'cxl_date' => ['nullable', 'date'],
-            'commission' => ['nullable', 'numeric', 'min:0'],
+            'has_commission' => ['nullable', 'in:0,1'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],
             'single_rate' => ['nullable', 'numeric', 'min:0'],
             'double_rooms' => ['nullable', 'integer', 'min:0'],
@@ -241,7 +242,7 @@ class EnquiryController extends Controller
             'invoice_status' => ['nullable', 'string', 'max:255'],
             'invoice_sent_on' => ['nullable', 'date'],
             'invoice_amount' => ['nullable', 'numeric', 'min:0'],
-            'commission_payable_status' => ['nullable', 'string', 'max:255'],
+            'commission_payable_status' => ['nullable', 'string', Rule::in(['Pending', 'Received']), 'required_if:has_commission,1'],
         ], [
             'check_in.required' => 'Date of arrival is required.',
             'check_in.after_or_equal' => 'Date of arrival cannot be before today.',
@@ -252,6 +253,13 @@ class EnquiryController extends Controller
             'block_id.unique' => 'This block ID is already used.',
             'basis.in' => 'Select BB or DBB.',
             'email.email' => 'Enter a valid email address.',
+            'payment_term.in' => 'Select Pre Arrival or Post Departure.',
+            'payment_term_days.required_with' => 'Enter the number of days.',
+            'payment_term_days.integer' => 'Number of days must be a whole number.',
+            'payment_term_days.min' => 'Number of days cannot be negative.',
+            'has_commission.in' => 'Select Yes or No for commission.',
+            'commission_payable_status.required_if' => 'Select the commission payable status.',
+            'commission_payable_status.in' => 'Select Pending or Received.',
         ]);
 
         foreach (['single_rooms', 'double_rooms', 'triple_rooms'] as $key) {
@@ -263,6 +271,25 @@ class EnquiryController extends Controller
         $data['nights'] = max(0, (int) $data['nights']);
         $data['day'] = Carbon::parse($data['check_in'])->format('l');
         $data['check_in_day'] = $data['day'];
+        $data['payment_due_date'] = $this->paymentDueDate(
+            $data['payment_term'] ?? null,
+            isset($data['payment_term_days']) ? (int) $data['payment_term_days'] : null,
+            $data['check_in'],
+            $data['check_out']
+        );
+        if ($data['payment_due_date'] === null) {
+            $data['payment_term'] = null;
+            $data['payment_term_days'] = null;
+        }
+
+        if (array_key_exists('has_commission', $data) && $data['has_commission'] !== null && $data['has_commission'] !== '') {
+            $data['has_commission'] = (string) $data['has_commission'] === '1';
+        } else {
+            $data['has_commission'] = null;
+        }
+        if (! $data['has_commission']) {
+            $data['commission_payable_status'] = null;
+        }
 
         $nights = $data['nights'];
         $data['total_rns'] = ($data['single_rooms'] + $data['double_rooms'] + $data['triple_rooms']) * $nights;
@@ -295,10 +322,16 @@ class EnquiryController extends Controller
     {
         $this->authorize('update', $enquiry);
 
+        if ($request->input('cxl_date') === '') {
+            $request->merge(['cxl_date' => null]);
+        }
+
         $data = $request->validate([
             'cancellation_reason' => ['required', 'string', 'max:2000'],
+            'cxl_date' => ['nullable', 'date'],
         ], [
             'cancellation_reason.required' => 'Enter the cancellation reason.',
+            'cxl_date.date' => 'Enter a valid CXL date.',
         ]);
 
         $enquiry->update([
@@ -306,6 +339,7 @@ class EnquiryController extends Controller
             'is_cancel' => true,
             'is_confirm' => false,
             'cancellation_reason' => $data['cancellation_reason'],
+            'cxl_date' => $data['cxl_date'] ?? null,
         ]);
         Audit::log('cancelled', 'enquiries', $enquiry->group_name ?: $enquiry->ref, $enquiry);
 
@@ -1006,6 +1040,23 @@ class EnquiryController extends Controller
         }
 
         return round((float) $value, 2);
+    }
+
+    private function paymentDueDate(?string $term, ?int $days, mixed $arrival, mixed $departure): ?string
+    {
+        if (! in_array($term, ['Pre Arrival', 'Post Departure'], true) || $days === null) {
+            return null;
+        }
+
+        $base = $term === 'Pre Arrival' ? $arrival : $departure;
+        if ($base === null || $base === '') {
+            return null;
+        }
+
+        return Carbon::parse($base)
+            ->startOfDay()
+            ->addDays($term === 'Pre Arrival' ? -$days : $days)
+            ->toDateString();
     }
 
     private function exportInt(mixed $value): ?int

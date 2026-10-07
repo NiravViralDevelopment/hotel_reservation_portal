@@ -44,6 +44,7 @@
         <x-sortable-th column="total_revenue" label="Total Revenue" :default="$defaultSort" :default-dir="$defaultDir" />
         <th>Remarks</th>
         @if ($showCancellationReason)
+          <th>CXL Date</th>
           <th>Cancellation Reason</th>
         @endif
         <th class="text-end">Actions</th>
@@ -76,6 +77,7 @@
           <td class="text-nowrap fw-semibold">{{ $money($enquiry->total_revenue) }}</td>
           <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->remarks }}">{{ $enquiry->remarks ?: '—' }}</td>
           @if ($showCancellationReason)
+            <td class="text-nowrap">{{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $enquiry->cancellation_reason ?: '—' }}</td>
           @endif
           <td class="text-end text-nowrap">
@@ -104,7 +106,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ $showCancellationReason ? 24 : 23 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ $showCancellationReason ? 25 : 23 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
   </table>
