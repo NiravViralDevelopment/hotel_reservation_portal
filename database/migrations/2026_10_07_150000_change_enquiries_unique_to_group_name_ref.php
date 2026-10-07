@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -29,9 +30,8 @@ return new class extends Migration
         }
 
         if (! $hasPairUnique) {
-            Schema::table('enquiries', function (Blueprint $table) {
-                $table->unique(['group_name', 'ref'], 'enquiries_group_name_ref_unique');
-            });
+            // utf8mb4 composite keys must stay under this server's 1000-byte index limit.
+            DB::statement('ALTER TABLE `enquiries` ADD UNIQUE `enquiries_group_name_ref_unique` (`group_name`(120), `ref`(120))');
         }
     }
 

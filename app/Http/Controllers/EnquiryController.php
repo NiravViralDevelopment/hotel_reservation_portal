@@ -233,6 +233,13 @@ class EnquiryController extends Controller
             'double_rate' => ['nullable', 'numeric', 'min:0'],
             'triple_rooms' => ['nullable', 'integer', 'min:0'],
             'triple_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms' => ['nullable', 'array', 'max:400'],
+            'daily_rooms.*.single_rooms' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.single_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.double_rooms' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.double_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.triple_rooms' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.triple_rate' => ['nullable', 'numeric', 'min:0'],
             'bb_revenue' => ['nullable', 'numeric'],
             'dinner_revenue' => ['nullable', 'numeric'],
             'nett_rev_ex_vat' => ['nullable', 'numeric'],
@@ -292,17 +299,39 @@ class EnquiryController extends Controller
         }
 
         $nights = $data['nights'];
-        $data['total_rns'] = ($data['single_rooms'] + $data['double_rooms'] + $data['triple_rooms']) * $nights;
-        $data['total_revenue'] = round((
-            ($data['single_rooms'] * $data['single_rate'])
-            + ($data['double_rooms'] * $data['double_rate'])
-            + ($data['triple_rooms'] * $data['triple_rate'])
-        ) * $nights, 2);
-        $data['bb_revenue'] = round((
-            ($data['single_rooms'] * 10)
-            + ($data['double_rooms'] * 20)
-            + ($data['triple_rooms'] * 30)
-        ) * $nights, 2);
+        $dailyRows = $this->cleanDailyRooms($data['daily_rooms'] ?? null, $data['check_in'], $data['check_out']);
+        unset($data['daily_rooms']);
+        if ($dailyRows === [] && is_array($enquiry->daily_room_rates) && $enquiry->daily_room_rates !== []) {
+            $dailyRows = $enquiry->daily_room_rates;
+        }
+
+        if ($dailyRows !== []) {
+            $totals = $this->totalsFromDailyRows($dailyRows);
+            foreach (['single', 'double', 'triple'] as $type) {
+                $data[$type.'_rooms'] = $totals[$type.'_rooms'];
+                $data[$type.'_rate'] = $totals[$type.'_rate'];
+            }
+            $data['total_rns'] = $totals['total_rns'] * $nights;
+            $data['total_revenue'] = round((
+                ($data['single_rooms'] * $data['single_rate'])
+                + ($data['double_rooms'] * $data['double_rate'])
+                + ($data['triple_rooms'] * $data['triple_rate'])
+            ) * $nights, 2);
+            $data['bb_revenue'] = $totals['bb_revenue'];
+            $data['daily_room_rates'] = $dailyRows;
+        } else {
+            $data['total_rns'] = ($data['single_rooms'] + $data['double_rooms'] + $data['triple_rooms']) * $nights;
+            $data['total_revenue'] = round((
+                ($data['single_rooms'] * $data['single_rate'])
+                + ($data['double_rooms'] * $data['double_rate'])
+                + ($data['triple_rooms'] * $data['triple_rate'])
+            ) * $nights, 2);
+            $data['bb_revenue'] = round((
+                ($data['single_rooms'] * 10)
+                + ($data['double_rooms'] * 20)
+                + ($data['triple_rooms'] * 30)
+            ) * $nights, 2);
+        }
         $data['dinner_revenue'] = 0;
         $data['nett_rev_ex_vat'] = round((($data['total_revenue'] * 100) / 120) - $data['bb_revenue'], 2);
         $data['status'] = 'Confirmed';
@@ -840,15 +869,106 @@ class EnquiryController extends Controller
 
         ksort($clean);
         $data['daily_room_rates'] = array_values($clean);
-        $first = $data['daily_room_rates'][0] ?? null;
-        if (is_array($first)) {
+        if ($data['daily_room_rates'] !== []) {
+            $totals = $this->totalsFromDailyRows($data['daily_room_rates']);
             foreach (['single', 'double', 'triple'] as $type) {
-                $data[$type.'_rooms'] = $first[$type.'_rooms'];
-                $data[$type.'_rate'] = $first[$type.'_rate'];
+                $data[$type.'_rooms'] = $totals[$type.'_rooms'];
+                $data[$type.'_rate'] = $totals[$type.'_rate'];
             }
         }
 
         return $data;
+    }
+
+    /**
+     * @return list<array{date: string, single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float}>
+     */
+    private function cleanDailyRooms(mixed $rows, mixed $checkIn, mixed $checkOut): array
+    {
+        if (! is_array($rows) || empty($checkIn) || empty($checkOut)) {
+            return [];
+        }
+
+        try {
+            $start = Carbon::parse($checkIn)->startOfDay();
+            $end = Carbon::parse($checkOut)->startOfDay();
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $clean = [];
+        foreach ($rows as $date => $row) {
+            if (! is_array($row) || ! is_string($date)) {
+                continue;
+            }
+
+            try {
+                $day = Carbon::parse($date)->startOfDay();
+            } catch (\Throwable) {
+                continue;
+            }
+
+            if ($day->lt($start) || $day->gt($end)) {
+                continue;
+            }
+
+            $item = ['date' => $day->toDateString()];
+            foreach (['single', 'double', 'triple'] as $type) {
+                $item[$type.'_rooms'] = max(0, (int) ($row[$type.'_rooms'] ?? 0));
+                $item[$type.'_rate'] = round(max(0, (float) ($row[$type.'_rate'] ?? 0)), 2);
+            }
+            $clean[$item['date']] = $item;
+
+            if (count($clean) >= 400) {
+                break;
+            }
+        }
+
+        ksort($clean);
+
+        return array_values($clean);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @return array{single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float, total_rns: int, total_revenue: float, bb_revenue: float}
+     */
+    private function totalsFromDailyRows(array $rows): array
+    {
+        $totals = [
+            'single_rooms' => 0,
+            'single_rate' => 0.0,
+            'double_rooms' => 0,
+            'double_rate' => 0.0,
+            'triple_rooms' => 0,
+            'triple_rate' => 0.0,
+            'total_rns' => 0,
+            'total_revenue' => 0.0,
+            'bb_revenue' => 0.0,
+        ];
+        $allowance = ['single' => 10, 'double' => 20, 'triple' => 30];
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            foreach (['single', 'double', 'triple'] as $type) {
+                $rooms = max(0, (int) ($row[$type.'_rooms'] ?? 0));
+                $rate = max(0, (float) ($row[$type.'_rate'] ?? 0));
+                $totals[$type.'_rooms'] += $rooms;
+                $totals[$type.'_rate'] += $rate;
+                $totals['total_rns'] += $rooms;
+                $totals['total_revenue'] += $rooms * $rate;
+                $totals['bb_revenue'] += $rooms * $allowance[$type];
+            }
+        }
+
+        foreach (['single_rate', 'double_rate', 'triple_rate', 'total_revenue', 'bb_revenue'] as $key) {
+            $totals[$key] = round($totals[$key], 2);
+        }
+
+        return $totals;
     }
 
     /**

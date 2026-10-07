@@ -46,18 +46,83 @@
     if (display) display.value = formatPounds(parseFloat(rounded));
   }
 
-  function recalc() {
-    var nights = num('gb_nights');
-    var single = num('gb_single_rooms');
-    var doubleRooms = num('gb_double_rooms');
-    var triple = num('gb_triple_rooms');
-    var totalRns = (single + doubleRooms + triple) * nights;
-    var totalRev = (
-      (single * num('gb_single_rate'))
-      + (doubleRooms * num('gb_double_rate'))
-      + (triple * num('gb_triple_rate'))
-    ) * nights;
-    var bbRevenue = ((single * 10) + (doubleRooms * 20) + (triple * 30)) * nights;
+  function parseAmount(value) {
+    var amount = parseFloat(value);
+    return isNaN(amount) ? 0 : amount;
+  }
+
+  function storedDailyRows() {
+    var node = document.getElementById('gb-daily-room-seed');
+    if (!node) return [];
+    try {
+      var parsed = JSON.parse(node.textContent || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function liveDailyRows() {
+    var rows = [];
+    document.querySelectorAll('#stay-date-list tbody tr[data-stay-date]').forEach(function (row) {
+      var item = { date: row.getAttribute('data-stay-date') };
+      ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'].forEach(function (key) {
+        var input = row.querySelector('[data-field="' + key + '"]');
+        item[key] = input ? input.value : '';
+      });
+      rows.push(item);
+    });
+    return rows;
+  }
+
+  function dailyRows() {
+    var live = liveDailyRows();
+    return live.length ? live : storedDailyRows();
+  }
+
+  function syncDailyFields(rows) {
+    var holder = document.getElementById('gb-daily-room-fields');
+    if (!holder) return;
+    holder.innerHTML = rows.map(function (row) {
+      var date = String(row.date || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return '';
+      return ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'].map(function (key) {
+        return '<input type="hidden" name="daily_rooms[' + date + '][' + key + ']" value="' + String(row[key] == null ? '' : row[key]).replace(/"/g, '') + '">';
+      }).join('');
+    }).join('');
+  }
+
+  function setHint(id, text) {
+    var hint = field(id);
+    if (hint) hint.textContent = text;
+  }
+
+  function applyDailyRoomTotals(rows) {
+    ['single', 'double', 'triple'].forEach(function (type) {
+      var rooms = 0;
+      var rate = 0;
+      rows.forEach(function (row) {
+        rooms += parseAmount(row[type + '_rooms']);
+        rate += parseAmount(row[type + '_rate']);
+      });
+      var roomsEl = field('gb_' + type + '_rooms');
+      var rateEl = field('gb_' + type + '_rate');
+      if (roomsEl) {
+        roomsEl.value = String(Math.round(rooms));
+        roomsEl.readOnly = true;
+      }
+      if (rateEl) {
+        rateEl.value = money(rate);
+        rateEl.readOnly = true;
+      }
+    });
+    setHint('gb_rooms_hint', 'Room and rate totals are the sum of each stay date.');
+    setHint('gb_total_rns_hint', '(Single + Double + Triple) × nights');
+    setHint('gb_total_revenue_hint', '((Single × rate) + (Double × rate) + (Triple × rate)) × nights');
+    setHint('gb_bb_revenue_hint', '(Single × 10 + Double × 20 + Triple × 30)');
+  }
+
+  function writeRevenue(totalRns, totalRev, bbRevenue) {
     var dinnerRevenue = 0;
     var nettRev = ((totalRev * 100) / 120) - bbRevenue;
     var rnsDisplay = field('gb_total_rns_display');
@@ -70,21 +135,55 @@
     setMoney('gb_nett_rev_ex_vat', 'gb_nett_rev_ex_vat_display', nettRev);
   }
 
+  function recalc() {
+    var rows = dailyRows();
+    if (rows.length) {
+      applyDailyRoomTotals(rows);
+      syncDailyFields(rows);
+      var nights = num('gb_nights');
+      var single = num('gb_single_rooms');
+      var doubleRooms = num('gb_double_rooms');
+      var triple = num('gb_triple_rooms');
+      var totalRev = (
+        (single * num('gb_single_rate'))
+        + (doubleRooms * num('gb_double_rate'))
+        + (triple * num('gb_triple_rate'))
+      ) * nights;
+      var bbRevenue = 0;
+      rows.forEach(function (row) {
+        [['single', 10], ['double', 20], ['triple', 30]].forEach(function (pair) {
+          bbRevenue += parseAmount(row[pair[0] + '_rooms']) * pair[1];
+        });
+      });
+      writeRevenue((single + doubleRooms + triple) * nights, totalRev, bbRevenue);
+      return;
+    }
+
+    var nights = num('gb_nights');
+    var single = num('gb_single_rooms');
+    var doubleRooms = num('gb_double_rooms');
+    var triple = num('gb_triple_rooms');
+    var totalRev = (
+      (single * num('gb_single_rate'))
+      + (doubleRooms * num('gb_double_rate'))
+      + (triple * num('gb_triple_rate'))
+    ) * nights;
+    writeRevenue(
+      (single + doubleRooms + triple) * nights,
+      totalRev,
+      ((single * 10) + (doubleRooms * 20) + (triple * 30)) * nights
+    );
+  }
+
   function copyEnquiryRooms() {
-    [
-      ['nights', 'gb_nights'],
-      ['single_rooms', 'gb_single_rooms'],
-      ['single_rate', 'gb_single_rate'],
-      ['double_rooms', 'gb_double_rooms'],
-      ['double_rate', 'gb_double_rate'],
-      ['triple_rooms', 'gb_triple_rooms'],
-      ['triple_rate', 'gb_triple_rate']
-    ].forEach(function (pair) {
-      var source = document.getElementById(pair[0]);
-      var target = field(pair[1]);
-      if (!source || !target || source.value === '') return;
-      target.value = source.value;
-    });
+    var nights = document.getElementById('nights');
+    var targetNights = field('gb_nights');
+    if (nights && targetNights && nights.value !== '') {
+      targetNights.value = nights.value;
+    }
+    if (dailyRows().length) {
+      recalc();
+    }
   }
 
   function localToday() {
@@ -220,6 +319,17 @@
   form.querySelectorAll('.gb-calc').forEach(function (el) {
     el.addEventListener('input', recalc);
     el.addEventListener('change', recalc);
+  });
+  var stayList = document.getElementById('stay-date-list');
+  if (stayList) {
+    stayList.addEventListener('input', recalc);
+    stayList.addEventListener('change', recalc);
+  }
+  ['check_in', 'check_out'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', recalc);
+    el.addEventListener('input', recalc);
   });
   updateDay();
   recalc();

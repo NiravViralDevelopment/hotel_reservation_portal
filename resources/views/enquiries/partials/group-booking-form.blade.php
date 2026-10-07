@@ -24,6 +24,8 @@
 <form method="POST" action="{{ route('enquiries.group-booking.store', $enquiry) }}" class="enquiry-form" id="group-booking-form">
   @csrf
   <input type="hidden" name="form_context" value="group">
+  <div id="gb-daily-room-fields" hidden></div>
+  <script type="application/json" id="gb-daily-room-seed">@json($enquiry->daily_room_rates ?? [])</script>
 
   <div class="card mb-3">
     <div class="card-header">
@@ -216,7 +218,7 @@
   <div class="card mb-3">
     <div class="card-header">
       <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-      <span class="enquiry-section-hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
+      <span class="enquiry-section-hint" id="gb_rooms_hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
     </div>
     <div class="card-body">
       <div class="row g-3">
@@ -256,7 +258,7 @@
             <label for="gb_total_rns_display" class="form-label">Total RNs</label>
             <input type="text" id="gb_total_rns_display" class="form-control" value="" readonly>
             <input type="hidden" name="total_rns" id="gb_total_rns" value="{{ $v('total_rns') }}">
-            <div class="form-text">(Single + Double + Triple) × nights</div>
+            <div class="form-text" id="gb_total_rns_hint">(Single + Double + Triple) × nights</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
@@ -264,7 +266,7 @@
             <label for="gb_total_revenue_display" class="form-label">Total Rev</label>
             <input type="text" id="gb_total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
             <input type="hidden" name="total_revenue" id="gb_total_revenue" value="{{ $v('total_revenue') }}">
-            <div class="form-text">Room totals × nights</div>
+            <div class="form-text" id="gb_total_revenue_hint">((Single × rate) + (Double × rate) + (Triple × rate)) × nights</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
@@ -272,7 +274,7 @@
             <label for="gb_bb_revenue_display" class="form-label">BB Revenue (Nett £)</label>
             <input type="text" id="gb_bb_revenue_display" class="form-control @error('bb_revenue') is-invalid @enderror" value="" readonly>
             <input type="hidden" name="bb_revenue" id="gb_bb_revenue" value="{{ $v('bb_revenue') }}">
-            <div class="form-text">(Single × 10 + Double × 20 + Triple × 30) × nights</div>
+            <div class="form-text" id="gb_bb_revenue_hint">(Single × 10 + Double × 20 + Triple × 30) × nights</div>
             @error('bb_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
         </div>
