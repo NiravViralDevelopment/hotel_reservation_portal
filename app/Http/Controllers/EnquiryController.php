@@ -777,7 +777,7 @@ class EnquiryController extends Controller
                 continue;
             }
 
-            if ($day->lt($start) || $day->gt($end)) {
+            if ($day->lt($start) || $day->gte($end)) {
                 continue;
             }
 

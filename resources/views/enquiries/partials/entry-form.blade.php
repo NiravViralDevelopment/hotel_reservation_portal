@@ -122,7 +122,7 @@
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-    <span class="enquiry-section-hint">Each date from arrival through departure has its own Single, Double, and Triple rooms and rates.</span>
+    <span class="enquiry-section-hint">Room dates run from arrival through the night before departure (checkout day is not charged).</span>
   </div>
   <div class="card-body">
     @php

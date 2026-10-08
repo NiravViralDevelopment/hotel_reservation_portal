@@ -266,7 +266,7 @@
               </tr>
             </thead>
             <tbody>
-              @while ($stayCursor->lte($stayEnd) && $stayCount < 400)
+              @while ($stayCursor->lt($stayEnd) && $stayCount < 400)
                 @php
                   $dayKey = $stayCursor->toDateString();
                   $dayRow = $dailyByDate[$dayKey] ?? null;
