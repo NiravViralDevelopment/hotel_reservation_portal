@@ -63,6 +63,7 @@
         <th>Update</th>
         <th>Rooming</th>
         <th>Invoice Status</th>
+        <th>Invoice Number</th>
         <th>Invoice Sent On</th>
         <th>Invoice Amount</th>
         <th>Commission Payable Status</th>
@@ -112,6 +113,7 @@
           <td class="text-nowrap">{{ $text($enquiry->booking_update) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->rooming) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->invoice_status) }}</td>
+          <td class="text-nowrap">{{ $text($enquiry->invoice_number) }}</td>
           <td class="text-nowrap">{{ $date($enquiry->invoice_sent_on) }}</td>
           <td class="text-nowrap">{{ $money($enquiry->invoice_amount) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->commission_payable_status) }}</td>

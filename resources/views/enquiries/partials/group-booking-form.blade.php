@@ -332,6 +332,11 @@
           @error('invoice_status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-4">
+          <label for="gb_invoice_number" class="form-label">Invoice Number</label>
+          <input type="text" name="invoice_number" id="gb_invoice_number" class="form-control @error('invoice_number') is-invalid @enderror" value="{{ $v('invoice_number') }}" maxlength="255">
+          @error('invoice_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+        <div class="col-md-6 col-xl-4">
           <label for="gb_invoice_sent_on" class="form-label">Invoice Sent On</label>
           <div class="date-placeholder-wrap">
             <input type="date" name="invoice_sent_on" id="gb_invoice_sent_on" class="form-control @error('invoice_sent_on') is-invalid @enderror" value="{{ $v('invoice_sent_on') }}">

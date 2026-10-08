@@ -163,6 +163,7 @@
         <div><div class="gb-label">Update</div><div class="gb-value">{{ $text($enquiry->booking_update) }}</div></div>
         <div><div class="gb-label">Rooming</div><div class="gb-value">{{ $text($enquiry->rooming) }}</div></div>
         <div><div class="gb-label">Invoice Status</div><div class="gb-value">{{ $text($enquiry->invoice_status) }}</div></div>
+        <div><div class="gb-label">Invoice Number</div><div class="gb-value">{{ $text($enquiry->invoice_number) }}</div></div>
         <div><div class="gb-label">Invoice Sent On</div><div class="gb-value">{{ $date($enquiry->invoice_sent_on) }}</div></div>
         <div><div class="gb-label">Invoice Amount</div><div class="gb-value">{{ $money($enquiry->invoice_amount) }}</div></div>
         @if ($enquiry->has_commission)

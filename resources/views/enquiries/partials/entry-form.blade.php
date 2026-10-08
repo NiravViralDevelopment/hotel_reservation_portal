@@ -188,7 +188,7 @@
           <label for="total_revenue_display" class="form-label">Total Revenue</label>
           <input type="text" id="total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
           <input type="hidden" name="total_revenue" id="total_revenue" value="{{ $v('total_revenue') }}">
-          <div class="form-text">Rooms × rates, then × nights.</div>
+          <div class="form-text">((Single × rate) + (Double × rate) + (Triple × rate)) × nights</div>
           @error('total_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>

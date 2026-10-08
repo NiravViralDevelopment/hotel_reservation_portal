@@ -107,6 +107,7 @@ class Enquiry extends Model
         'booking_update',
         'rooming',
         'invoice_status',
+        'invoice_number',
         'invoice_sent_on',
         'invoice_amount',
         'commission_payable_status',

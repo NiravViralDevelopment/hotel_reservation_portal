@@ -195,7 +195,7 @@ class EnquiryController extends Controller
 
         foreach ([
             'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status',
-            'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'commission_payable_status',
+            'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'invoice_number', 'commission_payable_status',
             'basis', 'client', 'email', 'day',
             'contract_sent_on', 'contract_received_on', 'payment_due_date', 'cxl_due_date', 'cxl_date', 'invoice_sent_on',
             'bb_revenue', 'dinner_revenue', 'nett_rev_ex_vat', 'invoice_amount',
@@ -247,6 +247,7 @@ class EnquiryController extends Controller
             'booking_update' => ['nullable', 'string', 'max:255'],
             'rooming' => ['nullable', 'string', 'max:255'],
             'invoice_status' => ['nullable', 'string', 'max:255'],
+            'invoice_number' => ['nullable', 'string', 'max:255'],
             'invoice_sent_on' => ['nullable', 'date'],
             'invoice_amount' => ['nullable', 'numeric', 'min:0'],
             'commission_payable_status' => ['nullable', 'string', Rule::in(['Pending', 'Received']), 'required_if:has_commission,1'],
@@ -788,33 +789,19 @@ class EnquiryController extends Controller
     }
 
     /**
-     * Sum each stay date's rooms × rates. Older enquiries without daily rows use one rate × nights.
+     * Same total as a group booking: (single rooms × rate + double rooms × rate + triple rooms × rate) × nights.
+     * When daily rows exist, the room and rate figures are already the sum of each stay date.
      *
      * @param  array<string, mixed>  $data
      */
     private function revenueFromRoomNights(array $data): float
     {
-        $rows = $data['daily_room_rates'] ?? null;
-        if (is_array($rows) && $rows !== []) {
-            $total = 0.0;
-            foreach ($rows as $row) {
-                if (! is_array($row)) {
-                    continue;
-                }
-                $total += ((int) ($row['single_rooms'] ?? 0) * (float) ($row['single_rate'] ?? 0))
-                    + ((int) ($row['double_rooms'] ?? 0) * (float) ($row['double_rate'] ?? 0))
-                    + ((int) ($row['triple_rooms'] ?? 0) * (float) ($row['triple_rate'] ?? 0));
-            }
-
-            return round($total, 2);
-        }
-
         $nights = max(0, (int) ($data['nights'] ?? 0));
-        $nightly = ((int) ($data['single_rooms'] ?? 0) * (float) ($data['single_rate'] ?? 0))
+        $amount = ((int) ($data['single_rooms'] ?? 0) * (float) ($data['single_rate'] ?? 0))
             + ((int) ($data['double_rooms'] ?? 0) * (float) ($data['double_rate'] ?? 0))
             + ((int) ($data['triple_rooms'] ?? 0) * (float) ($data['triple_rate'] ?? 0));
 
-        return round($nightly * $nights, 2);
+        return round($amount * $nights, 2);
     }
 
     /**
