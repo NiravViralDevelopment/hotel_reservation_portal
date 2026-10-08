@@ -15,10 +15,7 @@ use App\Support\SimpleXlsxWriter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -221,67 +218,27 @@ class GroupBookingController extends Controller
         abort_unless($enquiry->is_confirm, 404);
         HotelAccess::ensure(null, $enquiry->hotel_id);
 
-        $enquiry->load(['hotel', 'travelAgency', 'bookingContractHotel']);
+        $enquiry->load(['hotel.company', 'hotel.managerUser', 'travelAgency', 'contact', 'bookingContractHotel']);
 
-        $includeIds = collect([$enquiry->hotel_id])
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->all();
-
-        $hotels = Hotel::query()
-            ->accessibleBy()
-            ->where(function ($query) use ($includeIds) {
-                $query->where('status', 'active');
-                if ($includeIds !== []) {
-                    $query->orWhereIn('id', $includeIds);
-                }
-            })
-            ->orderBy('name')
-            ->get([
-                'id',
-                'name',
-                'code',
-                'status',
-                'document_disk',
-                'document_path',
-                'document_original_name',
-                'document_mime_type',
-                'document_size',
-            ]);
-
-        $selectedHotelId = $request->integer('hotel_id') ?: (int) ($enquiry->hotel_id ?? 0);
-        if ($selectedHotelId > 0) {
-            HotelAccess::ensure(null, $selectedHotelId);
-        }
-
-        $selectedHotel = $selectedHotelId > 0
-            ? $hotels->firstWhere('id', $selectedHotelId) ?: Hotel::query()->accessibleBy()->find($selectedHotelId)
-            : $enquiry->hotel;
+        $selectedHotel = $enquiry->hotel;
 
         $reloadHtml = $request->boolean('reload_html');
-        $hasSavedHtml = filled($enquiry->booking_contract_html);
+        $savedHtml = $enquiry->booking_contract_html;
         $contractHtml = old('booking_contract_html');
-        $autoLoadPdfText = false;
 
         if ($contractHtml === null) {
-            if (! $reloadHtml && $hasSavedHtml) {
-                $contractHtml = $enquiry->booking_contract_html;
+            $savedIsTemplate = BookingContractHtml::isTemplateDocument($savedHtml);
+            if (! $reloadHtml && $savedIsTemplate) {
+                $contractHtml = $savedHtml;
             } else {
-                // Placeholder until PDF.js loads hotel PDF paragraphs into the editor.
-                $contractHtml = BookingContractHtml::loadingPlaceholder($enquiry, $selectedHotel);
-                $autoLoadPdfText = $selectedHotel?->hasDocument() === true;
+                $contractHtml = BookingContractHtml::build($enquiry, $selectedHotel);
             }
         }
 
-        $bookingSummaryHtml = BookingContractHtml::build($enquiry, $selectedHotel);
-
         return view('group-bookings.contract', compact(
             'enquiry',
-            'hotels',
             'selectedHotel',
-            'contractHtml',
-            'autoLoadPdfText',
-            'bookingSummaryHtml'
+            'contractHtml'
         ));
     }
 
@@ -291,68 +248,13 @@ class GroupBookingController extends Controller
         abort_unless($enquiry->is_confirm && ! $enquiry->is_cancel, 404);
         HotelAccess::ensure(null, $enquiry->hotel_id);
 
-        $accessibleHotelIds = Hotel::query()
-            ->accessibleBy()
-            ->where(function ($query) use ($enquiry) {
-                $query->where('status', 'active');
-                if ($enquiry->hotel_id) {
-                    $query->orWhere('id', $enquiry->hotel_id);
-                }
-            })
-            ->pluck('id')
-            ->map(fn ($id) => (int) $id)
-            ->all();
-
         $validated = $request->validate([
-            'hotel_id' => ['required', 'integer', Rule::in($accessibleHotelIds)],
-            'contract_sent_on' => ['nullable', 'date'],
-            'contract_received_on' => ['nullable', 'date'],
-            'saved_to_doc' => ['nullable', 'string', 'max:255'],
-            'payment_term' => ['nullable', 'string', 'max:255'],
-            'payment_term_days' => ['nullable', 'integer', 'min:0', 'max:999'],
-            'payment_due_date' => ['nullable', 'date'],
-            'payment_status' => ['nullable', 'string', 'max:255'],
-            'cxl_policy' => ['nullable', 'string', 'max:255'],
-            'cxl_due_date' => ['nullable', 'date'],
-            'booking_contract_notes' => ['nullable', 'string', 'max:5000'],
             'booking_contract_html' => ['nullable', 'string', 'max:200000'],
-            'booking_contract_file' => [
-                'nullable',
-                'file',
-                'mimes:pdf,doc,docx',
-                'mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'max:10240',
-            ],
         ]);
-
-        $hotelId = (int) $validated['hotel_id'];
-        HotelAccess::ensure(null, $hotelId);
-
-        $hotel = Hotel::query()->accessibleBy()->findOrFail($hotelId);
-        $uploaded = $request->file('booking_contract_file');
 
         $enquiry->fill([
-            'hotel_id' => $hotelId,
-            'contract_sent_on' => $validated['contract_sent_on'] ?? null,
-            'contract_received_on' => $validated['contract_received_on'] ?? null,
-            'saved_to_doc' => $validated['saved_to_doc'] ?? null,
-            'payment_term' => $validated['payment_term'] ?? null,
-            'payment_term_days' => $validated['payment_term_days'] ?? null,
-            'payment_due_date' => $validated['payment_due_date'] ?? null,
-            'payment_status' => $validated['payment_status'] ?? null,
-            'cxl_policy' => $validated['cxl_policy'] ?? null,
-            'cxl_due_date' => $validated['cxl_due_date'] ?? null,
-            'booking_contract_notes' => $validated['booking_contract_notes'] ?? null,
             'booking_contract_html' => BookingContractHtml::sanitize($validated['booking_contract_html'] ?? null),
         ]);
-
-        if ($uploaded instanceof UploadedFile) {
-            $this->storeBookingContractUpload($enquiry, $hotel, $uploaded);
-        } elseif ($hotel->hasDocument() && ! $enquiry->hasBookingContract()) {
-            $this->copyHotelContractToBooking($enquiry, $hotel);
-        } elseif ($hotel->hasDocument() && (int) $enquiry->booking_contract_hotel_id !== $hotelId) {
-            $this->copyHotelContractToBooking($enquiry, $hotel);
-        }
 
         if (blank($enquiry->saved_to_doc)) {
             $enquiry->saved_to_doc = 'Yes';
@@ -363,8 +265,8 @@ class GroupBookingController extends Controller
         Audit::log('updated', 'group-booking-contracts', $enquiry->block_id ?: $enquiry->ref, $enquiry);
 
         return redirect()
-            ->route('group-bookings.contract', ['enquiry' => $enquiry, 'hotel_id' => $hotelId])
-            ->with('success', 'Booking contract saved. The hotel master contract was not changed.');
+            ->route('group-bookings.contract', $enquiry)
+            ->with('success', 'Booking contract saved.');
     }
 
     public function previewHotelContract(Request $request, Enquiry $enquiry): StreamedResponse
@@ -428,55 +330,6 @@ class GroupBookingController extends Controller
     public function destroy(Enquiry $enquiry): RedirectResponse
     {
         return redirect()->route('enquiries.show', $enquiry);
-    }
-
-    private function copyHotelContractToBooking(Enquiry $enquiry, Hotel $hotel): void
-    {
-        $sourceDisk = $hotel->document_disk ?: 'local';
-        $sourcePath = (string) $hotel->document_path;
-
-        abort_unless($hotel->hasDocument() && Storage::disk($sourceDisk)->exists($sourcePath), 404);
-
-        $extension = pathinfo($hotel->document_original_name ?: $sourcePath, PATHINFO_EXTENSION) ?: 'pdf';
-        $extension = strtolower((string) $extension);
-        $destPath = 'booking-contracts/'.$enquiry->id.'/'.Str::uuid()->toString().'.'.$extension;
-
-        $enquiry->deleteBookingContractFile();
-        Storage::disk('local')->put($destPath, Storage::disk($sourceDisk)->get($sourcePath));
-
-        $enquiry->forceFill([
-            'booking_contract_disk' => 'local',
-            'booking_contract_path' => $destPath,
-            'booking_contract_original_name' => $hotel->document_original_name ?: basename($sourcePath),
-            'booking_contract_mime_type' => $hotel->document_mime_type,
-            'booking_contract_size' => Storage::disk('local')->size($destPath),
-            'booking_contract_hotel_id' => $hotel->id,
-            'booking_contract_saved_at' => now(),
-        ]);
-    }
-
-    private function storeBookingContractUpload(Enquiry $enquiry, Hotel $hotel, UploadedFile $file): void
-    {
-        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: '');
-        abort_unless(in_array($extension, ['pdf', 'doc', 'docx'], true), 422);
-
-        $enquiry->deleteBookingContractFile();
-
-        $path = $file->storeAs(
-            'booking-contracts/'.$enquiry->id,
-            Str::uuid()->toString().'.'.$extension,
-            'local'
-        );
-
-        $enquiry->forceFill([
-            'booking_contract_disk' => 'local',
-            'booking_contract_path' => $path,
-            'booking_contract_original_name' => $file->getClientOriginalName(),
-            'booking_contract_mime_type' => $file->getMimeType(),
-            'booking_contract_size' => $file->getSize() ?: 0,
-            'booking_contract_hotel_id' => $hotel->id,
-            'booking_contract_saved_at' => now(),
-        ]);
     }
 
     private function streamStoredFile(

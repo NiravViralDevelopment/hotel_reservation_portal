@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Group Contract</title>
+<style>
+    :root{
+        --primary:#17365d;
+        --accent:#2d5f8b;
+        --border:#b8c2cc;
+        --light:#f4f7fa;
+        --text:#20262d;
+        --muted:#66717d;
+    }
+    *{box-sizing:border-box}
+    body{
+        margin:0;
+        background:#eef1f5;
+        color:var(--text);
+        font-family:Arial,Helvetica,sans-serif;
+        line-height:1.45;
+    }
+    .toolbar{
+        position:sticky;
+        top:0;
+        z-index:10;
+        display:flex;
+        justify-content:flex-end;
+        gap:10px;
+        padding:14px 24px;
+        background:#fff;
+        border-bottom:1px solid #d9dee5;
+        box-shadow:0 2px 8px rgba(0,0,0,.06);
+    }
+    button{
+        border:0;
+        border-radius:7px;
+        padding:10px 16px;
+        font-weight:700;
+        cursor:pointer;
+    }
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-secondary{background:#edf2f7;color:var(--primary)}
+    .document{
+        width:210mm;
+        margin:24px auto;
+    }
+    .page{
+        position:relative;
+        min-height:297mm;
+        padding:16mm 17mm 22mm;
+        margin-bottom:24px;
+        background:#fff;
+        box-shadow:0 3px 18px rgba(0,0,0,.10);
+        page-break-after:always;
+    }
+    .page:last-child{page-break-after:auto}
+    .header{
+        text-align:center;
+        margin-bottom:18px;
+    }
+    .logo{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        min-width:190px;
+        height:52px;
+        margin-bottom:6px;
+        color:var(--primary);
+        font-size:28px;
+        font-weight:900;
+        letter-spacing:-1px;
+    }
+    .logo small{
+        display:block;
+        font-size:9px;
+        font-weight:700;
+        letter-spacing:0;
+        margin-left:4px;
+        margin-top:23px;
+    }
+    .hotel-address{
+        font-size:11px;
+        color:#444;
+    }
+    .legal-intro{
+        margin:14px 0 18px;
+        text-align:center;
+        font-size:11px;
+        font-weight:700;
+        text-transform:uppercase;
+    }
+    table{
+        width:100%;
+        border-collapse:collapse;
+        margin:12px 0 20px;
+    }
+    th,td{
+        border:1px solid var(--border);
+        padding:7px 8px;
+        vertical-align:top;
+        font-size:10.5px;
+    }
+    th{
+        background:var(--primary);
+        color:#fff;
+        text-align:left;
+        font-size:11px;
+    }
+    .two-col th{
+        text-align:center;
+        background:#eaf0f6;
+        color:var(--primary);
+        font-size:12px;
+    }
+    .label{
+        width:16%;
+        font-weight:700;
+        background:#f7f9fb;
+        color:#3e4852;
+    }
+    .section-title{
+        margin:18px 0 8px;
+        padding:8px 10px;
+        background:var(--primary);
+        color:#fff;
+        border-radius:5px;
+        font-size:12px;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:.3px;
+    }
+    .notice{
+        padding:11px 13px;
+        background:#f7f9fb;
+        border-left:4px solid var(--accent);
+        margin:12px 0 18px;
+        font-size:10.5px;
+    }
+    .requirements td:first-child{
+        width:31%;
+        font-weight:700;
+        background:#f8fafc;
+    }
+    p{font-size:10.5px;margin:8px 0}
+    ul{font-size:10.5px;margin:7px 0 14px 20px}
+    li{margin:5px 0}
+    .signature-table th{
+        background:#eef2f6;
+        color:var(--primary);
+        text-align:left;
+    }
+    .signature-box{
+        height:75px;
+        border-bottom:1px dashed #aab3bc;
+        margin-top:8px;
+        display:flex;
+        align-items:flex-end;
+        color:#8a929a;
+        font-size:9px;
+    }
+    .footer{
+        position:absolute;
+        left:17mm;
+        right:17mm;
+        bottom:8mm;
+        padding-top:6px;
+        border-top:1px solid #d8dde2;
+        text-align:center;
+        color:#6b737c;
+        font-size:8.5px;
+    }
+    [contenteditable="true"]{
+        outline:1px dashed transparent;
+        transition:.15s;
+    }
+    [contenteditable="true"]:hover,
+    [contenteditable="true"]:focus{
+        outline:1px dashed #8ca8c2;
+        background:#f8fbff;
+    }
+    .field{
+        color:#111;
+        font-weight:600;
+    }
+    .muted{color:var(--muted)}
+    @media print{
+        body{background:#fff}
+        .toolbar{display:none}
+        .document{width:auto;margin:0}
+        .page{margin:0;box-shadow:none}
+    }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <button class="btn-secondary" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn-primary" onclick="saveContract()">Save HTML</button>
+</div>
+
+<main class="document">
+
+<!-- PAGE 1 -->
+<section class="page">
+    <header class="header">
+        <div class="logo">HOTEL <small>GROUP CONTRACT</small></div>
+        <div class="hotel-address" contenteditable="true">Hotel Address, City, Postcode, Country</div>
+    </header>
+
+    <div class="legal-intro">
+        The following represents a legally binding contract between “The Hotel” &amp; “The Client”
+        as detailed below and including any agents acting on their behalf.
+    </div>
+
+    <table class="two-col">
+        <tr>
+            <th>The Hotel</th>
+            <th>The Client</th>
+        </tr>
+        <tr>
+            <td>
+                <strong>Company</strong><br>
+                <span contenteditable="true" class="field">Park Inn by Radisson Bournemouth</span>
+            </td>
+            <td>
+                <strong>Company / Name</strong><br>
+                <span contenteditable="true" class="field">WTS World-Touristic-Service GmbH</span>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Address</strong><br><span contenteditable="true">Derby Rd, Bournemouth, United Kingdom</span></td>
+            <td><strong>Address</strong><br><span contenteditable="true">Alte Dorfstr. 91, D-27367 Sottrum</span></td>
+        </tr>
+        <tr>
+            <td><strong>Postcode</strong><br><span contenteditable="true">BH1 3QE</span></td>
+            <td><strong>Postcode</strong><br><span contenteditable="true">D-27367</span></td>
+        </tr>
+        <tr>
+            <td><strong>Contact</strong><br><span contenteditable="true">Dhaval Jayswal</span></td>
+            <td><strong>Contact</strong><br><span contenteditable="true">Michelle Meier</span></td>
+        </tr>
+        <tr>
+            <td><strong>Role</strong><br><span contenteditable="true">Jr. Reservations Executive</span></td>
+            <td><strong>Role</strong><br><span contenteditable="true">Productmanager</span></td>
+        </tr>
+        <tr>
+            <td><strong>Phone</strong><br><span contenteditable="true">+44 2035145391</span></td>
+            <td><strong>Phone</strong><br><span contenteditable="true">0049(0)4264-831870</span></td>
+        </tr>
+        <tr>
+            <td><strong>Email</strong><br><span contenteditable="true">reservation@example.com</span></td>
+            <td><strong>Email</strong><br><span contenteditable="true">client@example.com</span></td>
+        </tr>
+    </table>
+
+    <div class="notice">
+        The below details represent the requirements the hotel has agreed to provide as requested by the
+        client and shall enter definitively into force only after a copy of this proposal of services is
+        signed, dated, and returned by the client to the hotel.
+    </div>
+
+    <div class="section-title">Group &amp; Commercial Details</div>
+
+    <table class="requirements">
+        <tr><td>Group Name</td><td contenteditable="true">WTS World-Touristic-Service GmbH</td></tr>
+        <tr><td>Group Arrival Date</td><td contenteditable="true">02 June 2027</td></tr>
+        <tr><td>Total Rooms</td><td contenteditable="true">07 Singles, 15 Double</td></tr>
+        <tr><td>Number of Nights</td><td contenteditable="true">1 Night</td></tr>
+        <tr><td>Rate Per Room</td><td contenteditable="true">£84 SGL / £94 DBL per room per night, including VAT &amp; Breakfast</td></tr>
+        <tr><td>Preferred Payment</td><td contenteditable="true">45 Days Prior to Arrival</td></tr>
+        <tr><td>Cancellation Leeway</td><td contenteditable="true">45 Days Prior to Arrival</td></tr>
+    </table>
+
+    <p><strong>Tax &amp; Pricing:</strong> All prices detailed above are inclusive of VAT at the applicable rate. There are currently no other resort, city, or applicable taxes.</p>
+
+    <ul>
+        <li contenteditable="true">Dinner rate: £30 per person, 3-course buffet, including tax.</li>
+        <li contenteditable="true">1 Single room complimentary (FOC) on 20 paid rooms.</li>
+    </ul>
+
+    <div class="footer">
+        <strong contenteditable="true">Hotel Legal Entity Name</strong> ·
+        Registered Office: <span contenteditable="true">Registered office address</span> ·
+        Registered No: <span contenteditable="true">00000000</span> ·
+        VAT No: <span contenteditable="true">VAT000000</span>
+    </div>
+</section>
+
+<!-- PAGE 2 -->
+<section class="page">
+    <header class="header">
+        <div class="logo">HOTEL <small>GROUP CONTRACT</small></div>
+        <div class="hotel-address" contenteditable="true">Hotel Address, City, Postcode, Country</div>
+    </header>
+
+    <div class="section-title">Cancellation Policy</div>
+    <p>The following cancellation policy applies unless otherwise stated in writing by an authorized member of the Hotel team.</p>
+    <p><strong>Group Cancellation:</strong> In the event of a group cancellation occurring <span contenteditable="true">0 to 45 days</span> prior to arrival, liquidated damages of <span contenteditable="true">100%</span> of the Room Night Revenue Commitment will be due, plus applicable taxes.</p>
+    <p>All amendments must be sent to the main contact in writing prior to the release date outlined above. Without such notice, all services will be chargeable. The hotel must also confirm its acceptance of changes in writing.</p>
+
+    <div class="section-title">No-Show / Cancellation Without Notice</div>
+    <p>In the event of any no-show or cancellation without notice, the hotel reserves the right to invoice the client the full charge for 100% of the services reserved throughout the length of stay, as detailed in this agreement.</p>
+
+    <div class="section-title">Final Rooming List</div>
+    <p>The final rooming list must reach the hotel no later than <strong contenteditable="true">10 days</strong> before the arrival date.</p>
+
+    <div class="section-title">Availability of Rooms</div>
+    <p>The hotel will endeavor to provide check-in from <strong contenteditable="true">3:00 PM</strong> on the day of the group's arrival. Guests arriving before this time should be aware that early check-in cannot be guaranteed.</p>
+    <p>Luggage can be stored free of charge at the hotel. Porterage can be organized at <strong contenteditable="true">£1.50 per room each way</strong>.</p>
+    <p>Check-out time for all guests is <strong contenteditable="true">11:00 AM</strong> on the day of departure. Late departures may result in an additional charge per room.</p>
+
+    <div class="section-title">Obligations to Client</div>
+    <p>In extraordinary circumstances, the hotel reserves the right to offer partial or total accommodation to group members in a neighboring hotel of an equivalent category without price increase.</p>
+    <p>Where this occurs, transfer expenses shall be borne by the hotel, which shall not be liable for payment of any other indemnity whatsoever.</p>
+
+    <div class="notice">
+        <strong>Important:</strong> Any amendment to this contract should be documented in writing and accepted by the authorized hotel representative.
+    </div>
+
+    <div class="footer">
+        <strong contenteditable="true">Hotel Legal Entity Name</strong> ·
+        Registered Office: <span contenteditable="true">Registered office address</span> ·
+        Registered No: <span contenteditable="true">00000000</span> ·
+        VAT No: <span contenteditable="true">VAT000000</span>
+    </div>
+</section>
+
+<!-- PAGE 3 -->
+<section class="page">
+    <header class="header">
+        <div class="logo">HOTEL <small>GROUP CONTRACT</small></div>
+        <div class="hotel-address" contenteditable="true">Hotel Address, City, Postcode, Country</div>
+    </header>
+
+    <div class="section-title">Group Payment Terms</div>
+    <p>Hotel requires all group bookings to be secured by full payment no less than <strong contenteditable="true">30 days</strong> prior to arrival.</p>
+    <p>The hotel accepts <span contenteditable="true">major credit cards and bank transfers</span> as forms of payment. If paying by credit or debit card, the guest/client must complete the payment through the hotel's approved payment process.</p>
+    <p>Failure to comply with the payment terms may result in the accommodation being released.</p>
+    <p>All credit applications must be made upon confirmation of a group so that the necessary checks can be completed to ensure a swift and prompt payment process.</p>
+
+    <div class="section-title">Bank Account Details</div>
+    <p>If the hotel's bank account details change, the hotel will send an official communication. If you receive any communication relating to changes to these details, we strongly recommend contacting your sales or event management contact by phone to verify the accuracy before making any payment.</p>
+
+    <div class="section-title">Jurisdiction</div>
+    <p>Any dispute which cannot be settled on an amicable basis relating to the validity, interpretation, or performance of this contract shall be escalated to include legal action in the jurisdiction where the hotel is located.</p>
+
+    <div class="notice">
+        We thank you in advance for returning this document signed as soon as possible. If the hotel receives no response from the client within <strong contenteditable="true">5 days</strong> regarding the expected return date, room reservations may no longer be guaranteed.
+    </div>
+
+    <div class="section-title">Approval &amp; Authorization</div>
+    <table class="signature-table">
+        <tr>
+            <th>Approved &amp; Authorized by the Hotel</th>
+            <th>Approved &amp; Authorized by the Client</th>
+        </tr>
+        <tr>
+            <td>
+                <strong>Name:</strong> <span contenteditable="true">Hotel Representative</span><br>
+                <strong>Title:</strong> <span contenteditable="true">Reservations Manager</span>
+                <div class="signature-box">Hotel Signature</div>
+            </td>
+            <td>
+                <strong>Name:</strong> <span contenteditable="true">Client Representative</span><br>
+                <strong>Title:</strong> <span contenteditable="true">Product Manager</span>
+                <div class="signature-box">Client Signature</div>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Date:</strong> <span contenteditable="true">DD/MM/YYYY</span></td>
+            <td><strong>Date:</strong> <span contenteditable="true">DD/MM/YYYY</span></td>
+        </tr>
+    </table>
+
+    <div class="section-title">Contract Notes</div>
+    <p contenteditable="true">Add any additional commercial terms, special conditions, inclusions, exclusions, or notes applicable to this hotel contract.</p>
+
+    <div class="footer">
+        <strong contenteditable="true">Hotel Legal Entity Name</strong> ·
+        Registered Office: <span contenteditable="true">Registered office address</span> ·
+        Registered No: <span contenteditable="true">00000000</span> ·
+        VAT No: <span contenteditable="true">VAT000000</span>
+    </div>
+</section>
+
+</main>
+
+<script>
+function saveContract(){
+    const html = '<!DOCTYPE html>\\n' + document.documentElement.outerHTML;
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hotel-group-contract.html';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

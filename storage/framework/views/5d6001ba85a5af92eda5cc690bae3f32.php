@@ -192,32 +192,38 @@
     return '£' + parts.join('.');
   }
 
-  function rowAmount(row, roomsField, rateField) {
-    var rooms = row.querySelector('[data-field="' + roomsField + '"]');
-    var rate = row.querySelector('[data-field="' + rateField + '"]');
-    var roomCount = rooms ? parseFloat(rooms.value) : 0;
-    var rateValue = rate ? parseFloat(rate.value) : 0;
-    if (isNaN(roomCount)) roomCount = 0;
-    if (isNaN(rateValue)) rateValue = 0;
-    return roomCount * rateValue;
+  function sumStayField(rows, field) {
+    var total = 0;
+    rows.forEach(function (row) {
+      var input = row.querySelector('[data-field="' + field + '"]');
+      var value = input ? parseFloat(input.value) : 0;
+      if (isNaN(value)) value = 0;
+      total += value;
+    });
+    return total;
   }
 
   function recalcRevenue() {
     var totalEl = document.getElementById('total_revenue');
     var displayEl = document.getElementById('total_revenue_display');
     if (!totalEl) return;
-    var rows = document.querySelectorAll('#stay-date-list tbody tr');
+    var rows = document.querySelectorAll('#stay-date-list tbody tr[data-stay-date]');
     if (!rows.length) {
       totalEl.value = '';
       if (displayEl) displayEl.value = '';
       return;
     }
-    var total = 0;
-    rows.forEach(function (row) {
-      total += rowAmount(row, 'single_rooms', 'single_rate');
-      total += rowAmount(row, 'double_rooms', 'double_rate');
-      total += rowAmount(row, 'triple_rooms', 'triple_rate');
-    });
+    var nightsEl = document.getElementById('nights');
+    var nights = nightsEl ? parseFloat(nightsEl.value) : 0;
+    if (isNaN(nights) || nights < 1) nights = 1;
+    var singleRooms = sumStayField(rows, 'single_rooms');
+    var doubleRooms = sumStayField(rows, 'double_rooms');
+    var tripleRooms = sumStayField(rows, 'triple_rooms');
+    var total = (
+      (singleRooms * sumStayField(rows, 'single_rate'))
+      + (doubleRooms * sumStayField(rows, 'double_rate'))
+      + (tripleRooms * sumStayField(rows, 'triple_rate'))
+    ) * nights;
     totalEl.value = total.toFixed(2);
     if (displayEl) displayEl.value = formatPounds(total);
   }
