@@ -20,6 +20,7 @@
   <table class="table table-hover table-sm mb-0" style="font-size:0.78rem">
     <thead>
       <tr>
+        <th>Hotel</th>
         <x-sortable-th column="enquiry_date" label="Enquiry Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="response_date" label="Response Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_in" label="Arrival Date" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -28,7 +29,6 @@
         <x-sortable-th column="nights" label="Nights" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="rooms_per_night" label="Total Room per Night" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="group_name" label="Group Name" :default="$defaultSort" :default-dir="$defaultDir" />
-        <th>Hotel</th>
         <x-sortable-th column="ref" label="Ref No" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="email" label="Email ID" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="status" label="Status" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -54,6 +54,7 @@
     <tbody>
       @forelse ($rows as $enquiry)
         <tr>
+          <td class="text-nowrap fw-semibold">{{ $enquiry->hotel?->name ?: '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</td>
           <td><x-date-alert :date="$enquiry->check_in" :window="14" /></td>
@@ -62,7 +63,6 @@
           <td>{{ $enquiry->nights ?? '—' }}</td>
           <td>{{ $enquiry->rooms_per_night ?? '—' }}</td>
           <td class="fw-semibold text-nowrap"><a href="{{ route('enquiries.show', $enquiry) }}">{{ $enquiry->group_name ?: '—' }}</a></td>
-          <td class="text-nowrap">{{ $enquiry->hotel?->name ?: '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->ref ?: '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->email ?: '—' }}</td>
           <td><x-badge-status :status="$enquiry->status" /></td>
