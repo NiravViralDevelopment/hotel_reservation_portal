@@ -44,7 +44,9 @@
         <th>Payment Status</th>
         <th>CXL Policy</th>
         <th>CXL Due Date</th>
-        <th>CXL Date</th>
+        @if ($showCancellationReason)
+          <th>CXL Date</th>
+        @endif
         <th>Commission</th>
         <th>Single RNs</th>
         <th>Single Gross Rate</th>
@@ -61,6 +63,7 @@
         <th>Update</th>
         <th>Rooming</th>
         <th>Invoice Status</th>
+        <th>Invoice Number</th>
         <th>Invoice Sent On</th>
         <th>Invoice Amount</th>
         <th>Commission Payable Status</th>
@@ -86,13 +89,15 @@
           <td class="text-nowrap">{{ $date($enquiry->contract_sent_on) }}</td>
           <td class="text-nowrap">{{ $date($enquiry->contract_received_on) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->saved_to_doc) }}</td>
-          <td class="text-nowrap">{{ $text($enquiry->payment_term) }}</td>
+          <td class="text-nowrap">@if ($enquiry->payment_term){{ $enquiry->payment_term }}@if ($enquiry->payment_term_days !== null) ({{ $enquiry->payment_term_days }} {{ (int) $enquiry->payment_term_days === 1 ? 'day' : 'days' }})@endif@else—@endif</td>
           <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->payment_due_date" />@else{{ $date($enquiry->payment_due_date) }}@endif</td>
           <td class="text-nowrap">{{ $text($enquiry->payment_status) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->cxl_policy) }}</td>
           <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->cxl_due_date" />@else{{ $date($enquiry->cxl_due_date) }}@endif</td>
-          <td class="text-nowrap">{{ $date($enquiry->cxl_date) }}</td>
-          <td class="text-nowrap">{{ $money($enquiry->commission) }}</td>
+          @if ($showCancellationReason)
+            <td class="text-nowrap">{{ $date($enquiry->cxl_date) }}</td>
+          @endif
+          <td class="text-nowrap">{{ $enquiry->has_commission === null ? '—' : ($enquiry->has_commission ? 'Yes' : 'No') }}</td>
           <td>{{ $enquiry->single_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->single_rate) }}</td>
           <td>{{ $enquiry->double_rooms ?? '—' }}</td>
@@ -108,6 +113,7 @@
           <td class="text-nowrap">{{ $text($enquiry->booking_update) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->rooming) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->invoice_status) }}</td>
+          <td class="text-nowrap">{{ $text($enquiry->invoice_number) }}</td>
           <td class="text-nowrap">{{ $date($enquiry->invoice_sent_on) }}</td>
           <td class="text-nowrap">{{ $money($enquiry->invoice_amount) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->commission_payable_status) }}</td>
@@ -128,7 +134,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ $showCancellationReason ? 40 : 39 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ $showCancellationReason ? 40 : 38 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
   </table>

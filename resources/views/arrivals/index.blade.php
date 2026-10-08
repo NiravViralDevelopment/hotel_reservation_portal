@@ -12,13 +12,14 @@
       </ol>
     </nav>
     <h1 class="page-title">Arrivals</h1>
-    <p class="page-subtitle">Confirmed groups arriving on {{ \Illuminate\Support\Carbon::parse($date)->format('l, d M Y') }}.</p>
+    <p class="page-subtitle">Groups arriving in {{ $month->format('F Y') }}. They stay on this list until their departure date.</p>
   </div>
 
   <div class="card">
     <div class="table-toolbar">
       <form method="GET" action="{{ route('arrivals.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
-        <input type="date" name="date" class="form-control form-control-sm" style="width:auto" value="{{ $date }}">
+        <label for="arrival_month" class="form-label mb-0 small text-secondary">Month</label>
+        <input type="month" name="month" id="arrival_month" class="form-control form-control-sm" style="width:auto" value="{{ $monthValue }}">
         <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
           <option value="">All hotels</option>
           @foreach ($hotels as $hotel)
@@ -38,18 +39,20 @@
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <x-sortable-th column="ref" label="Ref" default="group_name" />
-            <x-sortable-th column="group_name" label="Group" default="group_name" />
+            <x-sortable-th column="check_in" label="Arrival" default="check_in" />
+            <x-sortable-th column="ref" label="Ref" default="check_in" />
+            <x-sortable-th column="group_name" label="Group" default="check_in" />
             <th>Hotel</th>
             <th>Agency</th>
-            <x-sortable-th column="nights" label="Nights" default="group_name" />
+            <x-sortable-th column="nights" label="Nights" default="check_in" />
             <th>Pax</th>
-            <x-sortable-th column="status" label="Status" default="group_name" />
+            <x-sortable-th column="status" label="Status" default="check_in" />
           </tr>
         </thead>
         <tbody>
           @forelse ($bookings as $booking)
             <tr>
+              <td class="text-nowrap">{{ $booking->check_in?->format('d M Y') ?? '—' }}</td>
               <td><a href="{{ route('enquiries.show', $booking) }}">{{ $booking->ref ?: '—' }}</a></td>
               <td>{{ $booking->group_name }}</td>
               <td>{{ $booking->hotel?->code ?? '—' }}</td>
@@ -59,7 +62,7 @@
               <td><x-badge-status :status="$booking->status" /></td>
             </tr>
           @empty
-            <tr><td colspan="7" class="text-center text-secondary py-4">No arrivals for this date.</td></tr>
+            <tr><td colspan="8" class="text-center text-secondary py-4">No groups arriving this month are still to depart.</td></tr>
           @endforelse
         </tbody>
       </table>

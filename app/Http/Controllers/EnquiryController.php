@@ -103,7 +103,9 @@ class EnquiryController extends Controller
             ->orderBy('title')
             ->pluck('title');
 
-        return view('enquiries.create', compact('statuses'));
+        $existingPairs = $this->existingGroupRefPairs();
+
+        return view('enquiries.create', compact('statuses', 'existingPairs'));
     }
 
     public function store(StoreEnquiryRequest $request): RedirectResponse
@@ -175,7 +177,9 @@ class EnquiryController extends Controller
             ->orderBy('title')
             ->pluck('title');
 
-        return view('enquiries.edit', compact('enquiry', 'statuses'));
+        $existingPairs = $this->existingGroupRefPairs($enquiry->id);
+
+        return view('enquiries.edit', compact('enquiry', 'statuses', 'existingPairs'));
     }
 
     public function groupBooking(Enquiry $enquiry): RedirectResponse
@@ -190,11 +194,11 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         foreach ([
-            'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_status',
-            'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'commission_payable_status',
+            'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status',
+            'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'invoice_number', 'commission_payable_status',
             'basis', 'client', 'email', 'day',
             'contract_sent_on', 'contract_received_on', 'payment_due_date', 'cxl_due_date', 'cxl_date', 'invoice_sent_on',
-            'commission', 'bb_revenue', 'dinner_revenue', 'nett_rev_ex_vat', 'invoice_amount',
+            'bb_revenue', 'dinner_revenue', 'nett_rev_ex_vat', 'invoice_amount',
             'single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate',
         ] as $field) {
             if ($request->input($field) === '') {
@@ -204,7 +208,7 @@ class EnquiryController extends Controller
 
         $data = $request->validate([
             'check_in' => ['required', 'date', 'after_or_equal:today'],
-            'check_out' => ['required', 'date', 'after_or_equal:check_in'],
+            'check_out' => ['required', 'date', 'after:check_in'],
             'day' => ['nullable', 'string', 'max:20'],
             'nights' => ['required', 'integer', 'min:0'],
             'block_id' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'block_id')->ignore($enquiry->id)],
@@ -215,19 +219,27 @@ class EnquiryController extends Controller
             'contract_sent_on' => ['nullable', 'date'],
             'contract_received_on' => ['nullable', 'date'],
             'saved_to_doc' => ['nullable', 'string', 'max:255'],
-            'payment_term' => ['nullable', 'string', 'max:255'],
+            'payment_term' => ['nullable', 'string', Rule::in(['Pre Arrival', 'Post Departure'])],
+            'payment_term_days' => ['nullable', 'integer', 'min:0', 'max:999', 'required_with:payment_term'],
             'payment_due_date' => ['nullable', 'date'],
             'payment_status' => ['nullable', 'string', 'max:255'],
             'cxl_policy' => ['nullable', 'string', 'max:255'],
             'cxl_due_date' => ['nullable', 'date'],
             'cxl_date' => ['nullable', 'date'],
-            'commission' => ['nullable', 'numeric', 'min:0'],
+            'has_commission' => ['nullable', 'in:0,1'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],
             'single_rate' => ['nullable', 'numeric', 'min:0'],
             'double_rooms' => ['nullable', 'integer', 'min:0'],
             'double_rate' => ['nullable', 'numeric', 'min:0'],
             'triple_rooms' => ['nullable', 'integer', 'min:0'],
             'triple_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms' => ['nullable', 'array', 'max:400'],
+            'daily_rooms.*.single_rooms' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.single_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.double_rooms' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.double_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.triple_rooms' => ['nullable', 'numeric', 'min:0'],
+            'daily_rooms.*.triple_rate' => ['nullable', 'numeric', 'min:0'],
             'bb_revenue' => ['nullable', 'numeric'],
             'dinner_revenue' => ['nullable', 'numeric'],
             'nett_rev_ex_vat' => ['nullable', 'numeric'],
@@ -235,19 +247,27 @@ class EnquiryController extends Controller
             'booking_update' => ['nullable', 'string', 'max:255'],
             'rooming' => ['nullable', 'string', 'max:255'],
             'invoice_status' => ['nullable', 'string', 'max:255'],
+            'invoice_number' => ['nullable', 'string', 'max:255'],
             'invoice_sent_on' => ['nullable', 'date'],
             'invoice_amount' => ['nullable', 'numeric', 'min:0'],
-            'commission_payable_status' => ['nullable', 'string', 'max:255'],
+            'commission_payable_status' => ['nullable', 'string', Rule::in(['Pending', 'Received']), 'required_if:has_commission,1'],
         ], [
             'check_in.required' => 'Date of arrival is required.',
             'check_in.after_or_equal' => 'Date of arrival cannot be before today.',
             'check_out.required' => 'Date of departure is required.',
-            'check_out.after_or_equal' => 'Date of departure cannot be before the date of arrival.',
+            'check_out.after' => 'Date of departure must be after the date of arrival.',
             'nights.required' => 'No. of nights is required.',
             'block_id.required' => 'Block ID is required.',
             'block_id.unique' => 'This block ID is already used.',
             'basis.in' => 'Select BB or DBB.',
             'email.email' => 'Enter a valid email address.',
+            'payment_term.in' => 'Select Pre Arrival or Post Departure.',
+            'payment_term_days.required_with' => 'Enter the number of days.',
+            'payment_term_days.integer' => 'Number of days must be a whole number.',
+            'payment_term_days.min' => 'Number of days cannot be negative.',
+            'has_commission.in' => 'Select Yes or No for commission.',
+            'commission_payable_status.required_if' => 'Select the commission payable status.',
+            'commission_payable_status.in' => 'Select Pending or Received.',
         ]);
 
         foreach (['single_rooms', 'double_rooms', 'triple_rooms'] as $key) {
@@ -259,19 +279,60 @@ class EnquiryController extends Controller
         $data['nights'] = max(0, (int) $data['nights']);
         $data['day'] = Carbon::parse($data['check_in'])->format('l');
         $data['check_in_day'] = $data['day'];
+        $data['payment_due_date'] = $this->paymentDueDate(
+            $data['payment_term'] ?? null,
+            isset($data['payment_term_days']) ? (int) $data['payment_term_days'] : null,
+            $data['check_in'],
+            $data['check_out']
+        );
+        if ($data['payment_due_date'] === null) {
+            $data['payment_term'] = null;
+            $data['payment_term_days'] = null;
+        }
+
+        if (array_key_exists('has_commission', $data) && $data['has_commission'] !== null && $data['has_commission'] !== '') {
+            $data['has_commission'] = (string) $data['has_commission'] === '1';
+        } else {
+            $data['has_commission'] = null;
+        }
+        if (! $data['has_commission']) {
+            $data['commission_payable_status'] = null;
+        }
 
         $nights = $data['nights'];
-        $data['total_rns'] = ($data['single_rooms'] + $data['double_rooms'] + $data['triple_rooms']) * $nights;
-        $data['total_revenue'] = round((
-            ($data['single_rooms'] * $data['single_rate'])
-            + ($data['double_rooms'] * $data['double_rate'])
-            + ($data['triple_rooms'] * $data['triple_rate'])
-        ) * $nights, 2);
-        $data['bb_revenue'] = round((
-            ($data['single_rooms'] * 10)
-            + ($data['double_rooms'] * 20)
-            + ($data['triple_rooms'] * 30)
-        ) * $nights, 2);
+        $dailyRows = $this->cleanDailyRooms($data['daily_rooms'] ?? null, $data['check_in'], $data['check_out']);
+        unset($data['daily_rooms']);
+        if ($dailyRows === [] && is_array($enquiry->daily_room_rates) && $enquiry->daily_room_rates !== []) {
+            $dailyRows = $enquiry->daily_room_rates;
+        }
+
+        if ($dailyRows !== []) {
+            $totals = $this->totalsFromDailyRows($dailyRows);
+            foreach (['single', 'double', 'triple'] as $type) {
+                $data[$type.'_rooms'] = $totals[$type.'_rooms'];
+                $data[$type.'_rate'] = $totals[$type.'_rate'];
+            }
+            $data['total_rns'] = $totals['total_rns'] * $nights;
+            $data['total_revenue'] = round((
+                ($data['single_rooms'] * $data['single_rate'])
+                + ($data['double_rooms'] * $data['double_rate'])
+                + ($data['triple_rooms'] * $data['triple_rate'])
+            ) * $nights, 2);
+            $data['bb_revenue'] = $totals['bb_revenue'];
+            $data['daily_room_rates'] = $dailyRows;
+        } else {
+            $data['total_rns'] = ($data['single_rooms'] + $data['double_rooms'] + $data['triple_rooms']) * $nights;
+            $data['total_revenue'] = round((
+                ($data['single_rooms'] * $data['single_rate'])
+                + ($data['double_rooms'] * $data['double_rate'])
+                + ($data['triple_rooms'] * $data['triple_rate'])
+            ) * $nights, 2);
+            $data['bb_revenue'] = round((
+                ($data['single_rooms'] * 10)
+                + ($data['double_rooms'] * 20)
+                + ($data['triple_rooms'] * 30)
+            ) * $nights, 2);
+        }
         $data['dinner_revenue'] = 0;
         $data['nett_rev_ex_vat'] = round((($data['total_revenue'] * 100) / 120) - $data['bb_revenue'], 2);
         $data['status'] = 'Confirmed';
@@ -291,10 +352,16 @@ class EnquiryController extends Controller
     {
         $this->authorize('update', $enquiry);
 
+        if ($request->input('cxl_date') === '') {
+            $request->merge(['cxl_date' => null]);
+        }
+
         $data = $request->validate([
             'cancellation_reason' => ['required', 'string', 'max:2000'],
+            'cxl_date' => ['nullable', 'date'],
         ], [
             'cancellation_reason.required' => 'Enter the cancellation reason.',
+            'cxl_date.date' => 'Enter a valid CXL date.',
         ]);
 
         $enquiry->update([
@@ -302,6 +369,7 @@ class EnquiryController extends Controller
             'is_cancel' => true,
             'is_confirm' => false,
             'cancellation_reason' => $data['cancellation_reason'],
+            'cxl_date' => $data['cxl_date'] ?? null,
         ]);
         Audit::log('cancelled', 'enquiries', $enquiry->group_name ?: $enquiry->ref, $enquiry);
 
@@ -338,6 +406,11 @@ class EnquiryController extends Controller
     {
         $this->authorize('update', $enquiry);
 
+        $request->merge([
+            'group_name' => trim((string) $request->input('group_name', '')),
+            'ref' => trim((string) $request->input('ref', '')),
+        ]);
+
         if ($request->input('ref') === '') {
             $request->merge(['ref' => null]);
         }
@@ -359,10 +432,12 @@ class EnquiryController extends Controller
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',
+            'group_name.unique' => 'This group name and ref no combination already exists.',
             'rooms_per_night.required' => 'Total room per night is required.',
             'email.required' => 'Email ID is required.',
             'email.email' => 'Enter a valid email address.',
-            'ref.unique' => 'This reference is already used. Enter a different one.',
+            'ref.required' => 'Ref no is required.',
+            'ref.unique' => 'This group name and ref no combination already exists.',
             'status.exists' => 'Select a valid active status.',
             'basis.in' => 'Select a valid basis.',
         ] + EnquiryFieldRules::roomPeriodMessages());
@@ -714,33 +789,19 @@ class EnquiryController extends Controller
     }
 
     /**
-     * Sum each stay date's rooms × rates. Older enquiries without daily rows use one rate × nights.
+     * Same total as a group booking: (single rooms × rate + double rooms × rate + triple rooms × rate) × nights.
+     * When daily rows exist, the room and rate figures are already the sum of each stay date.
      *
      * @param  array<string, mixed>  $data
      */
     private function revenueFromRoomNights(array $data): float
     {
-        $rows = $data['daily_room_rates'] ?? null;
-        if (is_array($rows) && $rows !== []) {
-            $total = 0.0;
-            foreach ($rows as $row) {
-                if (! is_array($row)) {
-                    continue;
-                }
-                $total += ((int) ($row['single_rooms'] ?? 0) * (float) ($row['single_rate'] ?? 0))
-                    + ((int) ($row['double_rooms'] ?? 0) * (float) ($row['double_rate'] ?? 0))
-                    + ((int) ($row['triple_rooms'] ?? 0) * (float) ($row['triple_rate'] ?? 0));
-            }
-
-            return round($total, 2);
-        }
-
         $nights = max(0, (int) ($data['nights'] ?? 0));
-        $nightly = ((int) ($data['single_rooms'] ?? 0) * (float) ($data['single_rate'] ?? 0))
+        $amount = ((int) ($data['single_rooms'] ?? 0) * (float) ($data['single_rate'] ?? 0))
             + ((int) ($data['double_rooms'] ?? 0) * (float) ($data['double_rate'] ?? 0))
             + ((int) ($data['triple_rooms'] ?? 0) * (float) ($data['triple_rate'] ?? 0));
 
-        return round($nightly * $nights, 2);
+        return round($amount * $nights, 2);
     }
 
     /**
@@ -795,15 +856,106 @@ class EnquiryController extends Controller
 
         ksort($clean);
         $data['daily_room_rates'] = array_values($clean);
-        $first = $data['daily_room_rates'][0] ?? null;
-        if (is_array($first)) {
+        if ($data['daily_room_rates'] !== []) {
+            $totals = $this->totalsFromDailyRows($data['daily_room_rates']);
             foreach (['single', 'double', 'triple'] as $type) {
-                $data[$type.'_rooms'] = $first[$type.'_rooms'];
-                $data[$type.'_rate'] = $first[$type.'_rate'];
+                $data[$type.'_rooms'] = $totals[$type.'_rooms'];
+                $data[$type.'_rate'] = $totals[$type.'_rate'];
             }
         }
 
         return $data;
+    }
+
+    /**
+     * @return list<array{date: string, single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float}>
+     */
+    private function cleanDailyRooms(mixed $rows, mixed $checkIn, mixed $checkOut): array
+    {
+        if (! is_array($rows) || empty($checkIn) || empty($checkOut)) {
+            return [];
+        }
+
+        try {
+            $start = Carbon::parse($checkIn)->startOfDay();
+            $end = Carbon::parse($checkOut)->startOfDay();
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $clean = [];
+        foreach ($rows as $date => $row) {
+            if (! is_array($row) || ! is_string($date)) {
+                continue;
+            }
+
+            try {
+                $day = Carbon::parse($date)->startOfDay();
+            } catch (\Throwable) {
+                continue;
+            }
+
+            if ($day->lt($start) || $day->gt($end)) {
+                continue;
+            }
+
+            $item = ['date' => $day->toDateString()];
+            foreach (['single', 'double', 'triple'] as $type) {
+                $item[$type.'_rooms'] = max(0, (int) ($row[$type.'_rooms'] ?? 0));
+                $item[$type.'_rate'] = round(max(0, (float) ($row[$type.'_rate'] ?? 0)), 2);
+            }
+            $clean[$item['date']] = $item;
+
+            if (count($clean) >= 400) {
+                break;
+            }
+        }
+
+        ksort($clean);
+
+        return array_values($clean);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @return array{single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float, total_rns: int, total_revenue: float, bb_revenue: float}
+     */
+    private function totalsFromDailyRows(array $rows): array
+    {
+        $totals = [
+            'single_rooms' => 0,
+            'single_rate' => 0.0,
+            'double_rooms' => 0,
+            'double_rate' => 0.0,
+            'triple_rooms' => 0,
+            'triple_rate' => 0.0,
+            'total_rns' => 0,
+            'total_revenue' => 0.0,
+            'bb_revenue' => 0.0,
+        ];
+        $allowance = ['single' => 10, 'double' => 20, 'triple' => 30];
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            foreach (['single', 'double', 'triple'] as $type) {
+                $rooms = max(0, (int) ($row[$type.'_rooms'] ?? 0));
+                $rate = max(0, (float) ($row[$type.'_rate'] ?? 0));
+                $totals[$type.'_rooms'] += $rooms;
+                $totals[$type.'_rate'] += $rate;
+                $totals['total_rns'] += $rooms;
+                $totals['total_revenue'] += $rooms * $rate;
+                $totals['bb_revenue'] += $rooms * $allowance[$type];
+            }
+        }
+
+        foreach (['single_rate', 'double_rate', 'triple_rate', 'total_revenue', 'bb_revenue'] as $key) {
+            $totals[$key] = round($totals[$key], 2);
+        }
+
+        return $totals;
     }
 
     /**
@@ -997,6 +1149,23 @@ class EnquiryController extends Controller
         return round((float) $value, 2);
     }
 
+    private function paymentDueDate(?string $term, ?int $days, mixed $arrival, mixed $departure): ?string
+    {
+        if (! in_array($term, ['Pre Arrival', 'Post Departure'], true) || $days === null) {
+            return null;
+        }
+
+        $base = $term === 'Pre Arrival' ? $arrival : $departure;
+        if ($base === null || $base === '') {
+            return null;
+        }
+
+        return Carbon::parse($base)
+            ->startOfDay()
+            ->addDays($term === 'Pre Arrival' ? -$days : $days)
+            ->toDateString();
+    }
+
     private function exportInt(mixed $value): ?int
     {
         if ($value === null || $value === '') {
@@ -1004,5 +1173,29 @@ class EnquiryController extends Controller
         }
 
         return (int) $value;
+    }
+
+    /**
+     * @return list<array{group_name: string, ref: string}>
+     */
+    private function existingGroupRefPairs(?int $ignoreEnquiryId = null): array
+    {
+        $query = Enquiry::query()
+            ->select(['group_name', 'ref'])
+            ->whereNotNull('ref')
+            ->where('ref', '!=', '');
+
+        if ($ignoreEnquiryId !== null) {
+            $query->where('id', '!=', $ignoreEnquiryId);
+        }
+
+        return $query
+            ->get()
+            ->map(fn (Enquiry $enquiry) => [
+                'group_name' => mb_strtolower(trim((string) $enquiry->group_name)),
+                'ref' => mb_strtolower(trim((string) $enquiry->ref)),
+            ])
+            ->values()
+            ->all();
     }
 }

@@ -94,10 +94,25 @@ class EnquiryFieldRules
      */
     public static function create(?int $ignoreEnquiryId = null, array $input = []): array
     {
-        $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref'];
+        $groupName = trim((string) ($input['group_name'] ?? ''));
+        $refValue = trim((string) ($input['ref'] ?? ''));
 
-        if ($ignoreEnquiryId) {
-            $ref = ['nullable', 'string', 'max:255', 'unique:enquiries,ref,'.$ignoreEnquiryId];
+        $groupNameRules = ['required', 'string', 'max:255'];
+        $refRules = ['required', 'string', 'max:255'];
+
+        if ($groupName !== '' && $refValue !== '') {
+            $groupUnique = Rule::unique('enquiries', 'group_name')
+                ->where(fn ($query) => $query->where('ref', $refValue));
+            $refUnique = Rule::unique('enquiries', 'ref')
+                ->where(fn ($query) => $query->where('group_name', $groupName));
+
+            if ($ignoreEnquiryId) {
+                $groupUnique->ignore($ignoreEnquiryId);
+                $refUnique->ignore($ignoreEnquiryId);
+            }
+
+            $groupNameRules[] = $groupUnique;
+            $refRules[] = $refUnique;
         }
 
         return array_merge([
@@ -107,8 +122,8 @@ class EnquiryFieldRules
             'check_out' => ['required', 'date', 'after:check_in'],
             'day' => ['nullable', 'string', 'max:20'],
             'nights' => ['required', 'integer', 'min:1'],
-            'group_name' => ['required', 'string', 'max:255'],
-            'ref' => $ref,
+            'group_name' => $groupNameRules,
+            'ref' => $refRules,
             'rooms_per_night' => ['required', 'integer', 'min:0'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],
             'single_rate' => ['nullable', 'numeric', 'min:0'],

@@ -14,9 +14,12 @@ class StoreEnquiryRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $nullable = [];
+        $nullable = [
+            'group_name' => trim((string) $this->input('group_name', '')),
+            'ref' => trim((string) $this->input('ref', '')),
+        ];
         foreach (['ref', 'day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'] as $field) {
-            if ($this->input($field) === '') {
+            if ($this->input($field) === '' || ($nullable[$field] ?? null) === '') {
                 $nullable[$field] = null;
             }
         }
@@ -50,10 +53,12 @@ class StoreEnquiryRequest extends FormRequest
             'nights.required' => 'Nights is required.',
             'nights.min' => 'Nights must be at least 1.',
             'group_name.required' => 'Group name is required.',
+            'group_name.unique' => 'This group name and ref no combination already exists.',
             'rooms_per_night.required' => 'Total room per night is required.',
             'email.required' => 'Email ID is required.',
             'email.email' => 'Enter a valid email address.',
-            'ref.unique' => 'This reference is already used. Enter a different one.',
+            'ref.required' => 'Ref no is required.',
+            'ref.unique' => 'This group name and ref no combination already exists.',
             'status.exists' => 'Select a valid active status.',
             'basis.in' => 'Select a valid basis.',
         ] + EnquiryFieldRules::roomPeriodMessages();

@@ -193,14 +193,6 @@
             @error('cxl_due_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6 col-xl-3">
-            <label for="cxl_date" class="form-label">CXL Date</label>
-            <div class="date-placeholder-wrap">
-              <input type="date" name="cxl_date" id="cxl_date" class="form-control @error('cxl_date') is-invalid @enderror" value="{{ $v('cxl_date') }}">
-              <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
-            </div>
-            @error('cxl_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-6 col-xl-3">
             <label for="commission" class="form-label">Commission</label>
             <input type="text" name="commission" id="commission" inputmode="decimal" class="form-control js-decimal @error('commission') is-invalid @enderror" value="{{ $v('commission') }}">
             @error('commission')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror

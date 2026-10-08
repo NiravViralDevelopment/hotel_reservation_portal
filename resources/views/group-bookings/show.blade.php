@@ -115,7 +115,7 @@
         <div><div class="gb-label">Contract Sent On</div><div class="gb-value">{{ $date($enquiry->contract_sent_on) }}</div></div>
         <div><div class="gb-label">Contract Recd On</div><div class="gb-value">{{ $date($enquiry->contract_received_on) }}</div></div>
         <div><div class="gb-label">Saved to Doc</div><div class="gb-value">{{ $text($enquiry->saved_to_doc) }}</div></div>
-        <div><div class="gb-label">Payment Term</div><div class="gb-value">{{ $text($enquiry->payment_term) }}</div></div>
+        <div><div class="gb-label">Payment Term</div><div class="gb-value">@if ($enquiry->payment_term){{ $enquiry->payment_term }}@if ($enquiry->payment_term_days !== null) ({{ $enquiry->payment_term_days }} {{ (int) $enquiry->payment_term_days === 1 ? 'day' : 'days' }})@endif@else—@endif</div></div>
         <div><div class="gb-label">Due Date</div><div class="gb-value">{{ $date($enquiry->payment_due_date) }}</div></div>
         <div><div class="gb-label">Payment Status</div><div class="gb-value">{{ $text($enquiry->payment_status) }}</div></div>
       </div>
@@ -128,8 +128,10 @@
       <div class="gb-dl">
         <div><div class="gb-label">CXL Policy</div><div class="gb-value">{{ $text($enquiry->cxl_policy) }}</div></div>
         <div><div class="gb-label">CXL Due Date</div><div class="gb-value">{{ $date($enquiry->cxl_due_date) }}</div></div>
-        <div><div class="gb-label">CXL Date</div><div class="gb-value">{{ $date($enquiry->cxl_date) }}</div></div>
-        <div><div class="gb-label">Commission</div><div class="gb-value">{{ $money($enquiry->commission) }}</div></div>
+        @if ($enquiry->is_cancel)
+          <div><div class="gb-label">CXL Date</div><div class="gb-value">{{ $date($enquiry->cxl_date) }}</div></div>
+        @endif
+        <div><div class="gb-label">Commission</div><div class="gb-value">{{ $enquiry->has_commission === null ? '—' : ($enquiry->has_commission ? 'Yes' : 'No') }}</div></div>
       </div>
     </div>
   </div>
@@ -161,9 +163,12 @@
         <div><div class="gb-label">Update</div><div class="gb-value">{{ $text($enquiry->booking_update) }}</div></div>
         <div><div class="gb-label">Rooming</div><div class="gb-value">{{ $text($enquiry->rooming) }}</div></div>
         <div><div class="gb-label">Invoice Status</div><div class="gb-value">{{ $text($enquiry->invoice_status) }}</div></div>
+        <div><div class="gb-label">Invoice Number</div><div class="gb-value">{{ $text($enquiry->invoice_number) }}</div></div>
         <div><div class="gb-label">Invoice Sent On</div><div class="gb-value">{{ $date($enquiry->invoice_sent_on) }}</div></div>
         <div><div class="gb-label">Invoice Amount</div><div class="gb-value">{{ $money($enquiry->invoice_amount) }}</div></div>
-        <div><div class="gb-label">Commission Payable Status</div><div class="gb-value">{{ $text($enquiry->commission_payable_status) }}</div></div>
+        @if ($enquiry->has_commission)
+          <div><div class="gb-label">Commission Payable Status</div><div class="gb-value">{{ $text($enquiry->commission_payable_status) }}</div></div>
+        @endif
       </div>
     </div>
   </div>

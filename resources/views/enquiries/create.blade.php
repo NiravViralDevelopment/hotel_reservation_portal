@@ -21,7 +21,7 @@
     <p class="page-subtitle mb-0">Work through the sections below. Fields marked <span class="text-danger">*</span> are required.</p>
   </div>
 
-  <form method="POST" action="{{ route('enquiries.store') }}" class="enquiry-form" data-enquiry-create="1" novalidate>
+  <form method="POST" action="{{ route('enquiries.store') }}" class="enquiry-form" data-enquiry-create="1" novalidate data-existing-pairs='@json($existingPairs)'>
     @csrf
     @include('enquiries.partials.entry-form')
     <div class="enquiry-sticky-actions">

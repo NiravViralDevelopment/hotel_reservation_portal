@@ -2,6 +2,7 @@
     'date' => null,
     'empty' => '—',
     'window' => 30,
+    'scale' => null,
 ])
 
 @php
@@ -28,7 +29,24 @@
         $daysLeft = (int) $today->diffInDays($parsed, false);
         $window = max(1, (int) $window);
 
-        if ($daysLeft < 0) {
+        if ($scale === 'option') {
+            if ($daysLeft < 0) {
+                $overdue = abs($daysLeft);
+                $urgency = 'overdue';
+                $hint = $overdue.' day'.($overdue === 1 ? '' : 's').' overdue';
+            } elseif ($daysLeft <= 10) {
+                $urgency = 'red';
+                $hint = $daysLeft === 0
+                    ? 'Today'
+                    : $daysLeft.' day'.($daysLeft === 1 ? '' : 's').' left';
+            } elseif ($daysLeft <= 15) {
+                $urgency = 'yellow';
+                $hint = $daysLeft.' days left';
+            } elseif ($daysLeft <= 30) {
+                $urgency = 'green';
+                $hint = $daysLeft.' days left';
+            }
+        } elseif ($daysLeft < 0) {
             $overdue = abs($daysLeft);
             $urgency = 'overdue';
             $hint = $overdue.' day'.($overdue === 1 ? '' : 's').' overdue';

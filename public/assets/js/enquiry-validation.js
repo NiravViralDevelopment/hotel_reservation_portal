@@ -56,7 +56,7 @@
     }
   }
 
-  function validateField(el, rules) {
+  function validateField(el, rules, pairs) {
     if (!el || !rules) return true;
 
     var value = trim(el.value);
@@ -154,8 +154,30 @@
       return false;
     }
 
+    if (rules.uniquePair) {
+      var pairForm = el.form;
+      var groupEl = pairForm ? pairForm.querySelector('[name="group_name"]') : null;
+      var refEl = pairForm ? pairForm.querySelector('[name="ref"]') : null;
+      var groupVal = groupEl ? trim(groupEl.value) : '';
+      var refVal = refEl ? trim(refEl.value) : '';
+      if (groupVal && refVal && pairExists(pairs || [], groupVal, refVal)) {
+        setError(el, 'This group name and ref no combination already exists.');
+        return false;
+      }
+    }
+
     clearError(el);
     return true;
+  }
+
+  function pairExists(pairs, groupName, ref) {
+    var groupKey = String(groupName || '').trim().toLowerCase();
+    var refKey = String(ref || '').trim().toLowerCase();
+    if (!groupKey || !refKey) return false;
+
+    return pairs.some(function (pair) {
+      return pair.group_name === groupKey && pair.ref === refKey;
+    });
   }
 
   function dateBoundFails(el, names, isInvalid) {
@@ -191,14 +213,14 @@
     var isCreate = form.getAttribute('data-enquiry-create') === '1';
 
     return {
-      group_name: { required: true, max: 255, requiredMessage: 'Group name is required.' },
+      group_name: { required: true, max: 255, uniquePair: true, requiredMessage: 'Group name is required.' },
       email: {
         required: isCreate,
         email: true,
         max: 255,
         requiredMessage: 'Email ID is required.'
       },
-      ref: { max: 255 },
+      ref: { required: isCreate, max: 255, uniquePair: true, requiredMessage: 'Ref no is required.' },
       year: { year: true },
       nights: {
         required: isCreate,
@@ -280,6 +302,12 @@
     form.setAttribute('novalidate', 'novalidate');
 
     var rulesMap = buildRules(form);
+    var pairs = [];
+    try {
+      pairs = JSON.parse(form.getAttribute('data-existing-pairs') || '[]');
+    } catch (e) {
+      pairs = [];
+    }
 
     function fields() {
       return Object.keys(rulesMap)
@@ -290,12 +318,24 @@
     }
 
     function runField(el) {
-      return validateField(el, rulesMap[el.getAttribute('name')]);
+      return validateField(el, rulesMap[el.getAttribute('name')], pairs);
+    }
+
+    function runGroupRefPair() {
+      var groupEl = form.querySelector('[name="group_name"]');
+      var refEl = form.querySelector('[name="ref"]');
+      var groupOk = groupEl ? runField(groupEl) : true;
+      var refOk = refEl ? runField(refEl) : true;
+      return groupOk && refOk;
     }
 
     fields().forEach(function (el) {
       ['keyup', 'input', 'change', 'blur'].forEach(function (evt) {
         el.addEventListener(evt, function () {
+          if (el.name === 'group_name' || el.name === 'ref') {
+            runGroupRefPair();
+            return;
+          }
           runField(el);
         });
       });
