@@ -26,6 +26,7 @@
   <table class="table table-hover table-sm mb-0" style="font-size:0.78rem">
     <thead>
       <tr>
+        <th>Hotel</th>
         <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'check_in','label' => 'Date of Arrival','default' => $defaultSort,'defaultDir' => $defaultDir]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -266,6 +267,7 @@
     <tbody>
       <?php $__empty_1 = true; $__currentLoopData = $rows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $enquiry): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
         <tr>
+          <td class="text-nowrap fw-semibold"><?php echo e($enquiry->hotel?->name ?: '—'); ?></td>
           <td class="text-nowrap"><?php if($highlightDates): ?><?php if (isset($component)) { $__componentOriginal899a5b6ea6f91be084ad9a28a4fd56e8 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal899a5b6ea6f91be084ad9a28a4fd56e8 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.date-alert','data' => ['date' => $enquiry->check_in]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -403,7 +405,7 @@
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <tr><td colspan="<?php echo e($showCancellationReason ? 40 : 38); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
+        <tr><td colspan="<?php echo e($showCancellationReason ? 41 : 39); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
       <?php endif; ?>
     </tbody>
   </table>
