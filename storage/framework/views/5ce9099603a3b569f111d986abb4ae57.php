@@ -39,6 +39,7 @@
       'defaultSort' => 'updated_at',
       'defaultDir' => 'desc',
       'emptyMessage' => 'No cancelled inquiries found.',
+      'editRoute' => 'cancelled-inquiries.edit',
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo $__env->make('partials.pagination-footer', ['paginator' => $enquiries], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   </div>

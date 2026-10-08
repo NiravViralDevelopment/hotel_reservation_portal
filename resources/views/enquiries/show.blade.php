@@ -141,7 +141,7 @@
         @endif
       @endcan
       @can('update', $enquiry)
-        <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-outline-secondary btn-sm">
+        <a href="{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? route('cancelled-inquiries.edit', $enquiry) : route('enquiries.edit', $enquiry) }}" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-pencil"></i> Edit
         </a>
         <a href="#client-response" class="btn btn-outline-secondary btn-sm">

@@ -41,6 +41,7 @@
       'defaultSort' => 'updated_at',
       'defaultDir' => 'desc',
       'emptyMessage' => 'No cancelled inquiries found.',
+      'editRoute' => 'cancelled-inquiries.edit',
     ])
     @include('partials.pagination-footer', ['paginator' => $enquiries])
   </div>

@@ -7,6 +7,7 @@
   $showCancellationReason = $showCancellationReason ?? false;
   $readOnly = $readOnly ?? false;
   $recordRoute = $recordRoute ?? 'enquiries.show';
+  $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
   $money = function ($value) {
       if ($value === null || $value === '') {
@@ -96,7 +97,7 @@
                 <a href="{{ route('enquiries.show', $enquiry) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
                   <i class="bi bi-chat-left-text"></i>
                 </a>
-                <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                <a href="{{ route($editRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </a>
               @endcan

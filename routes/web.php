@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('cancelled-inquiries', [CancelledInquiryController::class, 'index'])->name('cancelled-inquiries.index');
     Route::get('cancelled-inquiries/export', [CancelledInquiryController::class, 'export'])->name('cancelled-inquiries.export');
+    Route::get('cancelled-inquiries/{enquiry}/edit', [EnquiryController::class, 'editCancelled'])->name('cancelled-inquiries.edit');
 
     // Group bookings = confirmed enquiries (same enquiries table)
     Route::get('group-bookings', [GroupBookingController::class, 'index'])->name('group-bookings.index');

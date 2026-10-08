@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', 'Edit enquiry'); ?>
-<?php $__env->startSection('page', 'enquiries'); ?>
+<?php $__env->startSection('title', ($enquiry->is_cancel && ! $enquiry->is_confirm) ? 'Edit cancelled inquiry' : 'Edit enquiry'); ?>
+<?php $__env->startSection('page', ($enquiry->is_cancel && ! $enquiry->is_confirm) ? 'cancelled-inquiries' : 'enquiries'); ?>
 
 <?php $__env->startPush('styles'); ?>
   <?php echo $__env->make('enquiries.partials.entry-form-styles', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -11,12 +11,12 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-1">
         <li class="breadcrumb-item"><a href="<?php echo e(route('dashboard')); ?>">Home</a></li>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('enquiries.index')); ?>">Enquiries</a></li>
+        <li class="breadcrumb-item"><a href="<?php echo e($enquiry->is_cancel && ! $enquiry->is_confirm ? route('cancelled-inquiries.index') : route('enquiries.index')); ?>"><?php echo e($enquiry->is_cancel && ! $enquiry->is_confirm ? 'Cancelled Inquiry' : 'Enquiries'); ?></a></li>
         <li class="breadcrumb-item active">Edit enquiry</li>
       </ol>
     </nav>
-    <h1 class="page-title">Edit enquiry</h1>
-    <p class="page-subtitle mb-0">Save changes to this enquiry, open Group Bookings, or cancel the inquiry.</p>
+    <h1 class="page-title"><?php echo e($enquiry->is_cancel && ! $enquiry->is_confirm ? 'Edit cancelled inquiry' : 'Edit enquiry'); ?></h1>
+    <p class="page-subtitle mb-0"><?php echo e($enquiry->is_cancel && ! $enquiry->is_confirm ? 'This inquiry stays in Cancelled Inquiry. Set the status to Quoted to move it back to Enquiries.' : 'Save changes to this enquiry, open Group Bookings, or cancel the inquiry.'); ?></p>
   </div>
 
   <form method="POST" action="<?php echo e(route('enquiries.update', $enquiry)); ?>" class="enquiry-form" data-enquiry-create="1" novalidate data-existing-pairs='<?php echo json_encode($existingPairs, 15, 512) ?>'>
