@@ -44,7 +44,7 @@
     <p class="page-subtitle mb-0">Create a hotel profile and contact details. Fields marked <span class="text-danger">*</span> are required.</p>
   </div>
 
-  <form method="POST" action="{{ route('hotels.store') }}" class="hotel-form" novalidate data-existing-pairs='@json($existingPairs)'>
+  <form method="POST" action="{{ route('hotels.store') }}" class="hotel-form" enctype="multipart/form-data" novalidate data-existing-pairs='@json($existingPairs)'>
     @csrf
 
     <div class="card mb-4">
@@ -135,6 +135,24 @@
             @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="hotel-section-title"><i class="bi bi-file-earmark-arrow-up"></i> Document</h2>
+      </div>
+      <div class="card-body">
+        <label for="document" class="form-label">Upload document</label>
+        <input
+          type="file"
+          name="document"
+          id="document"
+          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          class="form-control @error('document') is-invalid @enderror"
+        >
+        <div class="form-text">PDF, DOC, or DOCX only, up to 10 MB. One file per hotel.</div>
+        @error('document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
     </div>
 

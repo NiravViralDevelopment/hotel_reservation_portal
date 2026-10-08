@@ -116,6 +116,18 @@
             <option value="{{ $hotel->id }}" @selected((string) request('hotel_id') === (string) $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
+        @if (request()->filled('hotel_id'))
+          @php
+            $filteredHotel = $hotels->firstWhere('id', (int) request('hotel_id'));
+          @endphp
+          @if ($filteredHotel && $filteredHotel->hasDocument())
+            <a href="{{ route('group-bookings.hotel-contract', $filteredHotel) }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-file-earmark-pdf"></i> View hotel contract
+            </a>
+          @elseif ($filteredHotel)
+            <span class="small text-secondary">No contract on this hotel</span>
+          @endif
+        @endif
         <select name="travel_agency_id" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
           <option value="">All agencies</option>
           @foreach ($travelAgencies as $agency)

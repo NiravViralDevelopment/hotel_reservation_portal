@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Enquiry extends Model
 {
@@ -111,6 +112,15 @@ class Enquiry extends Model
         'invoice_sent_on',
         'invoice_amount',
         'commission_payable_status',
+        'booking_contract_disk',
+        'booking_contract_path',
+        'booking_contract_original_name',
+        'booking_contract_mime_type',
+        'booking_contract_size',
+        'booking_contract_hotel_id',
+        'booking_contract_saved_at',
+        'booking_contract_notes',
+        'booking_contract_html',
     ];
 
     /**
@@ -179,7 +189,48 @@ class Enquiry extends Model
             'nett_rev_ex_vat' => 'decimal:2',
             'invoice_amount' => 'decimal:2',
             'total_rns' => 'integer',
+            'booking_contract_size' => 'integer',
+            'booking_contract_saved_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Enquiry $enquiry): void {
+            $enquiry->deleteBookingContractFile();
+        });
+    }
+
+    public function hasBookingContract(): bool
+    {
+        $path = (string) $this->booking_contract_path;
+
+        return $path !== '' && ! str_contains($path, '..');
+    }
+
+    public function deleteBookingContractFile(): void
+    {
+        if (! $this->hasBookingContract()) {
+            return;
+        }
+
+        $disk = $this->booking_contract_disk ?: 'local';
+        $path = (string) $this->booking_contract_path;
+
+        if (Storage::disk($disk)->exists($path)) {
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
+    public function clearBookingContractAttributes(): void
+    {
+        $this->booking_contract_disk = null;
+        $this->booking_contract_path = null;
+        $this->booking_contract_original_name = null;
+        $this->booking_contract_mime_type = null;
+        $this->booking_contract_size = 0;
+        $this->booking_contract_hotel_id = null;
+        $this->booking_contract_saved_at = null;
     }
 
     public function travelAgency(): BelongsTo
@@ -190,6 +241,11 @@ class Enquiry extends Model
     public function hotel(): BelongsTo
     {
         return $this->belongsTo(Hotel::class);
+    }
+
+    public function bookingContractHotel(): BelongsTo
+    {
+        return $this->belongsTo(Hotel::class, 'booking_contract_hotel_id');
     }
 
     public function contact(): BelongsTo

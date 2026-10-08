@@ -64,6 +64,11 @@
     </div>
     <div class="d-flex gap-2">
       <a href="{{ ! empty($cancelledContext) ? route('cancelled-bookings.index') : route('group-bookings.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+      @if (empty($cancelledContext))
+        <a href="{{ route('group-bookings.contract', $enquiry) }}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-file-earmark-pdf"></i> Contract
+        </a>
+      @endif
       @can('update', $enquiry)
         @if (! $enquiry->is_cancel)
           <a href="{{ route('group-bookings.edit', $enquiry) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
@@ -115,6 +120,18 @@
         <div><div class="gb-label">Contract Sent On</div><div class="gb-value">{{ $date($enquiry->contract_sent_on) }}</div></div>
         <div><div class="gb-label">Contract Recd On</div><div class="gb-value">{{ $date($enquiry->contract_received_on) }}</div></div>
         <div><div class="gb-label">Saved to Doc</div><div class="gb-value">{{ $text($enquiry->saved_to_doc) }}</div></div>
+        <div>
+          <div class="gb-label">Hotel / booking contract</div>
+          <div class="gb-value">
+            <a href="{{ route('group-bookings.contract', $enquiry) }}">Open contract workspace</a>
+            @if ($enquiry->hasBookingContract())
+              <div class="small text-secondary mt-1">
+                Booking copy:
+                <a href="{{ route('group-bookings.contract.download', $enquiry) }}">{{ $enquiry->booking_contract_original_name }}</a>
+              </div>
+            @endif
+          </div>
+        </div>
         <div><div class="gb-label">Payment Term</div><div class="gb-value">@if ($enquiry->payment_term){{ $enquiry->payment_term }}@if ($enquiry->payment_term_days !== null) ({{ $enquiry->payment_term_days }} {{ (int) $enquiry->payment_term_days === 1 ? 'day' : 'days' }})@endif@else—@endif</div></div>
         <div><div class="gb-label">Due Date</div><div class="gb-value">{{ $date($enquiry->payment_due_date) }}</div></div>
         <div><div class="gb-label">Payment Status</div><div class="gb-value">{{ $text($enquiry->payment_status) }}</div></div>

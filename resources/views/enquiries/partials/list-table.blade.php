@@ -28,6 +28,7 @@
         <x-sortable-th column="nights" label="Nights" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="rooms_per_night" label="Total Room per Night" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="group_name" label="Group Name" :default="$defaultSort" :default-dir="$defaultDir" />
+        <th>Hotel</th>
         <x-sortable-th column="ref" label="Ref No" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="email" label="Email ID" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="status" label="Status" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -61,6 +62,7 @@
           <td>{{ $enquiry->nights ?? '—' }}</td>
           <td>{{ $enquiry->rooms_per_night ?? '—' }}</td>
           <td class="fw-semibold text-nowrap"><a href="{{ route('enquiries.show', $enquiry) }}">{{ $enquiry->group_name ?: '—' }}</a></td>
+          <td class="text-nowrap">{{ $enquiry->hotel?->name ?: '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->ref ?: '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->email ?: '—' }}</td>
           <td><x-badge-status :status="$enquiry->status" /></td>
@@ -106,7 +108,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ $showCancellationReason ? 25 : 23 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ $showCancellationReason ? 26 : 24 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
   </table>

@@ -5,6 +5,7 @@ $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'date' => null,
     'empty' => '—',
     'window' => 30,
+    'scale' => null,
 ]));
 
 foreach ($attributes->all() as $__key => $__value) {
@@ -24,6 +25,7 @@ foreach (array_filter(([
     'date' => null,
     'empty' => '—',
     'window' => 30,
+    'scale' => null,
 ]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
@@ -60,7 +62,24 @@ unset($__defined_vars, $__key, $__value); ?>
         $daysLeft = (int) $today->diffInDays($parsed, false);
         $window = max(1, (int) $window);
 
-        if ($daysLeft < 0) {
+        if ($scale === 'option') {
+            if ($daysLeft < 0) {
+                $overdue = abs($daysLeft);
+                $urgency = 'overdue';
+                $hint = $overdue.' day'.($overdue === 1 ? '' : 's').' overdue';
+            } elseif ($daysLeft <= 10) {
+                $urgency = 'red';
+                $hint = $daysLeft === 0
+                    ? 'Today'
+                    : $daysLeft.' day'.($daysLeft === 1 ? '' : 's').' left';
+            } elseif ($daysLeft <= 15) {
+                $urgency = 'yellow';
+                $hint = $daysLeft.' days left';
+            } elseif ($daysLeft <= 30) {
+                $urgency = 'green';
+                $hint = $daysLeft.' days left';
+            }
+        } elseif ($daysLeft < 0) {
             $overdue = abs($daysLeft);
             $urgency = 'overdue';
             $hint = $overdue.' day'.($overdue === 1 ? '' : 's').' overdue';

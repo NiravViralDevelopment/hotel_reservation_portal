@@ -70,9 +70,21 @@
           <div class="info-card-label">Rooms</div>
           <div class="info-card-value">{{ $hotel->rooms ?? '—' }}</div>
         </div>
-        <div class="info-card">
+        <div class="info-card mb-3">
           <div class="info-card-label">Status</div>
           <div class="info-card-value"><x-badge-status :status="$hotel->status" /></div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">Document</div>
+          <div class="info-card-value">
+            @if ($hotel->hasDocument())
+              <a href="{{ route('hotels.document.download', $hotel) }}">
+                <i class="bi bi-download"></i> {{ $hotel->document_original_name }}
+              </a>
+            @else
+              —
+            @endif
+          </div>
         </div>
       </div>
     </div>

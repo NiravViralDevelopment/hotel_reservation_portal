@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Hotel extends Model
 {
@@ -30,6 +31,11 @@ class Hotel extends Model
         'email',
         'status',
         'notes',
+        'document_disk',
+        'document_path',
+        'document_original_name',
+        'document_mime_type',
+        'document_size',
     ];
 
     /**
@@ -39,7 +45,45 @@ class Hotel extends Model
     {
         return [
             'rooms' => 'integer',
+            'document_size' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Hotel $hotel): void {
+            $hotel->deleteStoredDocument();
+        });
+    }
+
+    public function hasDocument(): bool
+    {
+        $path = (string) $this->document_path;
+
+        return $path !== '' && ! str_contains($path, '..');
+    }
+
+    public function deleteStoredDocument(): void
+    {
+        if (! $this->hasDocument()) {
+            return;
+        }
+
+        $disk = $this->document_disk ?: 'local';
+        $path = (string) $this->document_path;
+
+        if (Storage::disk($disk)->exists($path)) {
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
+    public function clearDocumentAttributes(): void
+    {
+        $this->document_disk = null;
+        $this->document_path = null;
+        $this->document_original_name = null;
+        $this->document_mime_type = null;
+        $this->document_size = 0;
     }
 
     public function company(): BelongsTo

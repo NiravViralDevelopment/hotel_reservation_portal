@@ -45,7 +45,7 @@
     <p class="page-subtitle mb-0">Update hotel profile and contact details. Fields marked <span class="text-danger">*</span> are required.</p>
   </div>
 
-  <form method="POST" action="{{ route('hotels.update', $hotel) }}" class="hotel-form" novalidate data-existing-pairs='@json($existingPairs)'>
+  <form method="POST" action="{{ route('hotels.update', $hotel) }}" class="hotel-form" enctype="multipart/form-data" novalidate data-existing-pairs='@json($existingPairs)'>
     @csrf
     @method('PUT')
 
@@ -137,6 +137,35 @@
             @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="hotel-section-title"><i class="bi bi-file-earmark-arrow-up"></i> Document</h2>
+      </div>
+      <div class="card-body">
+        @if ($hotel->hasDocument())
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <a href="{{ route('hotels.document.download', $hotel) }}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-download"></i> {{ $hotel->document_original_name }}
+            </a>
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox" name="remove_document" id="remove_document" value="1" @checked(old('remove_document'))>
+              <label class="form-check-label" for="remove_document">Remove current document</label>
+            </div>
+          </div>
+        @endif
+        <label for="document" class="form-label">{{ $hotel->hasDocument() ? 'Replace document' : 'Upload document' }}</label>
+        <input
+          type="file"
+          name="document"
+          id="document"
+          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          class="form-control @error('document') is-invalid @enderror"
+        >
+        <div class="form-text">PDF, DOC, or DOCX only, up to 10 MB. One file per hotel.</div>
+        @error('document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
     </div>
 

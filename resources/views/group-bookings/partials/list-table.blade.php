@@ -125,6 +125,9 @@
               <i class="bi bi-eye"></i>
             </a>
             @unless ($showCancellationReason)
+              <a href="{{ route('group-bookings.contract', $enquiry) }}" class="btn btn-sm btn-outline-primary" title="Hotel contract">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
               @can('update', $enquiry)
                 <a href="{{ route('group-bookings.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
                   <i class="bi bi-pencil"></i>
