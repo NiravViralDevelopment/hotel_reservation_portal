@@ -26,6 +26,7 @@
   <table class="table table-hover table-sm mb-0" style="font-size:0.78rem">
     <thead>
       <tr>
+        <th>Hotel</th>
         <x-sortable-th column="check_in" label="Date of Arrival" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_out" label="Date of Departure" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="day" label="Day" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -76,6 +77,7 @@
     <tbody>
       @forelse ($rows as $enquiry)
         <tr>
+          <td class="text-nowrap fw-semibold">{{ $enquiry->hotel?->name ?: '—' }}</td>
           <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->check_in" />@else{{ $date($enquiry->check_in) }}@endif</td>
           <td class="text-nowrap">{{ $date($enquiry->check_out) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->day) }}</td>
@@ -137,7 +139,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ $showCancellationReason ? 40 : 38 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ $showCancellationReason ? 41 : 39 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
   </table>
