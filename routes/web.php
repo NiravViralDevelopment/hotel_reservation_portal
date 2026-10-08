@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('cancelled-inquiries', [CancelledInquiryController::class, 'index'])->name('cancelled-inquiries.index');
     Route::get('cancelled-inquiries/export', [CancelledInquiryController::class, 'export'])->name('cancelled-inquiries.export');
+    Route::get('cancelled-inquiries/{enquiry}/edit', [EnquiryController::class, 'editCancelled'])->name('cancelled-inquiries.edit');
 
     // Group bookings = confirmed enquiries (same enquiries table)
     Route::get('group-bookings', [GroupBookingController::class, 'index'])->name('group-bookings.index');
@@ -101,7 +102,9 @@ Route::middleware('auth')->group(function () {
     Route::get('cancelled-bookings/export', [CancelledBookingController::class, 'export'])->name('cancelled-bookings.export');
     Route::get('cancelled-bookings/{enquiry}', [CancelledBookingController::class, 'show'])->name('cancelled-bookings.show');
     Route::get('arrivals', [ArrivalController::class, 'index'])->name('arrivals.index');
+    Route::get('arrivals/{enquiry}', [ArrivalController::class, 'show'])->name('arrivals.show');
     Route::get('departures', [DepartureController::class, 'index'])->name('departures.index');
+    Route::get('departures/{enquiry}', [DepartureController::class, 'show'])->name('departures.show');
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     // Documents module temporarily hidden

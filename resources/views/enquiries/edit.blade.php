@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Edit enquiry')
-@section('page', 'enquiries')
+@section('title', ($enquiry->is_cancel && ! $enquiry->is_confirm) ? 'Edit cancelled inquiry' : 'Edit enquiry')
+@section('page', ($enquiry->is_cancel && ! $enquiry->is_confirm) ? 'cancelled-inquiries' : 'enquiries')
 
 @push('styles')
   @include('enquiries.partials.entry-form-styles')
@@ -13,12 +13,12 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-1">
         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+        <li class="breadcrumb-item"><a href="{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? route('cancelled-inquiries.index') : route('enquiries.index') }}">{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? 'Cancelled Inquiry' : 'Enquiries' }}</a></li>
         <li class="breadcrumb-item active">Edit enquiry</li>
       </ol>
     </nav>
-    <h1 class="page-title">Edit enquiry</h1>
-    <p class="page-subtitle mb-0">Save changes to this enquiry, open Group Bookings, or cancel the inquiry.</p>
+    <h1 class="page-title">{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? 'Edit cancelled inquiry' : 'Edit enquiry' }}</h1>
+    <p class="page-subtitle mb-0">{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? 'This inquiry stays in Cancelled Inquiry. Set the status to Quoted to move it back to Enquiries.' : 'Save changes to this enquiry, open Group Bookings, or cancel the inquiry.' }}</p>
   </div>
 
   <form method="POST" action="{{ route('enquiries.update', $enquiry) }}" class="enquiry-form" data-enquiry-create="1" novalidate data-existing-pairs='@json($existingPairs)'>

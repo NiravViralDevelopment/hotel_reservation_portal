@@ -182,6 +182,13 @@ class EnquiryController extends Controller
         return view('enquiries.edit', compact('enquiry', 'statuses', 'existingPairs'));
     }
 
+    public function editCancelled(Enquiry $enquiry): View
+    {
+        abort_unless($enquiry->is_cancel && ! $enquiry->is_confirm, 404);
+
+        return $this->edit($enquiry);
+    }
+
     public function groupBooking(Enquiry $enquiry): RedirectResponse
     {
         $this->authorize('update', $enquiry);
@@ -365,7 +372,7 @@ class EnquiryController extends Controller
         ]);
 
         $enquiry->update([
-            'status' => 'Cancelled',
+            'status' => 'Lost',
             'is_cancel' => true,
             'is_confirm' => false,
             'cancellation_reason' => $data['cancellation_reason'],
@@ -421,6 +428,8 @@ class EnquiryController extends Controller
             }
         }
 
+        $cancelledInquiry = $enquiry->is_cancel && ! $enquiry->is_confirm;
+
         $data = $request->validate(EnquiryFieldRules::create($enquiry->id, $request->all()), [
             'enquiry_date.required' => 'Enquiry date is required.',
             'response_date.required' => 'Response date is required.',
@@ -465,8 +474,33 @@ class EnquiryController extends Controller
                 ->value('title') ?? 'Chesed';
         }
 
+        $reopenInquiry = $cancelledInquiry && strcasecmp((string) ($data['status'] ?? ''), 'Quoted') === 0;
+
+        if ($reopenInquiry) {
+            $data['status'] = 'Quoted';
+            $data['is_cancel'] = false;
+            $data['is_confirm'] = false;
+            $data['cancellation_reason'] = null;
+            $data['cxl_date'] = null;
+        } elseif ($cancelledInquiry) {
+            $data['is_cancel'] = true;
+            $data['is_confirm'] = false;
+        }
+
         $enquiry->update($data);
         Audit::log('updated', 'enquiries', $enquiry->ref, $enquiry);
+
+        if ($reopenInquiry) {
+            return redirect()
+                ->route('enquiries.index')
+                ->with('success', 'Status set to Quoted. Inquiry moved back to Enquiries.');
+        }
+
+        if ($cancelledInquiry) {
+            return redirect()
+                ->route('cancelled-inquiries.index')
+                ->with('success', 'Cancelled inquiry updated.');
+        }
 
         return redirect()->route('enquiries.index')->with('success', 'Enquiry updated.');
     }

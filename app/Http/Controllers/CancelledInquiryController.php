@@ -6,6 +6,7 @@ use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
 use App\Support\Audit;
+use App\Support\EnquiryIndexFilters;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use App\Support\SimpleXlsxWriter;
@@ -23,8 +24,9 @@ class CancelledInquiryController extends Controller
         $enquiries = $this->filteredQuery($request)->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $monthValue = EnquiryIndexFilters::monthValue($request);
 
-        return view('cancelled-inquiries.index', compact('enquiries', 'hotels', 'travelAgencies'));
+        return view('cancelled-inquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'monthValue'));
     }
 
     public function export(Request $request): StreamedResponse
@@ -129,19 +131,7 @@ class CancelledInquiryController extends Controller
             $query->where('travel_agency_id', $request->integer('travel_agency_id'));
         }
 
-        if ($request->filled('enquiry_date_from')) {
-            $query->whereDate('enquiry_date', '>=', $request->string('enquiry_date_from'));
-        }
-
-        if ($request->filled('enquiry_date_to')) {
-            $query->whereDate('enquiry_date', '<=', $request->string('enquiry_date_to'));
-        }
-
-        if ($request->string('response') === 'awaiting') {
-            $query->whereNull('response_date');
-        } elseif ($request->string('response') === 'received') {
-            $query->whereNotNull('response_date');
-        }
+        EnquiryIndexFilters::applyMonth($query, $request, 'enquiry_date');
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',
