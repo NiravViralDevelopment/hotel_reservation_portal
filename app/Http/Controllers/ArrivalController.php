@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Enquiry;
 use App\Models\Hotel;
-use App\Models\TravelAgency;
 use App\Support\EnquiryIndexFilters;
 use App\Support\QuerySort;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class ArrivalController extends Controller
@@ -17,20 +15,19 @@ class ArrivalController extends Controller
     {
         abort_unless(auth()->user()?->can('bookings.view'), 403);
 
-        $month = $this->selectedMonth($request);
+        [$dateFrom, $dateTo] = EnquiryIndexFilters::dateBounds($request);
 
         $query = Enquiry::query()
             ->accessibleBy()
             ->with(['hotel', 'travelAgency'])
             ->groupBookings()
-            ->whereYear('check_in', $month->year)
-            ->whereMonth('check_in', $month->month)
             ->where(function ($query) {
                 $query->whereNull('check_out')
                     ->orWhereDate('check_out', '>', now()->toDateString());
             });
 
         EnquiryIndexFilters::apply($query, $request);
+        EnquiryIndexFilters::applyDateRange($query, $request, 'check_in');
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',
@@ -51,10 +48,8 @@ class ArrivalController extends Controller
 
         $bookings = $query->get();
         $hotels = Hotel::optionsForSelect();
-        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $monthValue = $month->format('Y-m');
 
-        return view('arrivals.index', compact('bookings', 'hotels', 'travelAgencies', 'month', 'monthValue'));
+        return view('arrivals.index', compact('bookings', 'hotels', 'dateFrom', 'dateTo'));
     }
 
     public function show(Enquiry $enquiry): View
@@ -68,19 +63,6 @@ class ArrivalController extends Controller
             'enquiry' => $enquiry,
             'list' => 'arrivals',
         ]);
-    }
-
-    private function selectedMonth(Request $request): Carbon
-    {
-        $value = $request->string('month')->toString();
-        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
-            $month = Carbon::createFromFormat('!Y-m', $value);
-            if ($month) {
-                return $month->startOfMonth();
-            }
-        }
-
-        return now()->startOfMonth();
     }
 
     private function isVisibleArrival(Enquiry $enquiry): bool

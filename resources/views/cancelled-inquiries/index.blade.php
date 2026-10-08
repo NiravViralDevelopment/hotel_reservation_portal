@@ -16,7 +16,7 @@
       <p class="page-subtitle">Enquiries cancelled from the edit screen, with the cancellation reason.</p>
     </div>
     <a
-      href="{{ route('cancelled-inquiries.export', request()->only(['q', 'hotel_id', 'travel_agency_id', 'month', 'sort', 'dir'])) }}"
+      href="{{ route('cancelled-inquiries.export', array_merge(request()->only(['q', 'hotel_id', 'sort', 'dir', 'date_from', 'date_to']), (! request()->exists('date_from') && ! request()->exists('date_to')) ? ['date_from' => $dateFrom, 'date_to' => $dateTo] : [])) }}"
       class="btn btn-outline-secondary btn-sm"
       title="Download the filtered list as Excel"
     >
@@ -28,10 +28,10 @@
     <div class="table-toolbar">
       @include('stay-lists.filters', [
         'filterRoute' => 'cancelled-inquiries.index',
-        'monthInputId' => 'cancelled_inquiry_month',
-        'monthValue' => $monthValue,
+        'dateInputPrefix' => 'cancelled_inquiry',
+        'dateFrom' => $dateFrom,
+        'dateTo' => $dateTo,
         'hotels' => $hotels,
-        'travelAgencies' => $travelAgencies,
       ])
     </div>
     @include('enquiries.partials.list-table', [

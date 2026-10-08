@@ -12,17 +12,17 @@
       </ol>
     </nav>
     <h1 class="page-title">Departures</h1>
-    <p class="page-subtitle">Groups whose departure date in {{ $month->format('F Y') }} is today or earlier.</p>
+    <p class="page-subtitle">Groups whose departure date is today or earlier, filtered by that date.</p>
   </div>
 
   <div class="card">
     <div class="table-toolbar">
       @include('stay-lists.filters', [
         'filterRoute' => 'departures.index',
-        'monthInputId' => 'departure_month',
-        'monthValue' => $monthValue,
+        'dateInputPrefix' => 'departure',
+        'dateFrom' => $dateFrom,
+        'dateTo' => $dateTo,
         'hotels' => $hotels,
-        'travelAgencies' => $travelAgencies,
       ])
     </div>
     @include('enquiries.partials.list-table', [
@@ -30,7 +30,7 @@
       'variant' => 'enquiry',
       'defaultSort' => 'check_out',
       'defaultDir' => 'asc',
-      'emptyMessage' => 'No groups have reached their departure date this month.',
+      'emptyMessage' => 'No groups have a departure date in this range that is today or earlier.',
       'readOnly' => true,
       'recordRoute' => 'departures.show',
     ])

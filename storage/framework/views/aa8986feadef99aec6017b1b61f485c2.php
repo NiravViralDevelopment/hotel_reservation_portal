@@ -15,12 +15,6 @@
       <option value="<?php echo e($hotel->id); ?>" <?php if((string) request('hotel_id') === (string) $hotel->id): echo 'selected'; endif; ?>><?php echo e($hotel->name); ?></option>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
   </select>
-  <select name="travel_agency_id" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
-    <option value="">All agencies</option>
-    <?php $__currentLoopData = $travelAgencies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $agency): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-      <option value="<?php echo e($agency->id); ?>" <?php if((string) request('travel_agency_id') === (string) $agency->id): echo 'selected'; endif; ?>><?php echo e($agency->name); ?></option>
-    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-  </select>
   <?php if(! empty($statuses ?? null)): ?>
     <select name="status" class="form-select form-select-sm select2" style="width:auto; min-width: 130px;">
       <option value="">All statuses</option>
@@ -29,12 +23,26 @@
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </select>
   <?php endif; ?>
+  <?php
+    $dateFromId = ($dateInputPrefix ?? 'list').'_from';
+    $dateToId = ($dateInputPrefix ?? 'list').'_to';
+  ?>
   <div class="d-flex align-items-center gap-1">
-    <label for="<?php echo e($monthInputId); ?>" class="form-label mb-0 small text-secondary">Month</label>
-    <input type="month" name="month" id="<?php echo e($monthInputId); ?>" class="form-control form-control-sm" style="width:auto;" value="<?php echo e($monthValue); ?>">
+    <label for="<?php echo e($dateFromId); ?>" class="form-label mb-0 small text-secondary">Start date</label>
+    <div class="date-placeholder-wrap">
+      <input type="date" name="date_from" id="<?php echo e($dateFromId); ?>" class="form-control form-control-sm" style="width:auto;" value="<?php echo e($dateFrom); ?>" title="Start date">
+      <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+    </div>
+  </div>
+  <div class="d-flex align-items-center gap-1">
+    <label for="<?php echo e($dateToId); ?>" class="form-label mb-0 small text-secondary">End date</label>
+    <div class="date-placeholder-wrap">
+      <input type="date" name="date_to" id="<?php echo e($dateToId); ?>" class="form-control form-control-sm" style="width:auto;" value="<?php echo e($dateTo); ?>" title="End date" <?php if($dateFrom): ?> min="<?php echo e($dateFrom); ?>" <?php endif; ?>>
+      <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+    </div>
   </div>
   <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-  <?php if(request()->hasAny(! empty($statuses ?? null) ? ['q', 'hotel_id', 'travel_agency_id', 'status', 'month'] : ['q', 'hotel_id', 'travel_agency_id', 'month'])): ?>
+  <?php if(request()->hasAny(! empty($statuses ?? null) ? ['q', 'hotel_id', 'status', 'date_from', 'date_to'] : ['q', 'hotel_id', 'date_from', 'date_to'])): ?>
     <a href="<?php echo e(route($filterRoute)); ?>" class="btn btn-outline-danger btn-sm">
       <i class="bi bi-x-circle"></i> Clear
     </a>
@@ -46,4 +54,14 @@
     <input type="hidden" name="dir" value="<?php echo e(request('dir')); ?>">
   <?php endif; ?>
 </form>
+<script>
+  document.getElementById(<?php echo json_encode($dateFromId, 15, 512) ?>)?.addEventListener('change', function () {
+    var end = document.getElementById(<?php echo json_encode($dateToId, 15, 512) ?>);
+    if (!end) return;
+    end.min = this.value || '';
+    if (this.value && end.value && end.value < this.value) {
+      end.value = this.value;
+    }
+  });
+</script>
 <?php /**PATH E:\Working\hotel_reservation_portal\resources\views/stay-lists/filters.blade.php ENDPATH**/ ?>

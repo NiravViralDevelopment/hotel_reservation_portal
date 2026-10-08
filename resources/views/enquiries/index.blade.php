@@ -17,7 +17,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="{{ route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'travel_agency_id', 'status', 'sort', 'dir']), ['month' => $enquiryMonth])) }}"
+        href="{{ route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'status', 'sort', 'dir', 'enquiry_from', 'enquiry_to']), (! request()->exists('enquiry_from') && ! request()->exists('enquiry_to')) ? ['enquiry_from' => $enquiryFrom, 'enquiry_to' => $enquiryTo] : [])) }}"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -78,12 +78,6 @@
             <option value="{{ $hotel->id }}" @selected((string) request('hotel_id') === (string) $hotel->id)>{{ $hotel->name }}</option>
           @endforeach
         </select>
-        <select name="travel_agency_id" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
-          <option value="">All agencies</option>
-          @foreach ($travelAgencies as $agency)
-            <option value="{{ $agency->id }}" @selected((string) request('travel_agency_id') === (string) $agency->id)>{{ $agency->name }}</option>
-          @endforeach
-        </select>
         <select name="status" class="form-select form-select-sm select2" style="width:auto; min-width: 130px;">
           <option value="">All statuses</option>
           @foreach ($statuses as $status)
@@ -91,11 +85,21 @@
           @endforeach
         </select>
         <div class="d-flex align-items-center gap-1">
-          <label for="enquiry_month" class="form-label mb-0 small text-secondary">Month</label>
-          <input type="month" name="month" id="enquiry_month" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryMonth }}" title="Enquiry month">
+          <label for="enquiry_from" class="form-label mb-0 small text-secondary">Start date</label>
+          <div class="date-placeholder-wrap">
+            <input type="date" name="enquiry_from" id="enquiry_from" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryFrom }}" title="Enquiry date from">
+            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-1">
+          <label for="enquiry_to" class="form-label mb-0 small text-secondary">End date</label>
+          <div class="date-placeholder-wrap">
+            <input type="date" name="enquiry_to" id="enquiry_to" class="form-control form-control-sm" style="width:auto;" value="{{ $enquiryTo }}" title="Enquiry date to" @if ($enquiryFrom) min="{{ $enquiryFrom }}" @endif>
+            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          </div>
         </div>
         <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        @if (request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'status', 'month']))
+        @if (request()->hasAny(['q', 'hotel_id', 'status', 'enquiry_from', 'enquiry_to']))
           <a href="{{ route('enquiries.index') }}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-x-circle"></i> Clear
           </a>
@@ -118,3 +122,16 @@
     @include('partials.pagination-footer', ['paginator' => $enquiries])
   </div>
 @endsection
+
+@push('scripts')
+  <script>
+    document.getElementById('enquiry_from')?.addEventListener('change', function () {
+      var end = document.getElementById('enquiry_to');
+      if (!end) return;
+      end.min = this.value || '';
+      if (this.value && end.value && end.value < this.value) {
+        end.value = this.value;
+      }
+    });
+  </script>
+@endpush

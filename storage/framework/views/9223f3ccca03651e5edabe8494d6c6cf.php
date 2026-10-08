@@ -10,17 +10,17 @@
       </ol>
     </nav>
     <h1 class="page-title">Arrivals</h1>
-    <p class="page-subtitle">Groups arriving in <?php echo e($month->format('F Y')); ?>. They stay on this list until their departure date.</p>
+    <p class="page-subtitle">Groups still to depart, filtered by arrival date. They stay on this list until their departure date.</p>
   </div>
 
   <div class="card">
     <div class="table-toolbar">
       <?php echo $__env->make('stay-lists.filters', [
         'filterRoute' => 'arrivals.index',
-        'monthInputId' => 'arrival_month',
-        'monthValue' => $monthValue,
+        'dateInputPrefix' => 'arrival',
+        'dateFrom' => $dateFrom,
+        'dateTo' => $dateTo,
         'hotels' => $hotels,
-        'travelAgencies' => $travelAgencies,
       ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </div>
     <?php echo $__env->make('enquiries.partials.list-table', [
@@ -28,7 +28,7 @@
       'variant' => 'enquiry',
       'defaultSort' => 'check_in',
       'defaultDir' => 'asc',
-      'emptyMessage' => 'No groups arriving this month are still to depart.',
+      'emptyMessage' => 'No groups arriving in this date range are still to depart.',
       'readOnly' => true,
       'recordRoute' => 'arrivals.show',
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
