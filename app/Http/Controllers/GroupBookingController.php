@@ -6,6 +6,7 @@ use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
 use App\Support\Audit;
+use App\Support\EnquiryIndexFilters;
 use App\Support\BookingContractHtml;
 use App\Support\GroupBookingExcelImporter;
 use App\Support\HotelAccess;
@@ -44,9 +45,10 @@ class GroupBookingController extends Controller
                 'document_size',
             ]);
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $monthValue = EnquiryIndexFilters::monthValue($request);
         $reminders = $this->reminders();
 
-        return view('group-bookings.index', compact('bookings', 'hotels', 'travelAgencies', 'reminders'));
+        return view('group-bookings.index', compact('bookings', 'hotels', 'travelAgencies', 'monthValue', 'reminders'));
     }
 
     public function show(Enquiry $enquiry): View
@@ -559,13 +561,7 @@ class GroupBookingController extends Controller
             $query->where('travel_agency_id', $request->integer('travel_agency_id'));
         }
 
-        if ($request->filled('arrival_from')) {
-            $query->whereDate('check_in', '>=', $request->string('arrival_from'));
-        }
-
-        if ($request->filled('arrival_to')) {
-            $query->whereDate('check_in', '<=', $request->string('arrival_to'));
-        }
+        EnquiryIndexFilters::applyMonth($query, $request, 'enquiry_date');
 
         QuerySort::apply($query, $request, [
             'check_in' => 'check_in',

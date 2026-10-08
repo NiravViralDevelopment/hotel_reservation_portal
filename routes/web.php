@@ -101,7 +101,9 @@ Route::middleware('auth')->group(function () {
     Route::get('cancelled-bookings/export', [CancelledBookingController::class, 'export'])->name('cancelled-bookings.export');
     Route::get('cancelled-bookings/{enquiry}', [CancelledBookingController::class, 'show'])->name('cancelled-bookings.show');
     Route::get('arrivals', [ArrivalController::class, 'index'])->name('arrivals.index');
+    Route::get('arrivals/{enquiry}', [ArrivalController::class, 'show'])->name('arrivals.show');
     Route::get('departures', [DepartureController::class, 'index'])->name('departures.index');
+    Route::get('departures/{enquiry}', [DepartureController::class, 'show'])->name('departures.show');
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     // Documents module temporarily hidden

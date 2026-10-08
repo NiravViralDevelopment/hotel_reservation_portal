@@ -17,54 +17,23 @@
 
   <div class="card">
     <div class="table-toolbar">
-      <form method="GET" action="{{ route('departures.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
-        <label for="departure_month" class="form-label mb-0 small text-secondary">Month</label>
-        <input type="month" name="month" id="departure_month" class="form-control form-control-sm" style="width:auto" value="{{ $monthValue }}">
-        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto">
-          <option value="">All hotels</option>
-          @foreach ($hotels as $hotel)
-            <option value="{{ $hotel->id }}" @selected(request('hotel_id') == $hotel->id)>{{ $hotel->name }}</option>
-          @endforeach
-        </select>
-        <button type="submit" class="btn btn-outline-secondary btn-sm">Apply</button>
-        @if (request('sort'))
-          <input type="hidden" name="sort" value="{{ request('sort') }}">
-        @endif
-        @if (request('dir'))
-          <input type="hidden" name="dir" value="{{ request('dir') }}">
-        @endif
-      </form>
+      @include('stay-lists.filters', [
+        'filterRoute' => 'departures.index',
+        'monthInputId' => 'departure_month',
+        'monthValue' => $monthValue,
+        'hotels' => $hotels,
+        'travelAgencies' => $travelAgencies,
+      ])
     </div>
-    <div class="table-wrapper">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <x-sortable-th column="check_out" label="Departure" default="check_out" />
-            <x-sortable-th column="ref" label="Ref" default="check_out" />
-            <x-sortable-th column="group_name" label="Group" default="check_out" />
-            <th>Hotel</th>
-            <th>Agency</th>
-            <x-sortable-th column="nights" label="Nights" default="check_out" />
-            <x-sortable-th column="status" label="Status" default="check_out" />
-          </tr>
-        </thead>
-        <tbody>
-          @forelse ($bookings as $booking)
-            <tr>
-              <td class="text-nowrap">{{ $booking->check_out?->format('d M Y') ?? '—' }}</td>
-              <td><a href="{{ route('enquiries.show', $booking) }}">{{ $booking->ref ?: '—' }}</a></td>
-              <td>{{ $booking->group_name }}</td>
-              <td>{{ $booking->hotel?->code ?? '—' }}</td>
-              <td>{{ $booking->travelAgency?->name ?? '—' }}</td>
-              <td>{{ $booking->nights ?? '—' }}</td>
-              <td><x-badge-status :status="$booking->status" /></td>
-            </tr>
-          @empty
-            <tr><td colspan="7" class="text-center text-secondary py-4">No groups have reached their departure date this month.</td></tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
+    @include('enquiries.partials.list-table', [
+      'rows' => $bookings,
+      'variant' => 'enquiry',
+      'defaultSort' => 'check_out',
+      'defaultDir' => 'asc',
+      'emptyMessage' => 'No groups have reached their departure date this month.',
+      'readOnly' => true,
+      'recordRoute' => 'departures.show',
+    ])
     <div class="table-footer"><span><strong>{{ $bookings->count() }}</strong> departure(s)</span></div>
   </div>
 @endsection

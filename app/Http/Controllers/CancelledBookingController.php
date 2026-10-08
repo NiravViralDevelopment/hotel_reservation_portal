@@ -6,6 +6,7 @@ use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
 use App\Support\Audit;
+use App\Support\EnquiryIndexFilters;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use App\Support\SimpleXlsxWriter;
@@ -23,8 +24,9 @@ class CancelledBookingController extends Controller
         $bookings = $this->filteredQuery($request)->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();
         $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $monthValue = EnquiryIndexFilters::monthValue($request);
 
-        return view('cancelled-bookings.index', compact('bookings', 'hotels', 'travelAgencies'));
+        return view('cancelled-bookings.index', compact('bookings', 'hotels', 'travelAgencies', 'monthValue'));
     }
 
     public function show(Enquiry $enquiry): View
@@ -172,13 +174,7 @@ class CancelledBookingController extends Controller
             $query->where('travel_agency_id', $request->integer('travel_agency_id'));
         }
 
-        if ($request->filled('arrival_from')) {
-            $query->whereDate('check_in', '>=', $request->string('arrival_from'));
-        }
-
-        if ($request->filled('arrival_to')) {
-            $query->whereDate('check_in', '<=', $request->string('arrival_to'));
-        }
+        EnquiryIndexFilters::applyMonth($query, $request, 'enquiry_date');
 
         QuerySort::apply($query, $request, [
             'check_in' => 'check_in',
