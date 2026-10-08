@@ -17,7 +17,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="{{ route('group-bookings.export', request()->only(['q', 'hotel_id', 'travel_agency_id', 'month', 'sort', 'dir'])) }}"
+        href="{{ route('group-bookings.export', array_merge(request()->only(['q', 'hotel_id', 'sort', 'dir', 'date_from', 'date_to']), (! request()->exists('date_from') && ! request()->exists('date_to')) ? ['date_from' => $dateFrom, 'date_to' => $dateTo] : [])) }}"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -101,10 +101,10 @@
     <div class="table-toolbar">
       @include('stay-lists.filters', [
         'filterRoute' => 'group-bookings.index',
-        'monthInputId' => 'group_booking_month',
-        'monthValue' => $monthValue,
+        'dateInputPrefix' => 'group_booking',
+        'dateFrom' => $dateFrom,
+        'dateTo' => $dateTo,
         'hotels' => $hotels,
-        'travelAgencies' => $travelAgencies,
       ])
       @if (request()->filled('hotel_id'))
         @php

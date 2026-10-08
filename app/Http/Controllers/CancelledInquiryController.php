@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Enquiry;
 use App\Models\Hotel;
-use App\Models\TravelAgency;
 use App\Support\Audit;
 use App\Support\EnquiryIndexFilters;
 use App\Support\HotelAccess;
@@ -23,10 +22,9 @@ class CancelledInquiryController extends Controller
 
         $enquiries = $this->filteredQuery($request)->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();
-        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
-        $monthValue = EnquiryIndexFilters::monthValue($request);
+        [$dateFrom, $dateTo] = EnquiryIndexFilters::dateBounds($request);
 
-        return view('cancelled-inquiries.index', compact('enquiries', 'hotels', 'travelAgencies', 'monthValue'));
+        return view('cancelled-inquiries.index', compact('enquiries', 'hotels', 'dateFrom', 'dateTo'));
     }
 
     public function export(Request $request): StreamedResponse
@@ -127,11 +125,7 @@ class CancelledInquiryController extends Controller
             $query->where('hotel_id', $request->integer('hotel_id'));
         }
 
-        if ($request->filled('travel_agency_id')) {
-            $query->where('travel_agency_id', $request->integer('travel_agency_id'));
-        }
-
-        EnquiryIndexFilters::applyMonth($query, $request, 'enquiry_date');
+        EnquiryIndexFilters::applyDateRange($query, $request, 'enquiry_date');
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',

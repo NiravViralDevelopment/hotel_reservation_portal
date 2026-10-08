@@ -15,7 +15,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="<?php echo e(route('group-bookings.export', request()->only(['q', 'hotel_id', 'travel_agency_id', 'month', 'sort', 'dir']))); ?>"
+        href="<?php echo e(route('group-bookings.export', array_merge(request()->only(['q', 'hotel_id', 'sort', 'dir', 'date_from', 'date_to']), (! request()->exists('date_from') && ! request()->exists('date_to')) ? ['date_from' => $dateFrom, 'date_to' => $dateTo] : []))); ?>"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -113,10 +113,10 @@ unset($__errorArgs, $__bag); ?>
     <div class="table-toolbar">
       <?php echo $__env->make('stay-lists.filters', [
         'filterRoute' => 'group-bookings.index',
-        'monthInputId' => 'group_booking_month',
-        'monthValue' => $monthValue,
+        'dateInputPrefix' => 'group_booking',
+        'dateFrom' => $dateFrom,
+        'dateTo' => $dateTo,
         'hotels' => $hotels,
-        'travelAgencies' => $travelAgencies,
       ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
       <?php if(request()->filled('hotel_id')): ?>
         <?php

@@ -6,9 +6,9 @@ use App\Http\Requests\StoreEnquiryRequest;
 use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\StatusMaster;
-use App\Models\TravelAgency;
 use App\Support\Audit;
 use App\Support\EnquiryFieldRules;
+use App\Support\EnquiryIndexFilters;
 use App\Support\QuerySort;
 use App\Support\SimpleXlsxWriter;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,7 +25,7 @@ class EnquiryController extends Controller
     {
         $this->authorize('viewAny', Enquiry::class);
 
-        $enquiryMonth = $this->enquiryMonthValue($request);
+        [$enquiryFrom, $enquiryTo] = EnquiryIndexFilters::dateBounds($request, 'enquiry_from', 'enquiry_to');
         $enquiries = $this->filteredQuery($request)->paginate(10)->withQueryString();
 
         $reminderBase = Enquiry::query()->accessibleBy()->openPipeline();
@@ -57,22 +57,20 @@ class EnquiryController extends Controller
         ];
 
         $hotels = Hotel::optionsForSelect();
-        $travelAgencies = TravelAgency::query()->orderBy('name')->get(['id', 'name', 'code']);
         $statuses = StatusMaster::query()
             ->active()
+            ->whereIn('title', ['Chesed', 'Quoted'])
             ->orderBy('title')
             ->pluck('title')
-            ->merge(['confirmed', 'cancelled'])
-            ->unique()
             ->values();
 
         return view('enquiries.index', compact(
             'enquiries',
             'hotels',
-            'travelAgencies',
             'statuses',
             'reminders',
-            'enquiryMonth'
+            'enquiryFrom',
+            'enquiryTo'
         ));
     }
 
@@ -1049,19 +1047,11 @@ class EnquiryController extends Controller
             $query->where('hotel_id', $request->integer('hotel_id'));
         }
 
-        if ($request->filled('travel_agency_id')) {
-            $query->where('travel_agency_id', $request->integer('travel_agency_id'));
-        }
-
         if ($request->filled('status')) {
             $query->where('status', $request->string('status'));
         }
 
-        $enquiryMonth = $this->selectedEnquiryMonth($request);
-        if ($enquiryMonth) {
-            $query->whereYear('enquiry_date', $enquiryMonth->year)
-                ->whereMonth('enquiry_date', $enquiryMonth->month);
-        }
+        EnquiryIndexFilters::applyDateRange($query, $request, 'enquiry_date', 'enquiry_from', 'enquiry_to');
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',
@@ -1081,31 +1071,6 @@ class EnquiryController extends Controller
         ], 'enquiry_date', 'desc');
 
         return $query;
-    }
-
-    private function enquiryMonthValue(Request $request): string
-    {
-        if (! $request->exists('month')) {
-            return now()->format('Y-m');
-        }
-
-        return $request->string('month')->toString();
-    }
-
-    private function selectedEnquiryMonth(Request $request): ?Carbon
-    {
-        if (! $request->exists('month')) {
-            return now()->startOfMonth();
-        }
-
-        $value = $request->string('month')->toString();
-        if (! preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
-            return null;
-        }
-
-        $month = Carbon::createFromFormat('!Y-m', $value);
-
-        return $month ? $month->startOfMonth() : null;
     }
 
     /**
