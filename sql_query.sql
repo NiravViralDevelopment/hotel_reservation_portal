@@ -130,3 +130,26 @@ ALTER TABLE users
   ADD COLUMN signature_original_name VARCHAR(191) NULL AFTER signature_path,
   ADD COLUMN signature_mime_type VARCHAR(191) NULL AFTER signature_original_name,
   ADD COLUMN signature_size BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER signature_mime_type;
+
+-- Contract hotel photos (group booking contract page)
+CREATE TABLE IF NOT EXISTS enquiry_contract_photos (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  uuid CHAR(36) NOT NULL,
+  enquiry_id BIGINT UNSIGNED NOT NULL,
+  uploaded_by BIGINT UNSIGNED NULL,
+  disk VARCHAR(191) NOT NULL DEFAULT 'local',
+  path VARCHAR(191) NOT NULL,
+  original_name VARCHAR(191) NULL,
+  mime_type VARCHAR(191) NULL,
+  size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NULL DEFAULT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY enquiry_contract_photos_uuid_unique (uuid),
+  KEY enquiry_contract_photos_enquiry_id_sort_order_index (enquiry_id, sort_order),
+  CONSTRAINT enquiry_contract_photos_enquiry_id_foreign
+    FOREIGN KEY (enquiry_id) REFERENCES enquiries (id) ON DELETE CASCADE,
+  CONSTRAINT enquiry_contract_photos_uploaded_by_foreign
+    FOREIGN KEY (uploaded_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
