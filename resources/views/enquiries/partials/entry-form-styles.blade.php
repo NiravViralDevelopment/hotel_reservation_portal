@@ -106,4 +106,10 @@
   .enquiry-form-layout .stay-date-table .form-control {
     min-width: 4.75rem;
   }
+  .enquiry-form-layout .stay-date-table tfoot td,
+  .enquiry-form-layout .stay-date-table tfoot th {
+    font-weight: 650;
+    background: var(--bs-secondary-bg);
+    border-top: 2px solid var(--border-color);
+  }
 </style>

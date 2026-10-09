@@ -246,6 +246,13 @@
           $stayCursor = $enquiry->check_in->copy()->startOfDay();
           $stayEnd = $enquiry->check_out->copy()->startOfDay();
           $stayCount = 0;
+          $roomTotals = [
+              'single_rooms' => 0,
+              'double_rooms' => 0,
+              'triple_rooms' => 0,
+          ];
+          $rateSums = ['single' => 0.0, 'double' => 0.0, 'triple' => 0.0];
+          $rateCounts = ['single' => 0, 'double' => 0, 'triple' => 0];
         @endphp
         <div class="table-responsive">
           <table class="table table-sm table-hover mb-0">
@@ -276,6 +283,17 @@
                   $doubleRate = $dayRow['double_rate'] ?? $enquiry->double_rate;
                   $tripleRooms = $dayRow['triple_rooms'] ?? $enquiry->triple_rooms;
                   $tripleRate = $dayRow['triple_rate'] ?? $enquiry->triple_rate;
+                  foreach ([
+                      'single' => [(int) ($singleRooms ?? 0), (float) ($singleRate ?? 0)],
+                      'double' => [(int) ($doubleRooms ?? 0), (float) ($doubleRate ?? 0)],
+                      'triple' => [(int) ($tripleRooms ?? 0), (float) ($tripleRate ?? 0)],
+                  ] as $type => [$dayRooms, $dayRate]) {
+                      $roomTotals[$type.'_rooms'] += $dayRooms;
+                      if ($dayRooms > 0 || $dayRate > 0) {
+                          $rateSums[$type] += $dayRate;
+                          $rateCounts[$type]++;
+                      }
+                  }
                 @endphp
                 <tr>
                   <td class="fw-semibold text-nowrap">{{ $stayCursor->format('d-m-Y') }}</td>
@@ -292,6 +310,17 @@
                 @endphp
               @endwhile
             </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">Total / Avg</th>
+                <td class="fw-semibold">{{ $roomTotals['single_rooms'] }}</td>
+                <td class="fw-semibold">{{ $money($rateCounts['single'] > 0 ? $rateSums['single'] / $rateCounts['single'] : 0) }}</td>
+                <td class="fw-semibold">{{ $roomTotals['double_rooms'] }}</td>
+                <td class="fw-semibold">{{ $money($rateCounts['double'] > 0 ? $rateSums['double'] / $rateCounts['double'] : 0) }}</td>
+                <td class="fw-semibold">{{ $roomTotals['triple_rooms'] }}</td>
+                <td class="fw-semibold">{{ $money($rateCounts['triple'] > 0 ? $rateSums['triple'] / $rateCounts['triple'] : 0) }}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       @else

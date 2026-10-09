@@ -5,6 +5,10 @@
   $emptyMessage = $emptyMessage ?? 'No records found.';
   $variant = $variant ?? 'full';
   $showCancellationReason = $showCancellationReason ?? false;
+  $readOnly = $readOnly ?? false;
+  $recordRoute = $recordRoute ?? 'enquiries.show';
+  $editRoute = $editRoute ?? 'enquiries.edit';
+  $recordQuery = $recordQuery ?? [];
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -20,6 +24,7 @@
   <table class="table table-hover table-sm mb-0" style="font-size:0.78rem">
     <thead>
       <tr>
+        <th>Hotel</th>
         <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'enquiry_date','label' => 'Enquiry Date','default' => $defaultSort,'defaultDir' => $defaultDir]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -319,6 +324,7 @@
     <tbody>
       <?php $__empty_1 = true; $__currentLoopData = $rows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $enquiry): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
         <tr>
+          <td class="text-nowrap fw-semibold"><?php echo e($enquiry->hotel?->name ?: '—'); ?></td>
           <td class="text-nowrap"><?php echo e($enquiry->enquiry_date?->format('d M Y') ?? '—'); ?></td>
           <td class="text-nowrap"><?php echo e($enquiry->response_date?->format('d M Y') ?? '—'); ?></td>
           <td><?php if (isset($component)) { $__componentOriginal899a5b6ea6f91be084ad9a28a4fd56e8 = $component; } ?>
@@ -345,7 +351,7 @@
           <td class="text-nowrap"><?php echo e($enquiry->day ?: '—'); ?></td>
           <td><?php echo e($enquiry->nights ?? '—'); ?></td>
           <td><?php echo e($enquiry->rooms_per_night ?? '—'); ?></td>
-          <td class="fw-semibold text-nowrap"><a href="<?php echo e(route('enquiries.show', $enquiry)); ?>"><?php echo e($enquiry->group_name ?: '—'); ?></a></td>
+          <td class="fw-semibold text-nowrap"><a href="<?php echo e(route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery))); ?>"><?php echo e($enquiry->group_name ?: '—'); ?></a></td>
           <td class="text-nowrap"><?php echo e($enquiry->ref ?: '—'); ?></td>
           <td class="text-nowrap"><?php echo e($enquiry->email ?: '—'); ?></td>
           <td><?php if (isset($component)) { $__componentOriginal435aefee4aa6dd7f20df034696ae03b9 = $component; } ?>
@@ -424,31 +430,33 @@
           <?php endif; ?>
           <td class="text-end text-nowrap">
             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view', $enquiry)): ?>
-              <a href="<?php echo e(route('enquiries.show', $enquiry)); ?>" class="btn btn-sm btn-outline-secondary" title="View">
+              <a href="<?php echo e(route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery))); ?>" class="btn btn-sm btn-outline-secondary" title="View">
                 <i class="bi bi-eye"></i>
               </a>
             <?php endif; ?>
-            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $enquiry)): ?>
-              <a href="<?php echo e(route('enquiries.show', $enquiry)); ?>#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for <?php echo e($enquiry->group_name); ?>">
-                <i class="bi bi-chat-left-text"></i>
-              </a>
-              <a href="<?php echo e(route('enquiries.edit', $enquiry)); ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
-                <i class="bi bi-pencil"></i>
-              </a>
-            <?php endif; ?>
-            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete', $enquiry)): ?>
-              <form method="POST" action="<?php echo e(route('enquiries.destroy', $enquiry)); ?>" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="<?php echo e(sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry')); ?>" data-confirm-button="Delete">
-                <?php echo csrf_field(); ?>
-                <?php echo method_field('DELETE'); ?>
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+            <?php if (! ($readOnly)): ?>
+              <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $enquiry)): ?>
+                <a href="<?php echo e(route('enquiries.show', $enquiry)); ?>#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for <?php echo e($enquiry->group_name); ?>">
+                  <i class="bi bi-chat-left-text"></i>
+                </a>
+                <a href="<?php echo e(route($editRoute, $enquiry)); ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </a>
+              <?php endif; ?>
+              <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete', $enquiry)): ?>
+                <form method="POST" action="<?php echo e(route('enquiries.destroy', $enquiry)); ?>" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="<?php echo e(sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry')); ?>" data-confirm-button="Delete">
+                  <?php echo csrf_field(); ?>
+                  <?php echo method_field('DELETE'); ?>
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              <?php endif; ?>
             <?php endif; ?>
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <tr><td colspan="<?php echo e($showCancellationReason ? 25 : 23); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
+        <tr><td colspan="<?php echo e($showCancellationReason ? 26 : 24); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
       <?php endif; ?>
     </tbody>
   </table>

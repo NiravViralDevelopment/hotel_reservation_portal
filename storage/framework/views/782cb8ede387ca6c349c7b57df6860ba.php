@@ -45,7 +45,7 @@
           </ul>
         </div>
       <?php endif; ?>
-      <a href="<?php echo e(route('arrivals.index')); ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-in-right"></i> Today&apos;s arrivals</a>
+      <a href="<?php echo e(route('arrivals.index')); ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-in-right"></i> Arrivals</a>
       <a href="<?php echo e(route('group-bookings.create')); ?>" class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> New booking</a>
     </div>
   </div>

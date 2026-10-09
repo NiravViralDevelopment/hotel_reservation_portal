@@ -100,11 +100,18 @@
   function applyDailyRoomTotals(rows) {
     ['single', 'double', 'triple'].forEach(function (type) {
       var rooms = 0;
-      var rate = 0;
+      var rateSum = 0;
+      var rateCount = 0;
       rows.forEach(function (row) {
-        rooms += parseAmount(row[type + '_rooms']);
-        rate += parseAmount(row[type + '_rate']);
+        var dayRooms = parseAmount(row[type + '_rooms']);
+        var dayRate = parseAmount(row[type + '_rate']);
+        rooms += dayRooms;
+        if (dayRooms > 0 || dayRate > 0) {
+          rateSum += dayRate;
+          rateCount += 1;
+        }
       });
+      var avgRate = rateCount > 0 ? rateSum / rateCount : 0;
       var roomsEl = field('gb_' + type + '_rooms');
       var rateEl = field('gb_' + type + '_rate');
       if (roomsEl) {
@@ -112,13 +119,13 @@
         roomsEl.readOnly = true;
       }
       if (rateEl) {
-        rateEl.value = money(rate);
+        rateEl.value = money(avgRate);
         rateEl.readOnly = true;
       }
     });
-    setHint('gb_rooms_hint', 'Room and rate totals are the sum of each stay date.');
+    setHint('gb_rooms_hint', 'Room totals are the sum of each stay date; rates are the average.');
     setHint('gb_total_rns_hint', '(Single + Double + Triple) × nights');
-    setHint('gb_total_revenue_hint', '((Single × rate) + (Double × rate) + (Triple × rate)) × nights');
+    setHint('gb_total_revenue_hint', '((Single × avg rate) + (Double × avg rate) + (Triple × avg rate)) × nights');
     setHint('gb_bb_revenue_hint', '(Single × 10 + Double × 20 + Triple × 30)');
   }
 

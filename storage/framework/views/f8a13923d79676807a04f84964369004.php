@@ -137,7 +137,7 @@
     var cursor = new Date(start.getTime());
     var count = 0;
     var fields = ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'];
-    while (cursor <= end && count < 400) {
+    while (cursor < end && count < 400) {
       var iso = isoDate(cursor);
       var row = saved[iso] || {};
       rows += '<tr data-stay-date="' + iso + '"><td class="fw-semibold text-nowrap">' + formatDmY(iso) + '</td>';
@@ -163,7 +163,13 @@
       + '<th>Rooms</th><th>Rate</th>'
       + '<th>Rooms</th><th>Rate</th>'
       + '<th>Rooms</th><th>Rate</th>'
-      + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+      + '</tr></thead><tbody>' + rows + '</tbody>'
+      + '<tfoot><tr class="stay-date-totals">'
+      + '<th scope="row">Total / Avg</th>'
+      + '<td data-total="single_rooms">0</td><td data-total="single_rate">0.00</td>'
+      + '<td data-total="double_rooms">0</td><td data-total="double_rate">0.00</td>'
+      + '<td data-total="triple_rooms">0</td><td data-total="triple_rate">0.00</td>'
+      + '</tr></tfoot></table></div>';
     recalcRevenue();
   }
 
@@ -192,32 +198,75 @@
     return '£' + parts.join('.');
   }
 
-  function rowAmount(row, roomsField, rateField) {
-    var rooms = row.querySelector('[data-field="' + roomsField + '"]');
-    var rate = row.querySelector('[data-field="' + rateField + '"]');
-    var roomCount = rooms ? parseFloat(rooms.value) : 0;
-    var rateValue = rate ? parseFloat(rate.value) : 0;
-    if (isNaN(roomCount)) roomCount = 0;
-    if (isNaN(rateValue)) rateValue = 0;
-    return roomCount * rateValue;
+  function sumStayField(rows, field) {
+    var total = 0;
+    rows.forEach(function (row) {
+      var input = row.querySelector('[data-field="' + field + '"]');
+      var value = input ? parseFloat(input.value) : 0;
+      if (isNaN(value)) value = 0;
+      total += value;
+    });
+    return total;
+  }
+
+  function avgStayRate(rows, roomsField, rateField) {
+    var sum = 0;
+    var count = 0;
+    rows.forEach(function (row) {
+      var roomsInput = row.querySelector('[data-field="' + roomsField + '"]');
+      var rateInput = row.querySelector('[data-field="' + rateField + '"]');
+      var rooms = roomsInput ? parseFloat(roomsInput.value) : 0;
+      var rate = rateInput ? parseFloat(rateInput.value) : 0;
+      if (isNaN(rooms)) rooms = 0;
+      if (isNaN(rate)) rate = 0;
+      if (rooms > 0 || rate > 0) {
+        sum += rate;
+        count += 1;
+      }
+    });
+    return count > 0 ? sum / count : 0;
+  }
+
+  function setStayTotal(field, value, asMoney) {
+    var cell = document.querySelector('#stay-date-list tfoot [data-total="' + field + '"]');
+    if (!cell) return;
+    if (asMoney) {
+      cell.textContent = value.toFixed(2);
+    } else {
+      cell.textContent = String(Math.round(value));
+    }
   }
 
   function recalcRevenue() {
     var totalEl = document.getElementById('total_revenue');
     var displayEl = document.getElementById('total_revenue_display');
     if (!totalEl) return;
-    var rows = document.querySelectorAll('#stay-date-list tbody tr');
+    var rows = document.querySelectorAll('#stay-date-list tbody tr[data-stay-date]');
     if (!rows.length) {
       totalEl.value = '';
       if (displayEl) displayEl.value = '';
       return;
     }
-    var total = 0;
-    rows.forEach(function (row) {
-      total += rowAmount(row, 'single_rooms', 'single_rate');
-      total += rowAmount(row, 'double_rooms', 'double_rate');
-      total += rowAmount(row, 'triple_rooms', 'triple_rate');
-    });
+    var nightsEl = document.getElementById('nights');
+    var nights = nightsEl ? parseFloat(nightsEl.value) : 0;
+    if (isNaN(nights) || nights < 1) nights = 1;
+    var singleRooms = sumStayField(rows, 'single_rooms');
+    var doubleRooms = sumStayField(rows, 'double_rooms');
+    var tripleRooms = sumStayField(rows, 'triple_rooms');
+    var singleRate = avgStayRate(rows, 'single_rooms', 'single_rate');
+    var doubleRate = avgStayRate(rows, 'double_rooms', 'double_rate');
+    var tripleRate = avgStayRate(rows, 'triple_rooms', 'triple_rate');
+    setStayTotal('single_rooms', singleRooms, false);
+    setStayTotal('single_rate', singleRate, true);
+    setStayTotal('double_rooms', doubleRooms, false);
+    setStayTotal('double_rate', doubleRate, true);
+    setStayTotal('triple_rooms', tripleRooms, false);
+    setStayTotal('triple_rate', tripleRate, true);
+    var total = (
+      (singleRooms * singleRate)
+      + (doubleRooms * doubleRate)
+      + (tripleRooms * tripleRate)
+    ) * nights;
     totalEl.value = total.toFixed(2);
     if (displayEl) displayEl.value = formatPounds(total);
   }

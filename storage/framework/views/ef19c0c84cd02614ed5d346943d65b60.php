@@ -276,7 +276,7 @@ unset($__errorArgs, $__bag); ?>
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-    <span class="enquiry-section-hint">Each date from arrival through departure has its own Single, Double, and Triple rooms and rates.</span>
+    <span class="enquiry-section-hint">Room dates run from arrival through the night before departure (checkout day is not charged).</span>
   </div>
   <div class="card-body">
     <?php
@@ -398,7 +398,7 @@ unset($__errorArgs, $__bag); ?>
           <label for="total_revenue_display" class="form-label">Total Revenue</label>
           <input type="text" id="total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
           <input type="hidden" name="total_revenue" id="total_revenue" value="<?php echo e($v('total_revenue')); ?>">
-          <div class="form-text">Rooms × rates, then × nights.</div>
+          <div class="form-text">((Single × rate) + (Double × rate) + (Triple × rate)) × nights</div>
           <?php $__errorArgs = ['total_revenue'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
