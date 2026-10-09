@@ -45,6 +45,7 @@
     method="POST"
     action="{{ route('users.store') }}"
     class="user-form"
+    enctype="multipart/form-data"
     novalidate
     data-password-required="1"
     data-existing-emails='@json($existingEmails)'
@@ -122,6 +123,25 @@
       <div class="col-lg-5">
         <div class="card mb-4">
           <div class="card-header">
+            <h2 class="user-section-title"><i class="bi bi-pen"></i> Signature</h2>
+          </div>
+          <div class="card-body">
+            <img id="signaturePreview" alt="Signature preview" style="display:none;max-height:72px;max-width:220px;object-fit:contain;margin-bottom:0.75rem;background:#fff;border:1px solid var(--bs-border-color,#dee2e6);border-radius:0.375rem;padding:0.35rem;">
+            <label for="signature" class="form-label">Signature image</label>
+            <input
+              type="file"
+              name="signature"
+              id="signature"
+              accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
+              class="form-control @error('signature') is-invalid @enderror"
+            >
+            <div class="form-text">JPG, PNG, WEBP, or GIF, up to 2 MB.</div>
+            @error('signature')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header">
             <h2 class="user-section-title"><i class="bi bi-person-badge"></i> Roles</h2>
           </div>
           <div class="card-body">
@@ -184,4 +204,21 @@
 
 @push('scripts')
 <script src="{{ asset('assets/js/user-validation.js') }}?v={{ @filemtime(public_path('assets/js/user-validation.js')) }}"></script>
+<script>
+  (function () {
+    var input = document.getElementById('signature');
+    var preview = document.getElementById('signaturePreview');
+    if (!input || !preview) return;
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) {
+        preview.removeAttribute('src');
+        preview.style.display = 'none';
+        return;
+      }
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+    });
+  })();
+</script>
 @endpush

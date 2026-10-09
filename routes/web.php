@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
         ->scoped();
     Route::resource('companies', CompanyController::class);
     Route::get('hotels/{hotel}/document', [HotelController::class, 'downloadDocument'])->name('hotels.document.download');
+    Route::get('hotels/{hotel}/logo', [HotelController::class, 'viewLogo'])->name('hotels.logo');
     Route::resource('hotels', HotelController::class);
     Route::resource('travel-agencies', TravelAgencyController::class);
 
@@ -93,6 +94,10 @@ Route::middleware('auth')->group(function () {
     Route::get('group-bookings/hotel-contract/{hotel}', [GroupBookingController::class, 'viewHotelContract'])->name('group-bookings.hotel-contract');
     Route::get('group-bookings/{enquiry}/contract', [GroupBookingController::class, 'contract'])->name('group-bookings.contract');
     Route::post('group-bookings/{enquiry}/contract', [GroupBookingController::class, 'updateContract'])->name('group-bookings.contract.update');
+    Route::post('group-bookings/{enquiry}/contract/photos', [GroupBookingController::class, 'storeContractPhoto'])->name('group-bookings.contract.photos.store');
+    Route::delete('group-bookings/{enquiry}/contract/photos/{photo}', [GroupBookingController::class, 'destroyContractPhoto'])->name('group-bookings.contract.photos.destroy');
+    Route::get('group-bookings/{enquiry}/contract/photos/{photo}', [GroupBookingController::class, 'viewContractPhoto'])->name('group-bookings.contract.photos.show');
+    Route::get('group-bookings/{enquiry}/contract/pdf', [GroupBookingController::class, 'previewContractPdf'])->name('group-bookings.contract.pdf');
     Route::get('group-bookings/{enquiry}/contract/hotel-preview', [GroupBookingController::class, 'previewHotelContract'])->name('group-bookings.contract.hotel-preview');
     Route::get('group-bookings/{enquiry}/contract/download', [GroupBookingController::class, 'downloadBookingContract'])->name('group-bookings.contract.download');
     Route::get('group-bookings/{enquiry}', [GroupBookingController::class, 'show'])->name('group-bookings.show');
@@ -121,6 +126,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('status-masters', StatusMasterController::class)->except(['show']);
 
+    Route::get('users/{user}/signature', [UserController::class, 'viewSignature'])->name('users.signature');
     Route::resource('users', UserController::class)->except(['show']);
     Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::get('roles', [RoleController::class, 'index'])->name('roles.index');

@@ -15,7 +15,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="<?php echo e(route('group-bookings.export', request()->only(['q', 'hotel_id', 'travel_agency_id', 'arrival_from', 'arrival_to', 'sort', 'dir']))); ?>"
+        href="<?php echo e(route('group-bookings.export', array_merge(request()->only(['q', 'hotel_id', 'sort', 'dir', 'date_from', 'date_to']), (! request()->exists('date_from') && ! request()->exists('date_to')) ? ['date_from' => $dateFrom, 'date_to' => $dateTo] : []))); ?>"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -111,56 +111,25 @@ unset($__errorArgs, $__bag); ?>
 
   <div class="card">
     <div class="table-toolbar">
-      <form method="GET" action="<?php echo e(route('group-bookings.index')); ?>" class="d-flex flex-wrap gap-2 align-items-center w-100">
-        <div class="input-group search-input" style="min-width: 200px; max-width: 280px;">
-          <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
-          <input
-            type="search"
-            name="q"
-            class="form-control border-start-0"
-            placeholder="Search ref, group, client, email, mobile…"
-            value="<?php echo e(request('q')); ?>"
-          >
-        </div>
-        <select name="hotel_id" class="form-select form-select-sm select2" style="width:auto; min-width: 140px;">
-          <option value="">All hotels</option>
-          <?php $__currentLoopData = $hotels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hotel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <option value="<?php echo e($hotel->id); ?>" <?php if((string) request('hotel_id') === (string) $hotel->id): echo 'selected'; endif; ?>><?php echo e($hotel->name); ?></option>
-          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        </select>
-        <?php if(request()->filled('hotel_id')): ?>
-          <?php
-            $filteredHotel = $hotels->firstWhere('id', (int) request('hotel_id'));
-          ?>
-          <?php if($filteredHotel && $filteredHotel->hasDocument()): ?>
-            <a href="<?php echo e(route('group-bookings.hotel-contract', $filteredHotel)); ?>" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-file-earmark-pdf"></i> View hotel contract
-            </a>
-          <?php elseif($filteredHotel): ?>
-            <span class="small text-secondary">No contract on this hotel</span>
-          <?php endif; ?>
-        <?php endif; ?>
-        <select name="travel_agency_id" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
-          <option value="">All agencies</option>
-          <?php $__currentLoopData = $travelAgencies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $agency): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <option value="<?php echo e($agency->id); ?>" <?php if((string) request('travel_agency_id') === (string) $agency->id): echo 'selected'; endif; ?>><?php echo e($agency->name); ?></option>
-          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        </select>
-        <input type="date" name="arrival_from" class="form-control form-control-sm" style="width:auto;" value="<?php echo e(request('arrival_from')); ?>" title="Arrival from">
-        <input type="date" name="arrival_to" class="form-control form-control-sm" style="width:auto;" value="<?php echo e(request('arrival_to')); ?>" title="Arrival to">
-        <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        <?php if(request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'arrival_from', 'arrival_to'])): ?>
-          <a href="<?php echo e(route('group-bookings.index')); ?>" class="btn btn-outline-danger btn-sm">
-            <i class="bi bi-x-circle"></i> Clear
+      <?php echo $__env->make('stay-lists.filters', [
+        'filterRoute' => 'group-bookings.index',
+        'dateInputPrefix' => 'group_booking',
+        'dateFrom' => $dateFrom,
+        'dateTo' => $dateTo,
+        'hotels' => $hotels,
+      ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+      <?php if(request()->filled('hotel_id')): ?>
+        <?php
+          $filteredHotel = $hotels->firstWhere('id', (int) request('hotel_id'));
+        ?>
+        <?php if($filteredHotel && $filteredHotel->hasDocument()): ?>
+          <a href="<?php echo e(route('group-bookings.hotel-contract', $filteredHotel)); ?>" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm mt-2">
+            <i class="bi bi-file-earmark-pdf"></i> View hotel contract
           </a>
+        <?php elseif($filteredHotel): ?>
+          <span class="small text-secondary d-inline-block mt-2">No contract on this hotel</span>
         <?php endif; ?>
-        <?php if(request('sort')): ?>
-          <input type="hidden" name="sort" value="<?php echo e(request('sort')); ?>">
-        <?php endif; ?>
-        <?php if(request('dir')): ?>
-          <input type="hidden" name="dir" value="<?php echo e(request('dir')); ?>">
-        <?php endif; ?>
-      </form>
+      <?php endif; ?>
     </div>
 
     <?php echo $__env->make('group-bookings.partials.list-table', [

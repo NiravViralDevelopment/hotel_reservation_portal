@@ -110,6 +110,16 @@
 <?php unset($__componentOriginal435aefee4aa6dd7f20df034696ae03b9); ?>
 <?php endif; ?></div>
         </div>
+        <div class="info-card mb-3">
+          <div class="info-card-label">Logo</div>
+          <div class="info-card-value">
+            <?php if($hotel->hasLogo()): ?>
+              <img src="<?php echo e(route('hotels.logo', $hotel)); ?>" alt="<?php echo e($hotel->name); ?> logo" style="max-height:64px;max-width:200px;object-fit:contain;">
+            <?php else: ?>
+              —
+            <?php endif; ?>
+          </div>
+        </div>
         <div class="info-card">
           <div class="info-card-label">Document</div>
           <div class="info-card-value">

@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Edit hotel'); ?>
+<?php $__env->startSection('title', 'Add hotel'); ?>
 <?php $__env->startSection('page', 'hotels'); ?>
 
 <?php $__env->startPush('styles'); ?>
@@ -26,7 +26,7 @@
     border-color: var(--bs-form-invalid-border-color, #dc3545);
   }
   .hotel-logo-preview {
-    display: block;
+    display: none;
     max-height: 72px;
     max-width: 220px;
     object-fit: contain;
@@ -46,17 +46,15 @@
       <ol class="breadcrumb mb-1">
         <li class="breadcrumb-item"><a href="<?php echo e(route('dashboard')); ?>">Home</a></li>
         <li class="breadcrumb-item"><a href="<?php echo e(route('hotels.index')); ?>">Hotels</a></li>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('hotels.show', $hotel)); ?>"><?php echo e($hotel->code); ?></a></li>
-        <li class="breadcrumb-item active">Edit</li>
+        <li class="breadcrumb-item active">Add hotel</li>
       </ol>
     </nav>
-    <h1 class="page-title">Edit <?php echo e($hotel->name); ?></h1>
-    <p class="page-subtitle mb-0">Update hotel profile and contact details. Fields marked <span class="text-danger">*</span> are required.</p>
+    <h1 class="page-title">Add hotel</h1>
+    <p class="page-subtitle mb-0">Create a hotel profile and contact details. Fields marked <span class="text-danger">*</span> are required.</p>
   </div>
 
-  <form method="POST" action="<?php echo e(route('hotels.update', $hotel)); ?>" class="hotel-form" enctype="multipart/form-data" novalidate data-existing-pairs='<?php echo json_encode($existingPairs, 15, 512) ?>'>
+  <form method="POST" action="<?php echo e(route('hotels.store')); ?>" class="hotel-form" enctype="multipart/form-data" novalidate data-existing-pairs='<?php echo json_encode($existingPairs, 15, 512) ?>'>
     <?php echo csrf_field(); ?>
-    <?php echo method_field('PUT'); ?>
 
     <div class="card mb-4">
       <div class="card-header">
@@ -73,7 +71,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('code', $hotel->code)); ?>" placeholder="Enter code" maxlength="20" autocomplete="off">
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('code')); ?>" placeholder="Enter code" maxlength="20" autocomplete="off">
             <div class="form-text">Can be reused with a different hotel name.</div>
             <?php $__errorArgs = ['code'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -93,7 +91,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('name', $hotel->name)); ?>" placeholder="Enter hotel name" maxlength="255">
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('name')); ?>" placeholder="Enter hotel name" maxlength="255">
             <?php $__errorArgs = ['name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -115,7 +113,7 @@ endif;
 unset($__errorArgs, $__bag); ?>" data-placeholder="Select company">
               <option value="">Select company</option>
               <?php $__currentLoopData = $companies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <option value="<?php echo e($company->id); ?>" <?php if(old('company_id', $hotel->company_id) == $company->id): echo 'selected'; endif; ?>><?php echo e($company->name); ?></option>
+                <option value="<?php echo e($company->id); ?>" <?php if(old('company_id') == $company->id): echo 'selected'; endif; ?>><?php echo e($company->name); ?></option>
               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
             <?php $__errorArgs = ['company_id'];
@@ -137,8 +135,8 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" data-placeholder="Select status">
-              <option value="active" <?php if(old('status', $hotel->status) === 'active'): echo 'selected'; endif; ?>>Active</option>
-              <option value="inactive" <?php if(old('status', $hotel->status) === 'inactive'): echo 'selected'; endif; ?>>Inactive</option>
+              <option value="active" <?php if(old('status', 'active') === 'active'): echo 'selected'; endif; ?>>Active</option>
+              <option value="inactive" <?php if(old('status') === 'inactive'): echo 'selected'; endif; ?>>Inactive</option>
             </select>
             <?php $__errorArgs = ['status'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -158,7 +156,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('rooms', $hotel->rooms)); ?>" placeholder="Enter number of rooms" maxlength="5" autocomplete="off">
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('rooms')); ?>" placeholder="Enter number of rooms" maxlength="5" autocomplete="off">
             <div class="form-text">Numbers only.</div>
             <?php $__errorArgs = ['rooms'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -178,7 +176,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('manager_name', $hotel->manager_name)); ?>" placeholder="Enter manager name" maxlength="255">
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('manager_name')); ?>" placeholder="Enter manager name" maxlength="255">
             <?php $__errorArgs = ['manager_name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -207,7 +205,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('city', $hotel->city)); ?>" placeholder="Enter city" maxlength="255">
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('city')); ?>" placeholder="Enter city" maxlength="255">
             <?php $__errorArgs = ['city'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -256,7 +254,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('phone', $hotel->phone)); ?>" placeholder="Enter phone" maxlength="15" autocomplete="tel">
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('phone')); ?>" placeholder="Enter phone" maxlength="15" autocomplete="tel">
             <?php $__errorArgs = ['phone'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -275,7 +273,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('email', $hotel->email)); ?>" placeholder="Enter email" maxlength="255" inputmode="email" autocomplete="email">
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('email')); ?>" placeholder="Enter email" maxlength="255" inputmode="email" autocomplete="email">
             <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -294,16 +292,8 @@ unset($__errorArgs, $__bag); ?>
         <h2 class="hotel-section-title"><i class="bi bi-image"></i> Logo</h2>
       </div>
       <div class="card-body">
-        <?php if($hotel->hasLogo()): ?>
-          <img src="<?php echo e(route('hotels.logo', $hotel)); ?>" alt="<?php echo e($hotel->name); ?> logo" class="hotel-logo-preview" id="logoPreview">
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" name="remove_logo" id="remove_logo" value="1" <?php if(old('remove_logo')): echo 'checked'; endif; ?>>
-            <label class="form-check-label" for="remove_logo">Remove current logo</label>
-          </div>
-        <?php else: ?>
-          <img id="logoPreview" class="hotel-logo-preview" alt="Hotel logo preview" hidden>
-        <?php endif; ?>
-        <label for="logo" class="form-label"><?php echo e($hotel->hasLogo() ? 'Replace logo' : 'Upload logo'); ?></label>
+        <img id="logoPreview" class="hotel-logo-preview" alt="Hotel logo preview">
+        <label for="logo" class="form-label">Upload logo</label>
         <input
           type="file"
           name="logo"
@@ -335,19 +325,7 @@ unset($__errorArgs, $__bag); ?>
         <h2 class="hotel-section-title"><i class="bi bi-file-earmark-arrow-up"></i> Document</h2>
       </div>
       <div class="card-body">
-        <?php if($hotel->hasDocument()): ?>
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-            <a href="<?php echo e(route('hotels.document.download', $hotel)); ?>" class="btn btn-sm btn-outline-secondary">
-              <i class="bi bi-download"></i> <?php echo e($hotel->document_original_name); ?>
-
-            </a>
-            <div class="form-check mb-0">
-              <input class="form-check-input" type="checkbox" name="remove_document" id="remove_document" value="1" <?php if(old('remove_document')): echo 'checked'; endif; ?>>
-              <label class="form-check-label" for="remove_document">Remove current document</label>
-            </div>
-          </div>
-        <?php endif; ?>
-        <label for="document" class="form-label"><?php echo e($hotel->hasDocument() ? 'Replace document' : 'Upload document'); ?></label>
+        <label for="document" class="form-label">Upload document</label>
         <input
           type="file"
           name="document"
@@ -387,7 +365,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" placeholder="Enter notes"><?php echo e(old('notes', $hotel->notes)); ?></textarea>
+unset($__errorArgs, $__bag); ?>" placeholder="Enter notes"><?php echo e(old('notes')); ?></textarea>
         <?php $__errorArgs = ['notes'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -400,8 +378,8 @@ unset($__errorArgs, $__bag); ?>
     </div>
 
     <div class="hotel-sticky-actions">
-      <button type="submit" class="btn btn-accent"><i class="bi bi-check-lg"></i> Update hotel</button>
-      <a href="<?php echo e(route('hotels.show', $hotel)); ?>" class="btn btn-outline-secondary">Cancel</a>
+      <button type="submit" class="btn btn-accent"><i class="bi bi-check-lg"></i> Save hotel</button>
+      <a href="<?php echo e(route('hotels.index')); ?>" class="btn btn-outline-secondary">Cancel</a>
     </div>
   </form>
 </div>
@@ -416,13 +394,16 @@ unset($__errorArgs, $__bag); ?>
     if (!input || !preview) return;
     input.addEventListener('change', function () {
       var file = input.files && input.files[0];
-      if (!file) return;
+      if (!file) {
+        preview.removeAttribute('src');
+        preview.style.display = 'none';
+        return;
+      }
       preview.src = URL.createObjectURL(file);
-      preview.hidden = false;
       preview.style.display = 'block';
     });
   })();
 </script>
 <?php $__env->stopPush(); ?>
 
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\wamp64\www\hotel_reservation_portal\resources\views/hotels/edit.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\wamp64\www\hotel_reservation_portal\resources\views/hotels/create.blade.php ENDPATH**/ ?>

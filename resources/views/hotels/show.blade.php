@@ -74,6 +74,16 @@
           <div class="info-card-label">Status</div>
           <div class="info-card-value"><x-badge-status :status="$hotel->status" /></div>
         </div>
+        <div class="info-card mb-3">
+          <div class="info-card-label">Logo</div>
+          <div class="info-card-value">
+            @if ($hotel->hasLogo())
+              <img src="{{ route('hotels.logo', $hotel) }}" alt="{{ $hotel->name }} logo" style="max-height:64px;max-width:200px;object-fit:contain;">
+            @else
+              —
+            @endif
+          </div>
+        </div>
         <div class="info-card">
           <div class="info-card-label">Document</div>
           <div class="info-card-value">

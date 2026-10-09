@@ -27,6 +27,17 @@
   .hotel-form .select2-container--bootstrap-5 .select2-selection.is-invalid {
     border-color: var(--bs-form-invalid-border-color, #dc3545);
   }
+  .hotel-logo-preview {
+    display: block;
+    max-height: 72px;
+    max-width: 220px;
+    object-fit: contain;
+    margin-bottom: 0.75rem;
+    background: #fff;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.375rem;
+    padding: 0.35rem;
+  }
 </style>
 @endpush
 
@@ -142,6 +153,33 @@
 
     <div class="card mb-4">
       <div class="card-header">
+        <h2 class="hotel-section-title"><i class="bi bi-image"></i> Logo</h2>
+      </div>
+      <div class="card-body">
+        @if ($hotel->hasLogo())
+          <img src="{{ route('hotels.logo', $hotel) }}" alt="{{ $hotel->name }} logo" class="hotel-logo-preview" id="logoPreview">
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="remove_logo" id="remove_logo" value="1" @checked(old('remove_logo'))>
+            <label class="form-check-label" for="remove_logo">Remove current logo</label>
+          </div>
+        @else
+          <img id="logoPreview" class="hotel-logo-preview" alt="Hotel logo preview" hidden>
+        @endif
+        <label for="logo" class="form-label">{{ $hotel->hasLogo() ? 'Replace logo' : 'Upload logo' }}</label>
+        <input
+          type="file"
+          name="logo"
+          id="logo"
+          accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
+          class="form-control @error('logo') is-invalid @enderror"
+        >
+        <div class="form-text">JPG, PNG, WEBP, or GIF, up to 2 MB.</div>
+        @error('logo')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
         <h2 class="hotel-section-title"><i class="bi bi-file-earmark-arrow-up"></i> Document</h2>
       </div>
       <div class="card-body">
@@ -190,4 +228,18 @@
 
 @push('scripts')
 <script src="{{ asset('assets/js/hotel-validation.js') }}?v={{ @filemtime(public_path('assets/js/hotel-validation.js')) }}"></script>
+<script>
+  (function () {
+    var input = document.getElementById('logo');
+    var preview = document.getElementById('logoPreview');
+    if (!input || !preview) return;
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      preview.src = URL.createObjectURL(file);
+      preview.hidden = false;
+      preview.style.display = 'block';
+    });
+  })();
+</script>
 @endpush

@@ -1,7 +1,14 @@
 <div class="document hotel-contract-document">
     <section class="page">
         <header class="header">
-            <div class="logo">HOTEL <small>GROUP CONTRACT</small></div>
+            <div class="logo">
+                @if (! empty($hotelLogoUrl))
+                    <img src="{{ $hotelLogoUrl }}" alt="{{ $hotelName }} logo" class="hotel-logo-img" contenteditable="false">
+                @else
+                    HOTEL
+                @endif
+                <small>GROUP CONTRACT</small>
+            </div>
             <div class="hotel-address">{{ $hotelAddress }}</div>
         </header>
 
@@ -77,6 +84,11 @@
             @endforeach
         </ul>
 
+        @include('group-bookings.partials.contract-photos', [
+            'enquiry' => $enquiry,
+            'photos' => $contractPhotos ?? collect(),
+        ])
+
         <div class="footer">
             <strong>{{ $legalName }}</strong> ·
             Registered Office: <span>{{ $registeredOffice }}</span> ·
@@ -87,7 +99,14 @@
 
     <section class="page">
         <header class="header">
-            <div class="logo">HOTEL <small>GROUP CONTRACT</small></div>
+            <div class="logo">
+                @if (! empty($hotelLogoUrl))
+                    <img src="{{ $hotelLogoUrl }}" alt="{{ $hotelName }} logo" class="hotel-logo-img" contenteditable="false">
+                @else
+                    HOTEL
+                @endif
+                <small>GROUP CONTRACT</small>
+            </div>
             <div class="hotel-address">{{ $hotelAddress }}</div>
         </header>
 
@@ -125,7 +144,14 @@
 
     <section class="page">
         <header class="header">
-            <div class="logo">HOTEL <small>GROUP CONTRACT</small></div>
+            <div class="logo">
+                @if (! empty($hotelLogoUrl))
+                    <img src="{{ $hotelLogoUrl }}" alt="{{ $hotelName }} logo" class="hotel-logo-img" contenteditable="false">
+                @else
+                    HOTEL
+                @endif
+                <small>GROUP CONTRACT</small>
+            </div>
             <div class="hotel-address">{{ $hotelAddress }}</div>
         </header>
 
@@ -146,28 +172,24 @@
         </div>
 
         <div class="section-title">Approval &amp; Authorization</div>
-        <table class="signature-table">
-            <tr>
-                <th>Approved &amp; Authorized by the Hotel</th>
-                <th>Approved &amp; Authorized by the Client</th>
-            </tr>
-            <tr>
-                <td>
-                    <strong>Name:</strong> <span>{{ $hotelSignName }}</span><br>
-                    <strong>Title:</strong> <span>{{ $hotelSignTitle }}</span>
-                    <div class="signature-box">Hotel Signature</div>
-                </td>
-                <td>
-                    <strong>Name:</strong> <span>{{ $clientSignName }}</span><br>
-                    <strong>Title:</strong> <span>{{ $clientSignTitle }}</span>
-                    <div class="signature-box">Client Signature</div>
-                </td>
-            </tr>
-            <tr>
-                <td><strong>Date:</strong> <span>{{ $hotelSignDate }}</span></td>
-                <td><strong>Date:</strong> <span>{{ $clientSignDate }}</span></td>
-            </tr>
-        </table>
+        <div class="signature-row">
+            <div class="signature-col">
+                <div class="signature-col-title">Approved &amp; Authorized by the Hotel</div>
+                <div class="signature-box signature-box--hotel">
+                    @if (! empty($hotelSignatureUrl))
+                        <img src="{{ $hotelSignatureUrl }}" alt="Hotel signature" class="signature-img" contenteditable="false">
+                    @else
+                        Hotel Signature
+                    @endif
+                </div>
+                <div class="signature-date"><strong>Date:</strong> <span>{{ $hotelSignDate }}</span></div>
+            </div>
+            <div class="signature-col">
+                <div class="signature-col-title">Approved &amp; Authorized by the Client</div>
+                <div class="signature-box signature-box--client">Client Signature</div>
+                <div class="signature-date"><strong>Date:</strong> <span>{{ $clientSignDate }}</span></div>
+            </div>
+        </div>
 
         <div class="section-title">Contract Notes</div>
         <p>{{ $contractNotes }}</p>

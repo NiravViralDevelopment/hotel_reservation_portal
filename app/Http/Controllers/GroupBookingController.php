@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Enquiry;
+use App\Models\EnquiryContractPhoto;
 use App\Models\Hotel;
 use App\Support\Audit;
 use App\Support\EnquiryIndexFilters;
@@ -12,9 +13,14 @@ use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use App\Support\SimpleXlsxWriter;
 use Illuminate\Database\Eloquent\Builder;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -216,7 +222,14 @@ class GroupBookingController extends Controller
         abort_unless($enquiry->is_confirm, 404);
         HotelAccess::ensure(null, $enquiry->hotel_id);
 
-        $enquiry->load(['hotel.company', 'hotel.managerUser', 'travelAgency', 'contact', 'bookingContractHotel']);
+        $enquiry->load([
+            'hotel.company',
+            'hotel.managerUser',
+            'travelAgency',
+            'contact',
+            'bookingContractHotel',
+            'contractPhotos',
+        ]);
 
         $selectedHotel = $enquiry->hotel;
 
@@ -226,18 +239,174 @@ class GroupBookingController extends Controller
 
         if ($contractHtml === null) {
             $savedIsTemplate = BookingContractHtml::isTemplateDocument($savedHtml);
-            if (! $reloadHtml && $savedIsTemplate) {
+            $needsContractAssets = is_string($savedHtml) && (
+                (
+                    ! str_contains($savedHtml, 'data:image')
+                    && (
+                        (bool) $selectedHotel?->hasLogo()
+                        || (bool) auth()->user()?->hasSignature()
+                    )
+                )
+                || ! str_contains($savedHtml, 'signature-row')
+            );
+
+            if (! $reloadHtml && $savedIsTemplate && ! $needsContractAssets) {
                 $contractHtml = $savedHtml;
             } else {
                 $contractHtml = BookingContractHtml::build($enquiry, $selectedHotel);
             }
         }
 
+        $contractHtml = BookingContractHtml::syncPhotosSection((string) $contractHtml, $enquiry);
+
         return view('group-bookings.contract', compact(
             'enquiry',
             'selectedHotel',
             'contractHtml'
         ));
+    }
+
+    public function storeContractPhoto(Request $request, Enquiry $enquiry): RedirectResponse
+    {
+        $this->authorize('update', $enquiry);
+        abort_unless($enquiry->is_confirm && ! $enquiry->is_cancel, 404);
+        HotelAccess::ensure(null, $enquiry->hotel_id);
+
+        $existingCount = $enquiry->contractPhotos()->count();
+        $remaining = max(0, 20 - $existingCount);
+
+        if ($remaining === 0) {
+            return redirect()
+                ->route('group-bookings.contract', $enquiry)
+                ->with('error', 'You can attach up to 20 photos on this contract.');
+        }
+
+        $validated = $request->validate([
+            'photos' => ['required', 'array', 'min:1', 'max:'.min(10, $remaining)],
+            'photos.*' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
+        ], [
+            'photos.required' => 'Please choose at least one photo.',
+            'photos.max' => 'You can attach only '.$remaining.' more photo(s).',
+            'photos.*.mimes' => 'Photos must be JPG, PNG, WEBP, or GIF images.',
+            'photos.*.max' => 'Each photo must be 4 MB or smaller.',
+        ]);
+
+        $sortOrder = (int) ($enquiry->contractPhotos()->max('sort_order') ?? 0);
+
+        foreach ($validated['photos'] as $file) {
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
+
+            $sortOrder++;
+            $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
+            $path = $file->storeAs(
+                'enquiry-contract-photos/'.$enquiry->id,
+                Str::uuid()->toString().'.'.$extension,
+                'local'
+            );
+
+            $enquiry->contractPhotos()->create([
+                'uploaded_by' => auth()->id(),
+                'disk' => 'local',
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType(),
+                'size' => $file->getSize() ?: 0,
+                'sort_order' => $sortOrder,
+            ]);
+        }
+
+        Audit::log('uploaded', 'group-booking-contract-photos', $enquiry->block_id ?: $enquiry->ref, $enquiry);
+
+        return redirect()
+            ->route('group-bookings.contract', $enquiry)
+            ->with('success', 'Photo(s) attached to the contract.');
+    }
+
+    public function destroyContractPhoto(Enquiry $enquiry, EnquiryContractPhoto $photo): RedirectResponse
+    {
+        $this->authorize('update', $enquiry);
+        abort_unless($enquiry->is_confirm && ! $enquiry->is_cancel, 404);
+        HotelAccess::ensure(null, $enquiry->hotel_id);
+        abort_unless((int) $photo->enquiry_id === (int) $enquiry->id, 404);
+
+        $photo->delete();
+
+        Audit::log('deleted', 'group-booking-contract-photos', $enquiry->block_id ?: $enquiry->ref, $enquiry);
+
+        return redirect()
+            ->route('group-bookings.contract', $enquiry)
+            ->with('success', 'Photo removed from the contract.');
+    }
+
+    public function viewContractPhoto(Enquiry $enquiry, EnquiryContractPhoto $photo): StreamedResponse
+    {
+        abort_unless(auth()->user()?->can('bookings.view'), 403);
+        abort_unless($enquiry->is_confirm, 404);
+        HotelAccess::ensure(null, $enquiry->hotel_id);
+        abort_unless((int) $photo->enquiry_id === (int) $enquiry->id, 404);
+        abort_unless($photo->hasFile(), 404);
+
+        $disk = $photo->disk ?: 'local';
+        $path = (string) $photo->path;
+        abort_unless(Storage::disk($disk)->exists($path), 404);
+
+        return Storage::disk($disk)->response($path, $photo->original_name ?: 'photo', [
+            'Content-Type' => $photo->mime_type ?: 'image/jpeg',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
+    public function previewContractPdf(Enquiry $enquiry): Response
+    {
+        abort_unless(auth()->user()?->can('bookings.view'), 403);
+        abort_unless($enquiry->is_confirm, 404);
+        HotelAccess::ensure(null, $enquiry->hotel_id);
+
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(180);
+
+        $enquiry->load([
+            'hotel.company',
+            'hotel.managerUser',
+            'travelAgency',
+            'contact',
+            'contractPhotos',
+        ]);
+
+        $contractHtml = BookingContractHtml::htmlForPdf($enquiry, $enquiry->hotel);
+        $filename = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) ($enquiry->block_id ?: $enquiry->ref ?: 'booking')).'-contract.pdf';
+
+        $html = view('group-bookings.contract-pdf', [
+            'contractHtml' => $contractHtml,
+            'filename' => $filename,
+        ])->render();
+
+        $options = new Options;
+        $options->set('isRemoteEnabled', false);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', false);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->setTempDir(storage_path('app/dompdf'));
+
+        if (! is_dir(storage_path('app/dompdf'))) {
+            mkdir(storage_path('app/dompdf'), 0775, true);
+        }
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $output = $dompdf->output();
+        abort_unless(is_string($output) && str_starts_with($output, '%PDF'), 500);
+
+        return response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+        ]);
     }
 
     public function updateContract(Request $request, Enquiry $enquiry): RedirectResponse
@@ -247,7 +416,7 @@ class GroupBookingController extends Controller
         HotelAccess::ensure(null, $enquiry->hotel_id);
 
         $validated = $request->validate([
-            'booking_contract_html' => ['nullable', 'string', 'max:200000'],
+            'booking_contract_html' => ['nullable', 'string', 'max:1500000'],
         ]);
 
         $enquiry->fill([

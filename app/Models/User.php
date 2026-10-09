@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -28,6 +29,11 @@ class User extends Authenticatable
         'status',
         'password',
         'last_login_at',
+        'signature_disk',
+        'signature_path',
+        'signature_original_name',
+        'signature_mime_type',
+        'signature_size',
     ];
 
     /**
@@ -47,7 +53,45 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
+            'signature_size' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user): void {
+            $user->deleteStoredSignature();
+        });
+    }
+
+    public function hasSignature(): bool
+    {
+        $path = (string) $this->signature_path;
+
+        return $path !== '' && ! str_contains($path, '..');
+    }
+
+    public function deleteStoredSignature(): void
+    {
+        if (! $this->hasSignature()) {
+            return;
+        }
+
+        $disk = $this->signature_disk ?: 'local';
+        $path = (string) $this->signature_path;
+
+        if (Storage::disk($disk)->exists($path)) {
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
+    public function clearSignatureAttributes(): void
+    {
+        $this->signature_disk = null;
+        $this->signature_path = null;
+        $this->signature_original_name = null;
+        $this->signature_mime_type = null;
+        $this->signature_size = 0;
     }
 
     public function isActive(): bool

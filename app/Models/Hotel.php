@@ -36,6 +36,11 @@ class Hotel extends Model
         'document_original_name',
         'document_mime_type',
         'document_size',
+        'logo_disk',
+        'logo_path',
+        'logo_original_name',
+        'logo_mime_type',
+        'logo_size',
     ];
 
     /**
@@ -46,6 +51,7 @@ class Hotel extends Model
         return [
             'rooms' => 'integer',
             'document_size' => 'integer',
+            'logo_size' => 'integer',
         ];
     }
 
@@ -53,6 +59,7 @@ class Hotel extends Model
     {
         static::deleting(function (Hotel $hotel): void {
             $hotel->deleteStoredDocument();
+            $hotel->deleteStoredLogo();
         });
     }
 
@@ -84,6 +91,36 @@ class Hotel extends Model
         $this->document_original_name = null;
         $this->document_mime_type = null;
         $this->document_size = 0;
+    }
+
+    public function hasLogo(): bool
+    {
+        $path = (string) $this->logo_path;
+
+        return $path !== '' && ! str_contains($path, '..');
+    }
+
+    public function deleteStoredLogo(): void
+    {
+        if (! $this->hasLogo()) {
+            return;
+        }
+
+        $disk = $this->logo_disk ?: 'local';
+        $path = (string) $this->logo_path;
+
+        if (Storage::disk($disk)->exists($path)) {
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
+    public function clearLogoAttributes(): void
+    {
+        $this->logo_disk = null;
+        $this->logo_path = null;
+        $this->logo_original_name = null;
+        $this->logo_mime_type = null;
+        $this->logo_size = 0;
     }
 
     public function company(): BelongsTo

@@ -22,13 +22,13 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'job_title' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'password' => ['required', 'confirmed', Password::defaults()],
             'roles' => ['nullable', 'array'],
             'roles.*' => ['string', 'exists:roles,name'],
             'hotels' => ['nullable', 'array'],
             'hotels.*' => ['integer', Rule::in(\App\Models\Hotel::query()->active()->pluck('id')->map(fn ($id) => (int) $id)->all())],
+            'signature' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
         ];
     }
 
@@ -45,6 +45,8 @@ class StoreUserRequest extends FormRequest
             'status.required' => 'Status is required.',
             'password.required' => 'Password is required.',
             'password.confirmed' => 'Password confirmation does not match.',
+            'signature.mimes' => 'Signature must be a JPG, PNG, WEBP, or GIF image.',
+            'signature.max' => 'Signature must be 2 MB or smaller.',
         ];
     }
 }

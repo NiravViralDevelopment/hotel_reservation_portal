@@ -3,6 +3,34 @@
 @section('title', 'Users')
 @section('page', 'users')
 
+@push('styles')
+  <style>
+    .users-list-table {
+      width: 100%;
+      table-layout: fixed;
+    }
+    .users-list-table .col-user { width: 14%; }
+    .users-list-table .col-contact { width: 24%; }
+    .users-list-table .col-role { width: 14%; }
+    .users-list-table .col-hotels { width: 26%; }
+    .users-list-table .col-status { width: 10%; }
+    .users-list-table .col-actions { width: 12%; }
+    .users-list-table td.contact-cell,
+    .users-list-table td.hotel-badges {
+      overflow-wrap: anywhere;
+    }
+    .users-list-table .hotel-badges .badge,
+    .users-list-table td.role-cell .badge {
+      white-space: normal;
+      text-align: left;
+    }
+    .users-list-table td.status-cell,
+    .users-list-table td.actions-cell {
+      white-space: nowrap;
+    }
+  </style>
+@endpush
+
 @section('content')
   <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
@@ -74,15 +102,15 @@
     </div>
 
     <div class="table-wrapper">
-      <table class="table table-hover mb-0 align-middle">
+      <table class="table table-hover mb-0 align-middle users-list-table">
         <thead>
           <tr>
-            <x-sortable-th column="name" label="User" />
-            <x-sortable-th column="email" label="Contact" />
-            <th>Role</th>
-            <th>Hotels</th>
-            <x-sortable-th column="status" label="Status" />
-            <th class="text-end">Actions</th>
+            <x-sortable-th column="name" label="User" class="col-user" />
+            <x-sortable-th column="email" label="Contact" class="col-contact" />
+            <th class="col-role">Role</th>
+            <th class="col-hotels">Hotels</th>
+            <x-sortable-th column="status" label="Status" class="col-status" />
+            <th class="text-end col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -90,32 +118,29 @@
             <tr>
               <td>
                 <div class="fw-semibold">{{ $user->name }}</div>
-                @if ($user->job_title)
-                  <div class="small text-secondary">{{ $user->job_title }}</div>
-                @endif
               </td>
-              <td>
+              <td class="contact-cell">
                 <div>{{ $user->email }}</div>
                 @if ($user->phone)
                   <div class="small text-secondary">{{ $user->phone }}</div>
                 @endif
               </td>
-              <td>
+              <td class="role-cell">
                 @forelse ($user->roles as $role)
                   <span class="badge bg-secondary me-1 mb-1">{{ $role->name }}</span>
                 @empty
                   <span class="text-secondary">—</span>
                 @endforelse
               </td>
-              <td>
+              <td class="hotel-badges">
                 @forelse ($user->hotels as $hotel)
                   <span class="badge bg-light text-dark border me-1 mb-1">{{ $hotel->name }}</span>
                 @empty
                   <span class="text-secondary">No hotels assigned</span>
                 @endforelse
               </td>
-              <td><x-badge-status :status="$user->status" /></td>
-              <td class="text-end text-nowrap">
+              <td class="status-cell"><x-badge-status :status="$user->status" /></td>
+              <td class="text-end text-nowrap actions-cell">
                 @can('update', $user)
                   <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
                     <i class="bi bi-pencil"></i>

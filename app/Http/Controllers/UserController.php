@@ -10,8 +10,12 @@ use App\Support\Audit;
 use App\Support\QuerySort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use App\Models\Role;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -27,8 +31,7 @@ class UserController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('job_title', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -49,7 +52,6 @@ class UserController extends Controller
             'name' => 'name',
             'email' => 'email',
             'phone' => 'phone',
-            'job_title' => 'job_title',
             'status' => 'status',
         ], 'name');
 
@@ -75,7 +77,8 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        $data = $request->safe()->except(['roles', 'hotels', 'password_confirmation', 'department']);
+        $signature = $request->file('signature');
+        $data = $request->safe()->except(['roles', 'hotels', 'password_confirmation', 'department', 'signature']);
         $user = User::query()->create($data);
 
         if ($request->filled('roles')) {
@@ -85,6 +88,10 @@ class UserController extends Controller
         }
 
         $user->hotels()->sync($request->input('hotels', []));
+
+        if ($signature instanceof UploadedFile) {
+            $this->storeUserSignature($user, $signature);
+        }
 
         Audit::log('created', 'users', $user->email, $user);
 
@@ -111,7 +118,9 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $data = $request->safe()->except(['roles', 'hotels', 'password', 'password_confirmation', 'department']);
+        $signature = $request->file('signature');
+        $removeSignature = $request->boolean('remove_signature');
+        $data = $request->safe()->except(['roles', 'hotels', 'password', 'password_confirmation', 'department', 'signature', 'remove_signature']);
 
         if ($request->filled('password')) {
             $data['password'] = $request->validated('password');
@@ -124,6 +133,14 @@ class UserController extends Controller
         }
 
         $user->hotels()->sync($request->input('hotels', []));
+
+        if ($signature instanceof UploadedFile) {
+            $this->storeUserSignature($user, $signature);
+        } elseif ($removeSignature && $user->hasSignature()) {
+            $user->deleteStoredSignature();
+            $user->clearSignatureAttributes();
+            $user->save();
+        }
 
         Audit::log('updated', 'users', $user->email, $user);
 
@@ -172,5 +189,45 @@ class UserController extends Controller
             'success',
             $newStatus === 'active' ? 'User activated.' : 'User deactivated. They can no longer sign in.'
         );
+    }
+
+    public function viewSignature(User $user): StreamedResponse
+    {
+        abort_unless(auth()->id() === $user->id || auth()->user()?->can('view', $user), 403);
+        abort_unless($user->hasSignature(), 404);
+
+        $disk = $user->signature_disk ?: 'local';
+        $path = (string) $user->signature_path;
+
+        abort_unless(Storage::disk($disk)->exists($path), 404);
+
+        return Storage::disk($disk)->response($path, $user->signature_original_name ?: 'signature', [
+            'Content-Type' => $user->signature_mime_type ?: 'image/png',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
+    private function storeUserSignature(User $user, UploadedFile $file): void
+    {
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: '');
+        abort_unless(in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true), 422);
+
+        if ($user->hasSignature()) {
+            $user->deleteStoredSignature();
+        }
+
+        $path = $file->storeAs(
+            'user-signatures/'.$user->id,
+            Str::uuid()->toString().'.'.$extension,
+            'local'
+        );
+
+        $user->forceFill([
+            'signature_disk' => 'local',
+            'signature_path' => $path,
+            'signature_original_name' => $file->getClientOriginalName(),
+            'signature_mime_type' => $file->getMimeType(),
+            'signature_size' => $file->getSize() ?: 0,
+        ])->save();
     }
 }

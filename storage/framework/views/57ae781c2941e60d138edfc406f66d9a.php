@@ -1,6 +1,34 @@
 <?php $__env->startSection('title', 'Users'); ?>
 <?php $__env->startSection('page', 'users'); ?>
 
+<?php $__env->startPush('styles'); ?>
+  <style>
+    .users-list-table {
+      width: 100%;
+      table-layout: fixed;
+    }
+    .users-list-table .col-user { width: 14%; }
+    .users-list-table .col-contact { width: 24%; }
+    .users-list-table .col-role { width: 14%; }
+    .users-list-table .col-hotels { width: 26%; }
+    .users-list-table .col-status { width: 10%; }
+    .users-list-table .col-actions { width: 12%; }
+    .users-list-table td.contact-cell,
+    .users-list-table td.hotel-badges {
+      overflow-wrap: anywhere;
+    }
+    .users-list-table .hotel-badges .badge,
+    .users-list-table td.role-cell .badge {
+      white-space: normal;
+      text-align: left;
+    }
+    .users-list-table td.status-cell,
+    .users-list-table td.actions-cell {
+      white-space: nowrap;
+    }
+  </style>
+<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('content'); ?>
   <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
@@ -72,19 +100,19 @@
     </div>
 
     <div class="table-wrapper">
-      <table class="table table-hover mb-0 align-middle">
+      <table class="table table-hover mb-0 align-middle users-list-table">
         <thead>
           <tr>
             <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'name','label' => 'User']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'name','label' => 'User','class' => 'col-user']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sortable-th'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['column' => 'name','label' => 'User']); ?>
+<?php $component->withAttributes(['column' => 'name','label' => 'User','class' => 'col-user']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
@@ -97,14 +125,14 @@
 <?php endif; ?>
             <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'email','label' => 'Contact']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'email','label' => 'Contact','class' => 'col-contact']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sortable-th'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['column' => 'email','label' => 'Contact']); ?>
+<?php $component->withAttributes(['column' => 'email','label' => 'Contact','class' => 'col-contact']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
@@ -115,18 +143,18 @@
 <?php $component = $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
 <?php unset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
 <?php endif; ?>
-            <th>Role</th>
-            <th>Hotels</th>
+            <th class="col-role">Role</th>
+            <th class="col-hotels">Hotels</th>
             <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'status','label' => 'Status']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'status','label' => 'Status','class' => 'col-status']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sortable-th'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['column' => 'status','label' => 'Status']); ?>
+<?php $component->withAttributes(['column' => 'status','label' => 'Status','class' => 'col-status']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
@@ -137,7 +165,7 @@
 <?php $component = $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
 <?php unset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
 <?php endif; ?>
-            <th class="text-end">Actions</th>
+            <th class="text-end col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -145,31 +173,28 @@
             <tr>
               <td>
                 <div class="fw-semibold"><?php echo e($user->name); ?></div>
-                <?php if($user->job_title): ?>
-                  <div class="small text-secondary"><?php echo e($user->job_title); ?></div>
-                <?php endif; ?>
               </td>
-              <td>
+              <td class="contact-cell">
                 <div><?php echo e($user->email); ?></div>
                 <?php if($user->phone): ?>
                   <div class="small text-secondary"><?php echo e($user->phone); ?></div>
                 <?php endif; ?>
               </td>
-              <td>
+              <td class="role-cell">
                 <?php $__empty_2 = true; $__currentLoopData = $user->roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_2 = false; ?>
                   <span class="badge bg-secondary me-1 mb-1"><?php echo e($role->name); ?></span>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_2): ?>
                   <span class="text-secondary">—</span>
                 <?php endif; ?>
               </td>
-              <td>
+              <td class="hotel-badges">
                 <?php $__empty_2 = true; $__currentLoopData = $user->hotels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hotel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_2 = false; ?>
                   <span class="badge bg-light text-dark border me-1 mb-1"><?php echo e($hotel->name); ?></span>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_2): ?>
                   <span class="text-secondary">No hotels assigned</span>
                 <?php endif; ?>
               </td>
-              <td><?php if (isset($component)) { $__componentOriginal435aefee4aa6dd7f20df034696ae03b9 = $component; } ?>
+              <td class="status-cell"><?php if (isset($component)) { $__componentOriginal435aefee4aa6dd7f20df034696ae03b9 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal435aefee4aa6dd7f20df034696ae03b9 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.badge-status','data' => ['status' => $user->status]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('badge-status'); ?>
@@ -189,7 +214,7 @@
 <?php $component = $__componentOriginal435aefee4aa6dd7f20df034696ae03b9; ?>
 <?php unset($__componentOriginal435aefee4aa6dd7f20df034696ae03b9); ?>
 <?php endif; ?></td>
-              <td class="text-end text-nowrap">
+              <td class="text-end text-nowrap actions-cell">
                 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $user)): ?>
                   <a href="<?php echo e(route('users.edit', $user)); ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
                     <i class="bi bi-pencil"></i>

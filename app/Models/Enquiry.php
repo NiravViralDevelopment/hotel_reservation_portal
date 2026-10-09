@@ -198,6 +198,7 @@ class Enquiry extends Model
     {
         static::deleting(function (Enquiry $enquiry): void {
             $enquiry->deleteBookingContractFile();
+            $enquiry->contractPhotos()->get()->each->delete();
         });
     }
 
@@ -261,6 +262,11 @@ class Enquiry extends Model
     public function responses(): HasMany
     {
         return $this->hasMany(EnquiryResponse::class)->latest();
+    }
+
+    public function contractPhotos(): HasMany
+    {
+        return $this->hasMany(EnquiryContractPhoto::class)->orderBy('sort_order')->orderBy('id');
     }
 
     /**

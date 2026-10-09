@@ -24,7 +24,6 @@ class UpdateUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'phone' => ['nullable', 'string', 'max:20'],
-            'job_title' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'roles' => ['nullable', 'array'],
@@ -38,6 +37,8 @@ class UpdateUserRequest extends FormRequest
                     )->pluck('id')->map(fn ($id) => (int) $id)->all()
                 ),
             ],
+            'signature' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
+            'remove_signature' => ['nullable', 'boolean'],
         ];
     }
 
@@ -53,6 +54,8 @@ class UpdateUserRequest extends FormRequest
             'email.unique' => 'This email is already used.',
             'status.required' => 'Status is required.',
             'password.confirmed' => 'Password confirmation does not match.',
+            'signature.mimes' => 'Signature must be a JPG, PNG, WEBP, or GIF image.',
+            'signature.max' => 'Signature must be 2 MB or smaller.',
         ];
     }
 }

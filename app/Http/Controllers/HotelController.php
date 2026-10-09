@@ -117,6 +117,7 @@ class HotelController extends Controller
                 'mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'max:10240',
             ],
+            'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
         ], [
             'company_id.required' => 'Please select a company.',
             'rooms.required' => 'Please enter the number of rooms.',
@@ -128,10 +129,13 @@ class HotelController extends Controller
             'phone.required' => 'Please enter the phone number.',
             'email.required' => 'Please enter the email address.',
             'document.mimes' => 'Document must be a PDF, DOC, or DOCX file.',
+            'logo.mimes' => 'Logo must be a JPG, PNG, WEBP, or GIF image.',
+            'logo.max' => 'Logo must be 2 MB or smaller.',
         ]);
 
         $document = $request->file('document');
-        unset($data['document']);
+        $logo = $request->file('logo');
+        unset($data['document'], $data['logo']);
 
         $data = $this->normalizeHotelData($data);
 
@@ -139,6 +143,10 @@ class HotelController extends Controller
 
         if ($document instanceof UploadedFile) {
             $this->storeHotelDocument($hotel, $document);
+        }
+
+        if ($logo instanceof UploadedFile) {
+            $this->storeHotelLogo($hotel, $logo);
         }
 
         Audit::log('created', 'hotels', $hotel->code, $hotel);
@@ -203,6 +211,8 @@ class HotelController extends Controller
                 'max:10240',
             ],
             'remove_document' => ['nullable', 'boolean'],
+            'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
+            'remove_logo' => ['nullable', 'boolean'],
         ], [
             'company_id.required' => 'Please select a company.',
             'rooms.required' => 'Please enter the number of rooms.',
@@ -214,11 +224,15 @@ class HotelController extends Controller
             'phone.required' => 'Please enter the phone number.',
             'email.required' => 'Please enter the email address.',
             'document.mimes' => 'Document must be a PDF, DOC, or DOCX file.',
+            'logo.mimes' => 'Logo must be a JPG, PNG, WEBP, or GIF image.',
+            'logo.max' => 'Logo must be 2 MB or smaller.',
         ]);
 
         $document = $request->file('document');
         $removeDocument = $request->boolean('remove_document');
-        unset($data['document'], $data['remove_document']);
+        $logo = $request->file('logo');
+        $removeLogo = $request->boolean('remove_logo');
+        unset($data['document'], $data['remove_document'], $data['logo'], $data['remove_logo']);
 
         $data = $this->normalizeHotelData($data);
 
@@ -229,6 +243,14 @@ class HotelController extends Controller
         } elseif ($removeDocument && $hotel->hasDocument()) {
             $hotel->deleteStoredDocument();
             $hotel->clearDocumentAttributes();
+            $hotel->save();
+        }
+
+        if ($logo instanceof UploadedFile) {
+            $this->storeHotelLogo($hotel, $logo);
+        } elseif ($removeLogo && $hotel->hasLogo()) {
+            $hotel->deleteStoredLogo();
+            $hotel->clearLogoAttributes();
             $hotel->save();
         }
 
@@ -253,6 +275,24 @@ class HotelController extends Controller
 
         return Storage::disk($disk)->download($path, $filename, [
             'Content-Type' => $hotel->document_mime_type ?: 'application/octet-stream',
+        ]);
+    }
+
+    public function viewLogo(Hotel $hotel): StreamedResponse
+    {
+        $this->authorize('view', $hotel);
+        HotelAccess::ensure(null, $hotel->id);
+
+        abort_unless($hotel->hasLogo(), 404);
+
+        $disk = $hotel->logo_disk ?: 'local';
+        $path = (string) $hotel->logo_path;
+
+        abort_unless(Storage::disk($disk)->exists($path), 404);
+
+        return Storage::disk($disk)->response($path, $hotel->logo_original_name ?: ($hotel->code.'-logo'), [
+            'Content-Type' => $hotel->logo_mime_type ?: 'image/png',
+            'Content-Disposition' => 'inline',
         ]);
     }
 
@@ -342,6 +382,32 @@ class HotelController extends Controller
             'document_original_name' => $file->getClientOriginalName(),
             'document_mime_type' => $file->getMimeType(),
             'document_size' => $file->getSize() ?: 0,
+        ])->save();
+    }
+
+    private function storeHotelLogo(Hotel $hotel, UploadedFile $file): void
+    {
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: '');
+        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+        abort_unless(in_array($extension, $allowed, true), 422);
+
+        if ($hotel->hasLogo()) {
+            $hotel->deleteStoredLogo();
+        }
+
+        $path = $file->storeAs(
+            'hotel-logos/'.$hotel->id,
+            Str::uuid()->toString().'.'.$extension,
+            'local'
+        );
+
+        $hotel->forceFill([
+            'logo_disk' => 'local',
+            'logo_path' => $path,
+            'logo_original_name' => $file->getClientOriginalName(),
+            'logo_mime_type' => $file->getMimeType(),
+            'logo_size' => $file->getSize() ?: 0,
         ])->save();
     }
 }

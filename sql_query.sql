@@ -114,3 +114,19 @@ UPDATE users SET uuid = UUID() WHERE uuid IS NULL OR uuid = '';
 ALTER TABLE users
   MODIFY uuid CHAR(36) NOT NULL,
   ADD UNIQUE KEY users_uuid_unique (uuid);
+
+-- Hotel logo (create / edit hotel)
+ALTER TABLE hotels
+  ADD COLUMN logo_disk VARCHAR(191) NULL AFTER document_size,
+  ADD COLUMN logo_path VARCHAR(191) NULL AFTER logo_disk,
+  ADD COLUMN logo_original_name VARCHAR(191) NULL AFTER logo_path,
+  ADD COLUMN logo_mime_type VARCHAR(191) NULL AFTER logo_original_name,
+  ADD COLUMN logo_size BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER logo_mime_type;
+
+-- User signature image (users list, create, edit)
+ALTER TABLE users
+  ADD COLUMN signature_disk VARCHAR(191) NULL AFTER status,
+  ADD COLUMN signature_path VARCHAR(191) NULL AFTER signature_disk,
+  ADD COLUMN signature_original_name VARCHAR(191) NULL AFTER signature_path,
+  ADD COLUMN signature_mime_type VARCHAR(191) NULL AFTER signature_original_name,
+  ADD COLUMN signature_size BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER signature_mime_type;
