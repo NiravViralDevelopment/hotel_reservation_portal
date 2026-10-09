@@ -1,4 +1,4 @@
-<script src="{{ asset('assets/js/enquiry-validation.js') }}?v={{ @filemtime(public_path('assets/js/enquiry-validation.js')) }}"></script>
+<script src="<?php echo e(asset('assets/js/enquiry-validation.js')); ?>?v=<?php echo e(@filemtime(public_path('assets/js/enquiry-validation.js'))); ?>"></script>
 <script>
 (function () {
   var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -346,3 +346,4 @@
   renderStayDates();
 })();
 </script>
+<?php /**PATH D:\working\h_r_p\resources\views/enquiries/partials/entry-form-scripts.blade.php ENDPATH**/ ?>

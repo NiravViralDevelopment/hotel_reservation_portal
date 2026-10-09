@@ -113,3 +113,4 @@
     border-top: 2px solid var(--border-color);
   }
 </style>
+<?php /**PATH D:\working\h_r_p\resources\views/enquiries/partials/entry-form-styles.blade.php ENDPATH**/ ?>

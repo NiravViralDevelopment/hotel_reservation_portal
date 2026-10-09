@@ -822,7 +822,7 @@ class EnquiryController extends Controller
 
     /**
      * Same total as a group booking: (single rooms × rate + double rooms × rate + triple rooms × rate) × nights.
-     * When daily rows exist, the room and rate figures are already the sum of each stay date.
+     * When daily rows exist, rooms are the sum of each stay date and rates are the average.
      *
      * @param  array<string, mixed>  $data
      */
@@ -965,6 +965,8 @@ class EnquiryController extends Controller
             'total_revenue' => 0.0,
             'bb_revenue' => 0.0,
         ];
+        $rateSums = ['single' => 0.0, 'double' => 0.0, 'triple' => 0.0];
+        $rateCounts = ['single' => 0, 'double' => 0, 'triple' => 0];
         $allowance = ['single' => 10, 'double' => 20, 'triple' => 30];
 
         foreach ($rows as $row) {
@@ -976,14 +978,23 @@ class EnquiryController extends Controller
                 $rooms = max(0, (int) ($row[$type.'_rooms'] ?? 0));
                 $rate = max(0, (float) ($row[$type.'_rate'] ?? 0));
                 $totals[$type.'_rooms'] += $rooms;
-                $totals[$type.'_rate'] += $rate;
+                if ($rooms > 0 || $rate > 0) {
+                    $rateSums[$type] += $rate;
+                    $rateCounts[$type]++;
+                }
                 $totals['total_rns'] += $rooms;
                 $totals['total_revenue'] += $rooms * $rate;
                 $totals['bb_revenue'] += $rooms * $allowance[$type];
             }
         }
 
-        foreach (['single_rate', 'double_rate', 'triple_rate', 'total_revenue', 'bb_revenue'] as $key) {
+        foreach (['single', 'double', 'triple'] as $type) {
+            $totals[$type.'_rate'] = $rateCounts[$type] > 0
+                ? round($rateSums[$type] / $rateCounts[$type], 2)
+                : 0.0;
+        }
+
+        foreach (['total_revenue', 'bb_revenue'] as $key) {
             $totals[$key] = round($totals[$key], 2);
         }
 
