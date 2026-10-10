@@ -5,7 +5,10 @@
   $emptyMessage = $emptyMessage ?? 'No confirmed bookings found.';
   $showCancellationReason = $showCancellationReason ?? false;
   $highlightDates = $highlightDates ?? false;
+  $viewOnlyActions = $viewOnlyActions ?? false;
+  $showCreatedBy = $showCreatedBy ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
+  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -71,6 +74,9 @@
         @if ($showCancellationReason)
           <th>Cancellation Reason</th>
         @endif
+        @if ($showCreatedBy)
+          <th>Created by</th>
+        @endif
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -122,11 +128,14 @@
           @if ($showCancellationReason)
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $text($enquiry->cancellation_reason) }}</td>
           @endif
+          @if ($showCreatedBy)
+            <td class="text-nowrap">{{ $enquiry->assignedTo?->name ?: '—' }}</td>
+          @endif
           <td class="text-end text-nowrap">
             <a href="{{ route($recordRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
               <i class="bi bi-eye"></i>
             </a>
-            @unless ($showCancellationReason)
+            @unless ($showCancellationReason || $viewOnlyActions)
               <a href="{{ route('group-bookings.contract', $enquiry) }}" class="btn btn-sm btn-outline-primary" title="Hotel contract">
                 <i class="bi bi-file-earmark-pdf"></i>
               </a>
@@ -139,7 +148,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ $showCancellationReason ? 41 : 39 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ $bookingColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
   </table>

@@ -6,9 +6,12 @@
   $variant = $variant ?? 'full';
   $showCancellationReason = $showCancellationReason ?? false;
   $readOnly = $readOnly ?? false;
+  $viewOnlyActions = $viewOnlyActions ?? false;
+  $showCreatedBy = $showCreatedBy ?? false;
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
+  $enquiryColspan = ($showCancellationReason ? 26 : 24) + ($showCreatedBy ? 1 : 0);
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -52,6 +55,9 @@
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         @endif
+        @if ($showCreatedBy)
+          <th>Created by</th>
+        @endif
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -86,13 +92,16 @@
             <td class="text-nowrap">{{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $enquiry->cancellation_reason ?: '—' }}</td>
           @endif
+          @if ($showCreatedBy)
+            <td class="text-nowrap">{{ $enquiry->assignedTo?->name ?: '—' }}</td>
+          @endif
           <td class="text-end text-nowrap">
             @can('view', $enquiry)
               <a href="{{ route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery)) }}" class="btn btn-sm btn-outline-secondary" title="View">
                 <i class="bi bi-eye"></i>
               </a>
             @endcan
-            @unless ($readOnly)
+            @unless ($readOnly || $viewOnlyActions)
               @can('update', $enquiry)
                 <a href="{{ route('enquiries.show', $enquiry) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
                   <i class="bi bi-chat-left-text"></i>
@@ -114,7 +123,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ $showCancellationReason ? 26 : 24 }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ $enquiryColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
   </table>
