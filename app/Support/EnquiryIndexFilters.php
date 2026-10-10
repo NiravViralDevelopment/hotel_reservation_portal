@@ -52,9 +52,9 @@ class EnquiryIndexFilters
      *
      * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
      */
-    public static function applyDateRange(Builder $query, Request $request, string $column, string $fromKey = 'date_from', string $toKey = 'date_to'): void
+    public static function applyDateRange(Builder $query, Request $request, string $column, string $fromKey = 'date_from', string $toKey = 'date_to', ?string $monthKey = null): void
     {
-        [$from, $to] = self::dateBounds($request, $fromKey, $toKey);
+        [$from, $to] = self::dateBounds($request, $fromKey, $toKey, $monthKey);
         if ($from) {
             $query->whereDate($column, '>=', $from);
         }
@@ -66,8 +66,18 @@ class EnquiryIndexFilters
     /**
      * @return array{0: ?string, 1: ?string}
      */
-    public static function dateBounds(Request $request, string $fromKey = 'date_from', string $toKey = 'date_to'): array
+    public static function dateBounds(Request $request, string $fromKey = 'date_from', string $toKey = 'date_to', ?string $monthKey = null): array
     {
+        if ($monthKey) {
+            $month = self::filterMonth($request, $monthKey);
+            if ($month) {
+                return [
+                    $month->copy()->startOfMonth()->toDateString(),
+                    $month->copy()->endOfMonth()->toDateString(),
+                ];
+            }
+        }
+
         if (! $request->exists($fromKey) && ! $request->exists($toKey)) {
             return [
                 now()->startOfMonth()->toDateString(),
@@ -79,6 +89,49 @@ class EnquiryIndexFilters
             self::filterDate($request, $fromKey),
             self::filterDate($request, $toKey),
         ];
+    }
+
+    /**
+     * Month shown in the filter. An explicit month wins; otherwise a full calendar
+     * month range is reflected so the control matches the dates already applied.
+     */
+    public static function monthValue(Request $request, ?string $from, ?string $to, string $monthKey): ?string
+    {
+        $month = self::filterMonth($request, $monthKey);
+        if ($month) {
+            return $month->format('Y-m');
+        }
+
+        if (! $from || ! $to) {
+            return null;
+        }
+
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->startOfDay();
+        if ($start->isSameDay($start->copy()->startOfMonth()) && $end->isSameDay($start->copy()->endOfMonth())) {
+            return $start->format('Y-m');
+        }
+
+        return null;
+    }
+
+    public static function filterMonth(Request $request, string $key): ?Carbon
+    {
+        if (! $request->filled($key)) {
+            return null;
+        }
+
+        $value = $request->string($key)->toString();
+        if (! preg_match('/^\d{4}-\d{2}$/', $value)) {
+            return null;
+        }
+
+        $date = Carbon::createFromFormat('!Y-m', $value);
+        if (! $date || $date->format('Y-m') !== $value) {
+            return null;
+        }
+
+        return $date->startOfMonth();
     }
 
     public static function filterDate(Request $request, string $key): ?string

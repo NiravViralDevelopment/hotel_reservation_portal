@@ -26,7 +26,8 @@ class EnquiryController extends Controller
     {
         $this->authorize('viewAny', Enquiry::class);
 
-        [$enquiryFrom, $enquiryTo] = EnquiryIndexFilters::dateBounds($request, 'enquiry_from', 'enquiry_to');
+        [$enquiryFrom, $enquiryTo] = EnquiryIndexFilters::dateBounds($request, 'enquiry_from', 'enquiry_to', 'enquiry_month');
+        $enquiryMonth = EnquiryIndexFilters::monthValue($request, $enquiryFrom, $enquiryTo, 'enquiry_month');
         $enquiries = $this->filteredQuery($request)->paginate(10)->withQueryString();
 
         $reminderBase = Enquiry::query()->accessibleBy()->openPipeline();
@@ -75,7 +76,8 @@ class EnquiryController extends Controller
             'creators',
             'reminders',
             'enquiryFrom',
-            'enquiryTo'
+            'enquiryTo',
+            'enquiryMonth'
         ));
     }
 
@@ -1106,7 +1108,7 @@ class EnquiryController extends Controller
             $query->where('created_by', $request->integer('created_by'));
         }
 
-        EnquiryIndexFilters::applyDateRange($query, $request, 'enquiry_date', 'enquiry_from', 'enquiry_to');
+        EnquiryIndexFilters::applyDateRange($query, $request, 'enquiry_date', 'enquiry_from', 'enquiry_to', 'enquiry_month');
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',

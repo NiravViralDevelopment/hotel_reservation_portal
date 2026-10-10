@@ -5,7 +5,10 @@
   $emptyMessage = $emptyMessage ?? 'No confirmed bookings found.';
   $showCancellationReason = $showCancellationReason ?? false;
   $highlightDates = $highlightDates ?? false;
+  $viewOnlyActions = $viewOnlyActions ?? false;
+  $showCreatedBy = $showCreatedBy ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
+  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -261,6 +264,9 @@
         <?php if($showCancellationReason): ?>
           <th>Cancellation Reason</th>
         <?php endif; ?>
+        <?php if($showCreatedBy): ?>
+          <th>Created by</th>
+        <?php endif; ?>
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -388,11 +394,14 @@
           <?php if($showCancellationReason): ?>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?php echo e($enquiry->cancellation_reason); ?>"><?php echo e($text($enquiry->cancellation_reason)); ?></td>
           <?php endif; ?>
+          <?php if($showCreatedBy): ?>
+            <td class="text-nowrap"><?php echo e($enquiry->assignedTo?->name ?: '—'); ?></td>
+          <?php endif; ?>
           <td class="text-end text-nowrap">
             <a href="<?php echo e(route($recordRoute, $enquiry)); ?>" class="btn btn-sm btn-outline-secondary" title="View">
               <i class="bi bi-eye"></i>
             </a>
-            <?php if (! ($showCancellationReason)): ?>
+            <?php if (! ($showCancellationReason || $viewOnlyActions)): ?>
               <a href="<?php echo e(route('group-bookings.contract', $enquiry)); ?>" class="btn btn-sm btn-outline-primary" title="Hotel contract">
                 <i class="bi bi-file-earmark-pdf"></i>
               </a>
@@ -405,7 +414,7 @@
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <tr><td colspan="<?php echo e($showCancellationReason ? 41 : 39); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
+        <tr><td colspan="<?php echo e($bookingColspan); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
       <?php endif; ?>
     </tbody>
   </table>
