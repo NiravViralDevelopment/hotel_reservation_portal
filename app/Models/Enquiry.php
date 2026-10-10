@@ -35,6 +35,7 @@ class Enquiry extends Model
         'hotel_id',
         'contact_id',
         'assigned_to',
+        'created_by',
         'rooms_per_night',
         'single_rooms',
         'single_rate',
@@ -261,6 +262,11 @@ class Enquiry extends Model
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function responses(): HasMany

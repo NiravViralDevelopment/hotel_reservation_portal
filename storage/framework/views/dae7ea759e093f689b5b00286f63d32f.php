@@ -15,7 +15,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="<?php echo e(route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'status', 'sort', 'dir', 'enquiry_from', 'enquiry_to']), (! request()->exists('enquiry_from') && ! request()->exists('enquiry_to')) ? ['enquiry_from' => $enquiryFrom, 'enquiry_to' => $enquiryTo] : []))); ?>"
+        href="<?php echo e(route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'status', 'created_by', 'sort', 'dir', 'enquiry_from', 'enquiry_to']), (! request()->exists('enquiry_from') && ! request()->exists('enquiry_to')) ? ['enquiry_from' => $enquiryFrom, 'enquiry_to' => $enquiryTo] : []))); ?>"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -82,6 +82,12 @@
             <option value="<?php echo e($status); ?>" <?php if(request('status') === $status): echo 'selected'; endif; ?>><?php echo e(ucwords(str_replace('_', ' ', $status))); ?></option>
           <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
+        <select name="created_by" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
+          <option value="">Created by</option>
+          <?php $__currentLoopData = $creators; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $creator): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($creator->id); ?>" <?php if((string) request('created_by') === (string) $creator->id): echo 'selected'; endif; ?>><?php echo e($creator->name); ?></option>
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </select>
         <div class="d-flex align-items-center gap-1">
           <label for="enquiry_from" class="form-label mb-0 small text-secondary">Start date</label>
           <div class="date-placeholder-wrap">
@@ -97,7 +103,7 @@
           </div>
         </div>
         <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        <?php if(request()->hasAny(['q', 'hotel_id', 'status', 'enquiry_from', 'enquiry_to'])): ?>
+        <?php if(request()->hasAny(['q', 'hotel_id', 'status', 'created_by', 'enquiry_from', 'enquiry_to'])): ?>
           <a href="<?php echo e(route('enquiries.index')); ?>" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-x-circle"></i> Clear
           </a>
@@ -116,6 +122,7 @@
       'defaultSort' => 'enquiry_date',
       'defaultDir' => 'desc',
       'emptyMessage' => 'No enquiries found.',
+      'showCreatedBy' => true,
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo $__env->make('partials.pagination-footer', ['paginator' => $enquiries], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   </div>

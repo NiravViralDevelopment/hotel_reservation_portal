@@ -5,6 +5,7 @@
   $emptyMessage = $emptyMessage ?? 'No records found.';
   $variant = $variant ?? 'full';
   $showCancellationReason = $showCancellationReason ?? false;
+  $showCreatedBy = $showCreatedBy ?? false;
   $readOnly = $readOnly ?? false;
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
@@ -245,6 +246,9 @@
 <?php $component = $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
 <?php unset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
 <?php endif; ?>
+        <?php if($showCreatedBy): ?>
+          <th>Created by</th>
+        <?php endif; ?>
         <th>Single</th>
         <th>Single Rate</th>
         <th>Double</th>
@@ -374,6 +378,9 @@
 <?php $component = $__componentOriginal435aefee4aa6dd7f20df034696ae03b9; ?>
 <?php unset($__componentOriginal435aefee4aa6dd7f20df034696ae03b9); ?>
 <?php endif; ?></td>
+          <?php if($showCreatedBy): ?>
+            <td class="text-nowrap"><?php echo e($enquiry->createdBy?->name ?: '—'); ?></td>
+          <?php endif; ?>
           <td><?php echo e($enquiry->single_rooms ?? '—'); ?></td>
           <td class="text-nowrap"><?php echo e($money($enquiry->single_rate)); ?></td>
           <td><?php echo e($enquiry->double_rooms ?? '—'); ?></td>
@@ -456,7 +463,7 @@
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <tr><td colspan="<?php echo e($showCancellationReason ? 26 : 24); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
+        <tr><td colspan="<?php echo e(24 + ($showCancellationReason ? 2 : 0) + ($showCreatedBy ? 1 : 0)); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
       <?php endif; ?>
     </tbody>
   </table>
