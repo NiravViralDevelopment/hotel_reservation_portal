@@ -120,6 +120,12 @@ class CompanyController extends Controller
     {
         $this->authorize('delete', $company);
 
+        if (! $company->canBeDeleted()) {
+            return redirect()
+                ->route('companies.index')
+                ->with('error', 'This company is used by one or more hotels and cannot be deleted.');
+        }
+
         $name = $company->name;
         $company->contracts()->get()->each->delete();
         $company->delete();

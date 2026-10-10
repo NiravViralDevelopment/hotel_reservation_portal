@@ -40,4 +40,17 @@ class Company extends Model
     {
         return $this->hasMany(CompanyContract::class);
     }
+
+    public function canBeDeleted(): bool
+    {
+        if (isset($this->hotels_count)) {
+            return (int) $this->hotels_count === 0;
+        }
+
+        if ($this->relationLoaded('hotels')) {
+            return $this->hotels->isEmpty();
+        }
+
+        return ! $this->hotels()->exists();
+    }
 }
