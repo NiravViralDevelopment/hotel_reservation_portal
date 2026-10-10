@@ -18,6 +18,8 @@
   if ($selectedBasis === null) {
       $selectedBasis = in_array($enquiry->basis, ['BB', 'DBB'], true) ? $enquiry->basis : '';
   }
+  $showBreakfastRate = in_array($selectedBasis, ['BB', 'DBB'], true);
+  $showDinnerRate = $selectedBasis === 'DBB';
   $selectedDay = old('day', $enquiry->day);
 @endphp
 
@@ -164,7 +166,11 @@
         </div>
         <div class="col-md-6 col-xl-4">
           <label for="gb_payment_status" class="form-label">Payment Status</label>
-          <input type="text" name="payment_status" id="gb_payment_status" class="form-control @error('payment_status') is-invalid @enderror" value="{{ $v('payment_status') }}" maxlength="255">
+          <select name="payment_status" id="gb_payment_status" class="form-select @error('payment_status') is-invalid @enderror">
+            <option value="">Select status</option>
+            <option value="Pending" @selected($v('payment_status') === 'Pending')>Pending</option>
+            <option value="Received" @selected($v('payment_status') === 'Received')>Received</option>
+          </select>
           @error('payment_status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>
@@ -254,6 +260,26 @@
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6 col-xl-3">
+          <label for="gb_basis" class="form-label">BB/DBB</label>
+          <select name="basis" id="gb_basis" class="form-select gb-calc @error('basis') is-invalid @enderror">
+            <option value="">Select BB/DBB</option>
+            @foreach (['BB', 'DBB'] as $basis)
+              <option value="{{ $basis }}" @selected($selectedBasis === $basis)>{{ $basis }}</option>
+            @endforeach
+          </select>
+          @error('basis')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+        <div class="col-md-6 col-xl-3" id="gb_breakfast_rate_wrap" @unless ($showBreakfastRate) hidden @endunless>
+          <label for="gb_breakfast_rate" class="form-label">Breakfast rate <span class="text-danger">*</span></label>
+          <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('breakfast_rate') is-invalid @enderror" value="{{ $v('breakfast_rate') }}">
+          @error('breakfast_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+        <div class="col-md-6 col-xl-3" id="gb_dinner_rate_wrap" @unless ($showDinnerRate) hidden @endunless>
+          <label for="gb_dinner_rate" class="form-label">Dinner rate <span class="text-danger">*</span></label>
+          <input type="text" name="dinner_rate" id="gb_dinner_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('dinner_rate') is-invalid @enderror" value="{{ $v('dinner_rate') }}">
+          @error('dinner_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+        <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_total_rns_display" class="form-label">Total RNs</label>
             <input type="text" id="gb_total_rns_display" class="form-control" value="" readonly>
@@ -274,16 +300,16 @@
             <label for="gb_bb_revenue_display" class="form-label">BB Revenue (Nett £)</label>
             <input type="text" id="gb_bb_revenue_display" class="form-control @error('bb_revenue') is-invalid @enderror" value="" readonly>
             <input type="hidden" name="bb_revenue" id="gb_bb_revenue" value="{{ $v('bb_revenue') }}">
-            <div class="form-text" id="gb_bb_revenue_hint">(Single × 10 + Double × 20 + Triple × 30) × nights</div>
+            <div class="form-text" id="gb_bb_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate</div>
             @error('bb_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
         </div>
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-6 col-xl-3" id="gb_dinner_revenue_wrap" @unless ($showDinnerRate) hidden @endunless>
           <div class="revenue-panel">
             <label for="gb_dinner_revenue_display" class="form-label">Dinner Revenue (Nett £)</label>
             <input type="text" id="gb_dinner_revenue_display" class="form-control @error('dinner_revenue') is-invalid @enderror" value="" readonly>
             <input type="hidden" name="dinner_revenue" id="gb_dinner_revenue" value="{{ $v('dinner_revenue') }}">
-            <div class="form-text">£0</div>
+            <div class="form-text" id="gb_dinner_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × dinner rate</div>
             @error('dinner_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
         </div>
@@ -292,19 +318,9 @@
             <label for="gb_nett_rev_ex_vat_display" class="form-label">Nett Rev EX VAT &amp; BF</label>
             <input type="text" id="gb_nett_rev_ex_vat_display" class="form-control @error('nett_rev_ex_vat') is-invalid @enderror" value="" readonly>
             <input type="hidden" name="nett_rev_ex_vat" id="gb_nett_rev_ex_vat" value="{{ $v('nett_rev_ex_vat') }}">
-            <div class="form-text">(Total Rev × 100 / 120) − BB Revenue</div>
+            <div class="form-text" id="gb_nett_rev_ex_vat_hint">(Total Rev × 100 / 120) − BB Revenue</div>
             @error('nett_rev_ex_vat')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <label for="gb_basis" class="form-label">BB/DBB</label>
-          <select name="basis" id="gb_basis" class="form-select @error('basis') is-invalid @enderror">
-            <option value="">Select BB/DBB</option>
-            @foreach (['BB', 'DBB'] as $basis)
-              <option value="{{ $basis }}" @selected($selectedBasis === $basis)>{{ $basis }}</option>
-            @endforeach
-          </select>
-          @error('basis')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>
     </div>

@@ -100,11 +100,18 @@
   function applyDailyRoomTotals(rows) {
     ['single', 'double', 'triple'].forEach(function (type) {
       var rooms = 0;
-      var rate = 0;
+      var rateSum = 0;
+      var rateCount = 0;
       rows.forEach(function (row) {
-        rooms += parseAmount(row[type + '_rooms']);
-        rate += parseAmount(row[type + '_rate']);
+        var dayRooms = parseAmount(row[type + '_rooms']);
+        var dayRate = parseAmount(row[type + '_rate']);
+        rooms += dayRooms;
+        if (dayRooms > 0 || dayRate > 0) {
+          rateSum += dayRate;
+          rateCount += 1;
+        }
       });
+      var avgRate = rateCount > 0 ? rateSum / rateCount : 0;
       var roomsEl = field('gb_' + type + '_rooms');
       var rateEl = field('gb_' + type + '_rate');
       if (roomsEl) {
@@ -112,19 +119,62 @@
         roomsEl.readOnly = true;
       }
       if (rateEl) {
-        rateEl.value = money(rate);
+        rateEl.value = money(avgRate);
         rateEl.readOnly = true;
       }
     });
-    setHint('gb_rooms_hint', 'Room and rate totals are the sum of each stay date.');
+    setHint('gb_rooms_hint', 'Room totals are the sum of each stay date; rates are the average.');
     setHint('gb_total_rns_hint', '(Single + Double + Triple) × nights');
-    setHint('gb_total_revenue_hint', '((Single × rate) + (Double × rate) + (Triple × rate)) × nights');
-    setHint('gb_bb_revenue_hint', '(Single × 10 + Double × 20 + Triple × 30)');
+    setHint('gb_total_revenue_hint', '((Single × avg rate) + (Double × avg rate) + (Triple × avg rate)) × nights');
+    setHint('gb_bb_revenue_hint', '((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate');
   }
 
-  function writeRevenue(totalRns, totalRev, bbRevenue) {
-    var dinnerRevenue = 0;
-    var nettRev = ((totalRev * 100) / 120) - bbRevenue;
+  function selectedBasis() {
+    var el = field('gb_basis');
+    return el ? el.value : '';
+  }
+
+  function updateMealInputs() {
+    var basis = selectedBasis();
+    var showBreakfast = basis === 'BB' || basis === 'DBB';
+    var showDinner = basis === 'DBB';
+    var breakfastWrap = field('gb_breakfast_rate_wrap');
+    var dinnerRateWrap = field('gb_dinner_rate_wrap');
+    var dinnerRevenueWrap = field('gb_dinner_revenue_wrap');
+    if (breakfastWrap) breakfastWrap.hidden = !showBreakfast;
+    if (dinnerRateWrap) dinnerRateWrap.hidden = !showDinner;
+    if (dinnerRevenueWrap) dinnerRevenueWrap.hidden = !showDinner;
+    if (!showBreakfast) {
+      var breakfastRate = field('gb_breakfast_rate');
+      if (breakfastRate) breakfastRate.value = '';
+    }
+    if (!showDinner) {
+      var dinnerRate = field('gb_dinner_rate');
+      if (dinnerRate) dinnerRate.value = '';
+    }
+  }
+
+  function mealCoverNights() {
+    var nights = num('gb_nights');
+    return (nights * num('gb_single_rooms') * 1)
+      + (nights * num('gb_double_rooms') * 2)
+      + (nights * num('gb_triple_rooms') * 3);
+  }
+
+  function writeRevenue(totalRns, totalRev) {
+    updateMealInputs();
+    var basis = selectedBasis();
+    var covers = mealCoverNights();
+    var breakfastRate = (basis === 'BB' || basis === 'DBB') ? num('gb_breakfast_rate') : 0;
+    var dinnerRate = basis === 'DBB' ? num('gb_dinner_rate') : 0;
+    var bbRevenue = covers * breakfastRate;
+    var dinnerRevenue = covers * dinnerRate;
+    var dinnerRateEl = field('gb_dinner_rate');
+    var hasDinnerRate = basis === 'DBB' && dinnerRateEl && dinnerRateEl.value !== '';
+    var nettRev = ((totalRev * 100) / 120) - bbRevenue - (hasDinnerRate ? dinnerRevenue : 0);
+    setHint('gb_nett_rev_ex_vat_hint', hasDinnerRate
+      ? '(Total Rev × 100 / 120) − BB Revenue − Dinner Revenue'
+      : '(Total Rev × 100 / 120) − BB Revenue');
     var rnsDisplay = field('gb_total_rns_display');
     var rnsInput = field('gb_total_rns');
     if (rnsDisplay) rnsDisplay.value = String(totalRns);
@@ -149,13 +199,7 @@
         + (doubleRooms * num('gb_double_rate'))
         + (triple * num('gb_triple_rate'))
       ) * nights;
-      var bbRevenue = 0;
-      rows.forEach(function (row) {
-        [['single', 10], ['double', 20], ['triple', 30]].forEach(function (pair) {
-          bbRevenue += parseAmount(row[pair[0] + '_rooms']) * pair[1];
-        });
-      });
-      writeRevenue((single + doubleRooms + triple) * nights, totalRev, bbRevenue);
+      writeRevenue((single + doubleRooms + triple) * nights, totalRev);
       return;
     }
 
@@ -170,8 +214,7 @@
     ) * nights;
     writeRevenue(
       (single + doubleRooms + triple) * nights,
-      totalRev,
-      ((single * 10) + (doubleRooms * 20) + (triple * 30)) * nights
+      totalRev
     );
   }
 

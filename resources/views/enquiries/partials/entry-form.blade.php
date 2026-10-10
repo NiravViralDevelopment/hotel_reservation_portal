@@ -14,7 +14,7 @@
 
       return $value ?? $fallback;
   };
-  $selectedStatus = old('status', $e?->status);
+  $selectedStatus = old('status', $e?->status ?? ($e === null ? 'Quoted' : null));
   $selectedBasis = old('basis', $e?->basis);
   $selectedDay = old('day', $e?->day);
 @endphp
@@ -112,7 +112,7 @@
             <option value="{{ $status }}" @selected($selectedStatus === $status)>{{ $status }}</option>
           @endforeach
         </select>
-        <div class="form-text">{{ $e ? 'Leave blank to keep the current status.' : 'Blank uses the default from Status Master.' }}</div>
+        <div class="form-text">{{ $e ? 'Leave blank to keep the current status.' : 'Quoted is selected for a new enquiry.' }}</div>
         @error('status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
     </div>

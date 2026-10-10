@@ -14,7 +14,7 @@
 
       return $value ?? $fallback;
   };
-  $selectedStatus = old('status', $e?->status);
+  $selectedStatus = old('status', $e?->status ?? ($e === null ? 'Quoted' : null));
   $selectedBasis = old('basis', $e?->basis);
   $selectedDay = old('day', $e?->day);
 ?>
@@ -259,7 +259,7 @@ unset($__errorArgs, $__bag); ?>" data-placeholder="Select status">
             <option value="<?php echo e($status); ?>" <?php if($selectedStatus === $status): echo 'selected'; endif; ?>><?php echo e($status); ?></option>
           <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
-        <div class="form-text"><?php echo e($e ? 'Leave blank to keep the current status.' : 'Blank uses the default from Status Master.'); ?></div>
+        <div class="form-text"><?php echo e($e ? 'Leave blank to keep the current status.' : 'Quoted is selected for a new enquiry.'); ?></div>
         <?php $__errorArgs = ['status'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
