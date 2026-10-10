@@ -73,7 +73,6 @@
             <x-sortable-th column="city" label="Location" />
             <x-sortable-th column="hotels" label="Hotels" class="text-center" />
             <x-sortable-th column="status" label="Status" />
-            <th>Contract</th>
             <th class="text-end">Actions</th>
           </tr>
         </thead>
@@ -95,13 +94,6 @@
               </td>
               <td class="text-center">{{ $company->hotels_count }}</td>
               <td><x-badge-status :status="$company->status" /></td>
-              <td class="text-nowrap">
-                @can('view', $company)
-                  <a href="{{ route('companies.contracts.index', $company) }}" class="btn btn-sm btn-outline-primary">
-                    Manage contract
-                  </a>
-                @endcan
-              </td>
               <td class="text-end text-nowrap">
                 @can('view', $company)
                   <a href="{{ route('companies.show', $company) }}" class="btn btn-sm btn-outline-secondary" title="View">
@@ -114,19 +106,21 @@
                   </a>
                 @endcan
                 @can('delete', $company)
-                  <form method="POST" action="{{ route('companies.destroy', $company) }}" class="d-inline" data-confirm-title="Delete company" data-confirm="{{ "Are you sure you want to delete the company \"{$company->name}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </form>
+                  @if ($company->canBeDeleted())
+                    <form method="POST" action="{{ route('companies.destroy', $company) }}" class="d-inline" data-confirm-title="Delete company" data-confirm="{{ "Are you sure you want to delete the company \"{$company->name}\"?\n\nThis will permanently remove it and cannot be undone." }}" data-confirm-button="Delete">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  @endif
                 @endcan
               </td>
             </tr>
           @empty
             <tr>
-              <td colspan="6" class="text-center text-secondary py-5">
+              <td colspan="5" class="text-center text-secondary py-5">
                 <div class="mb-2"><i class="bi bi-building fs-3"></i></div>
                 <div>No companies match your filters.</div>
                 @if (request()->hasAny(['q', 'status', 'country']))
