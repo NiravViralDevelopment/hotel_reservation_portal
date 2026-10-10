@@ -17,7 +17,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="{{ route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'status', 'sort', 'dir', 'enquiry_from', 'enquiry_to']), (! request()->exists('enquiry_from') && ! request()->exists('enquiry_to')) ? ['enquiry_from' => $enquiryFrom, 'enquiry_to' => $enquiryTo] : [])) }}"
+        href="{{ route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'status', 'created_by', 'sort', 'dir', 'enquiry_from', 'enquiry_to']), (! request()->exists('enquiry_from') && ! request()->exists('enquiry_to')) ? ['enquiry_from' => $enquiryFrom, 'enquiry_to' => $enquiryTo] : [])) }}"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -84,6 +84,12 @@
             <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
           @endforeach
         </select>
+        <select name="created_by" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
+          <option value="">Created by</option>
+          @foreach ($creators as $creator)
+            <option value="{{ $creator->id }}" @selected((string) request('created_by') === (string) $creator->id)>{{ $creator->name }}</option>
+          @endforeach
+        </select>
         <div class="d-flex align-items-center gap-1">
           <label for="enquiry_from" class="form-label mb-0 small text-secondary">Start date</label>
           <div class="date-placeholder-wrap">
@@ -99,7 +105,7 @@
           </div>
         </div>
         <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        @if (request()->hasAny(['q', 'hotel_id', 'status', 'enquiry_from', 'enquiry_to']))
+        @if (request()->hasAny(['q', 'hotel_id', 'status', 'created_by', 'enquiry_from', 'enquiry_to']))
           <a href="{{ route('enquiries.index') }}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-x-circle"></i> Clear
           </a>
@@ -118,6 +124,7 @@
       'defaultSort' => 'enquiry_date',
       'defaultDir' => 'desc',
       'emptyMessage' => 'No enquiries found.',
+      'showCreatedBy' => true,
     ])
     @include('partials.pagination-footer', ['paginator' => $enquiries])
   </div>

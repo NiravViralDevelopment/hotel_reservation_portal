@@ -5,6 +5,7 @@
   $emptyMessage = $emptyMessage ?? 'No records found.';
   $variant = $variant ?? 'full';
   $showCancellationReason = $showCancellationReason ?? false;
+  $showCreatedBy = $showCreatedBy ?? false;
   $readOnly = $readOnly ?? false;
   $viewOnlyActions = $viewOnlyActions ?? false;
   $showCreatedBy = $showCreatedBy ?? false;
@@ -39,6 +40,9 @@
         <x-sortable-th column="ref" label="Ref No" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="email" label="Email ID" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="status" label="Status" :default="$defaultSort" :default-dir="$defaultDir" />
+        @if ($showCreatedBy)
+          <th>Created by</th>
+        @endif
         <th>Single</th>
         <th>Single Rate</th>
         <th>Double</th>
@@ -76,6 +80,9 @@
           <td class="text-nowrap">{{ $enquiry->ref ?: '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->email ?: '—' }}</td>
           <td><x-badge-status :status="$enquiry->status" /></td>
+          @if ($showCreatedBy)
+            <td class="text-nowrap">{{ $enquiry->createdBy?->name ?: '—' }}</td>
+          @endif
           <td>{{ $enquiry->single_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->single_rate) }}</td>
           <td>{{ $enquiry->double_rooms ?? '—' }}</td>
@@ -123,7 +130,11 @@
           </td>
         </tr>
       @empty
+<<<<<<< HEAD
+        <tr><td colspan="{{ 24 + ($showCancellationReason ? 2 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+=======
         <tr><td colspan="{{ $enquiryColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+>>>>>>> 5ab468e4d5e2385f616409731372f1caaf888c58
       @endforelse
     </tbody>
   </table>

@@ -6,6 +6,7 @@ use App\Http\Requests\StoreEnquiryRequest;
 use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\StatusMaster;
+use App\Models\User;
 use App\Support\Audit;
 use App\Support\EnquiryFieldRules;
 use App\Support\EnquiryIndexFilters;
@@ -63,11 +64,15 @@ class EnquiryController extends Controller
             ->orderBy('title')
             ->pluck('title')
             ->values();
+        $creators = User::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return view('enquiries.index', compact(
             'enquiries',
             'hotels',
             'statuses',
+            'creators',
             'reminders',
             'enquiryFrom',
             'enquiryTo'
@@ -137,6 +142,7 @@ class EnquiryController extends Controller
         $data = array_merge($data, $this->applyCommercialTotals($data));
         $data['is_confirm'] = false;
         $data['is_cancel'] = false;
+        $data['created_by'] = $request->user()?->id;
         if (empty($data['status'])) {
             $data['status'] = 'Quoted';
         }
@@ -1070,7 +1076,7 @@ class EnquiryController extends Controller
     {
         $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['travelAgency', 'hotel', 'assignedTo'])
+            ->with(['travelAgency', 'hotel', 'assignedTo', 'createdBy'])
             ->openPipeline();
 
         if ($request->filled('q')) {
@@ -1094,6 +1100,10 @@ class EnquiryController extends Controller
 
         if ($request->filled('status')) {
             $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('created_by')) {
+            $query->where('created_by', $request->integer('created_by'));
         }
 
         EnquiryIndexFilters::applyDateRange($query, $request, 'enquiry_date', 'enquiry_from', 'enquiry_to');
@@ -1135,6 +1145,7 @@ class EnquiryController extends Controller
             'Ref No',
             'Email ID',
             'Status',
+            'Created By',
             'Single',
             'Single Rate',
             'Double',
@@ -1169,6 +1180,7 @@ class EnquiryController extends Controller
             $enquiry->ref,
             $enquiry->email,
             $status !== '' ? ucwords($status) : null,
+            $enquiry->createdBy?->name,
             $this->exportInt($enquiry->single_rooms),
             $this->exportMoney($enquiry->single_rate),
             $this->exportInt($enquiry->double_rooms),
