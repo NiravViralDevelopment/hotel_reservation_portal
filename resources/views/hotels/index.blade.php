@@ -80,7 +80,6 @@
             <th>Company</th>
             <x-sortable-th column="city" label="Location" />
             <x-sortable-th column="rooms" label="Rooms" class="text-center" />
-            <x-sortable-th column="manager" label="Manager" />
             <x-sortable-th column="status" label="Status" />
             <th class="text-end">Actions</th>
           </tr>
@@ -89,7 +88,7 @@
           @forelse ($hotels as $hotel)
             <tr>
               <td>
-                <div class="fw-semibold"><a href="{{ route('hotels.show', $hotel) }}">{{ $hotel->name }}</a></div>
+                <div class="fw-semibold">{{ $hotel->name }}</div>
                 <div class="small text-secondary">{{ $hotel->code }}</div>
               </td>
               <td>{{ $hotel->company?->name ?? '—' }}</td>
@@ -101,7 +100,6 @@
                 @endif
               </td>
               <td class="text-center">{{ $hotel->rooms ?? '—' }}</td>
-              <td>{{ $hotel->manager_name ?? '—' }}</td>
               <td><x-badge-status :status="$hotel->status" /></td>
               <td class="text-end text-nowrap">
                 @can('view', $hotel)
@@ -133,7 +131,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="7" class="text-center text-secondary py-5">
+              <td colspan="6" class="text-center text-secondary py-5">
                 <div class="mb-2"><i class="bi bi-building fs-3"></i></div>
                 <div>No hotels match your filters.</div>
                 @if (request()->hasAny(['q', 'status', 'company_id', 'city']))

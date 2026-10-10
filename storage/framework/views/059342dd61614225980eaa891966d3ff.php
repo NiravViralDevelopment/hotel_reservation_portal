@@ -15,7 +15,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a
-        href="<?php echo e(route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'travel_agency_id', 'status', 'sort', 'dir']), ['month' => $enquiryMonth]))); ?>"
+        href="<?php echo e(route('enquiries.export', array_merge(request()->only(['q', 'hotel_id', 'status', 'sort', 'dir', 'enquiry_from', 'enquiry_to']), (! request()->exists('enquiry_from') && ! request()->exists('enquiry_to')) ? ['enquiry_from' => $enquiryFrom, 'enquiry_to' => $enquiryTo] : []))); ?>"
         class="btn btn-outline-secondary btn-sm"
         title="Download the filtered list as Excel"
       >
@@ -76,12 +76,6 @@
             <option value="<?php echo e($hotel->id); ?>" <?php if((string) request('hotel_id') === (string) $hotel->id): echo 'selected'; endif; ?>><?php echo e($hotel->name); ?></option>
           <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
-        <select name="travel_agency_id" class="form-select form-select-sm select2" style="width:auto; min-width: 160px;">
-          <option value="">All agencies</option>
-          <?php $__currentLoopData = $travelAgencies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $agency): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <option value="<?php echo e($agency->id); ?>" <?php if((string) request('travel_agency_id') === (string) $agency->id): echo 'selected'; endif; ?>><?php echo e($agency->name); ?></option>
-          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        </select>
         <select name="status" class="form-select form-select-sm select2" style="width:auto; min-width: 130px;">
           <option value="">All statuses</option>
           <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -89,11 +83,21 @@
           <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
         <div class="d-flex align-items-center gap-1">
-          <label for="enquiry_month" class="form-label mb-0 small text-secondary">Month</label>
-          <input type="month" name="month" id="enquiry_month" class="form-control form-control-sm" style="width:auto;" value="<?php echo e($enquiryMonth); ?>" title="Enquiry month">
+          <label for="enquiry_from" class="form-label mb-0 small text-secondary">Start date</label>
+          <div class="date-placeholder-wrap">
+            <input type="date" name="enquiry_from" id="enquiry_from" class="form-control form-control-sm" style="width:auto;" value="<?php echo e($enquiryFrom); ?>" title="Enquiry date from">
+            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-1">
+          <label for="enquiry_to" class="form-label mb-0 small text-secondary">End date</label>
+          <div class="date-placeholder-wrap">
+            <input type="date" name="enquiry_to" id="enquiry_to" class="form-control form-control-sm" style="width:auto;" value="<?php echo e($enquiryTo); ?>" title="Enquiry date to" <?php if($enquiryFrom): ?> min="<?php echo e($enquiryFrom); ?>" <?php endif; ?>>
+            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          </div>
         </div>
         <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
-        <?php if(request()->hasAny(['q', 'hotel_id', 'travel_agency_id', 'status', 'month'])): ?>
+        <?php if(request()->hasAny(['q', 'hotel_id', 'status', 'enquiry_from', 'enquiry_to'])): ?>
           <a href="<?php echo e(route('enquiries.index')); ?>" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-x-circle"></i> Clear
           </a>
@@ -116,5 +120,18 @@
     <?php echo $__env->make('partials.pagination-footer', ['paginator' => $enquiries], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   </div>
 <?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+  <script>
+    document.getElementById('enquiry_from')?.addEventListener('change', function () {
+      var end = document.getElementById('enquiry_to');
+      if (!end) return;
+      end.min = this.value || '';
+      if (this.value && end.value && end.value < this.value) {
+        end.value = this.value;
+      }
+    });
+  </script>
+<?php $__env->stopPush(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\wamp64\www\hotel_reservation_portal\resources\views/enquiries/index.blade.php ENDPATH**/ ?>

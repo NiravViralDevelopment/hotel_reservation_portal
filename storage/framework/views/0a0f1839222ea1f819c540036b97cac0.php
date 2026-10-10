@@ -137,26 +137,6 @@
 <?php endif; ?>
             <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'manager','label' => 'Manager']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('sortable-th'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['column' => 'manager','label' => 'Manager']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
-<?php $attributes = $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
-<?php unset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
-<?php $component = $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
-<?php unset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
-<?php endif; ?>
-            <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'status','label' => 'Status']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sortable-th'); ?>
 <?php if ($component->shouldRender()): ?>
@@ -182,7 +162,7 @@
           <?php $__empty_1 = true; $__currentLoopData = $hotels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hotel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <tr>
               <td>
-                <div class="fw-semibold"><a href="<?php echo e(route('hotels.show', $hotel)); ?>"><?php echo e($hotel->name); ?></a></div>
+                <div class="fw-semibold"><?php echo e($hotel->name); ?></div>
                 <div class="small text-secondary"><?php echo e($hotel->code); ?></div>
               </td>
               <td><?php echo e($hotel->company?->name ?? '—'); ?></td>
@@ -195,7 +175,6 @@
                 <?php endif; ?>
               </td>
               <td class="text-center"><?php echo e($hotel->rooms ?? '—'); ?></td>
-              <td><?php echo e($hotel->manager_name ?? '—'); ?></td>
               <td><?php if (isset($component)) { $__componentOriginal435aefee4aa6dd7f20df034696ae03b9 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal435aefee4aa6dd7f20df034696ae03b9 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.badge-status','data' => ['status' => $hotel->status]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -246,7 +225,7 @@
             </tr>
           <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <tr>
-              <td colspan="7" class="text-center text-secondary py-5">
+              <td colspan="6" class="text-center text-secondary py-5">
                 <div class="mb-2"><i class="bi bi-building fs-3"></i></div>
                 <div>No hotels match your filters.</div>
                 <?php if(request()->hasAny(['q', 'status', 'company_id', 'city'])): ?>
