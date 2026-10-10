@@ -138,11 +138,7 @@ class EnquiryController extends Controller
         $data['is_confirm'] = false;
         $data['is_cancel'] = false;
         if (empty($data['status'])) {
-            $data['status'] = StatusMaster::query()
-                ->active()
-                ->whereRaw("LOWER(title) NOT IN ('confirmed', 'cancelled')")
-                ->orderBy('title')
-                ->value('title') ?? 'Chesed';
+            $data['status'] = 'Quoted';
         }
 
         $enquiry = Enquiry::query()->create($data);
@@ -201,7 +197,7 @@ class EnquiryController extends Controller
         foreach ([
             'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status',
             'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'invoice_number', 'commission_payable_status',
-            'basis', 'client', 'email', 'day',
+            'basis', 'breakfast_rate', 'dinner_rate', 'client', 'email', 'day',
             'contract_sent_on', 'contract_received_on', 'payment_due_date', 'cxl_due_date', 'cxl_date', 'invoice_sent_on',
             'bb_revenue', 'dinner_revenue', 'nett_rev_ex_vat', 'invoice_amount',
             'single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate',
@@ -227,7 +223,7 @@ class EnquiryController extends Controller
             'payment_term' => ['nullable', 'string', Rule::in(['Pre Arrival', 'Post Departure'])],
             'payment_term_days' => ['nullable', 'integer', 'min:0', 'max:999', 'required_with:payment_term'],
             'payment_due_date' => ['nullable', 'date'],
-            'payment_status' => ['nullable', 'string', 'max:255'],
+            'payment_status' => ['nullable', 'string', Rule::in(['Pending', 'Received'])],
             'cxl_policy' => ['nullable', 'string', 'max:255'],
             'cxl_due_date' => ['nullable', 'date'],
             'cxl_date' => ['nullable', 'date'],
@@ -249,6 +245,8 @@ class EnquiryController extends Controller
             'dinner_revenue' => ['nullable', 'numeric'],
             'nett_rev_ex_vat' => ['nullable', 'numeric'],
             'basis' => ['nullable', 'string', Rule::in(['BB', 'DBB'])],
+            'breakfast_rate' => ['nullable', 'numeric', 'min:0', Rule::requiredIf(fn () => in_array($request->input('basis'), ['BB', 'DBB'], true))],
+            'dinner_rate' => ['nullable', 'numeric', 'min:0', 'required_if:basis,DBB'],
             'booking_update' => ['nullable', 'string', 'max:255'],
             'rooming' => ['nullable', 'string', 'max:255'],
             'invoice_status' => ['nullable', 'string', 'max:255'],
@@ -265,7 +263,15 @@ class EnquiryController extends Controller
             'block_id.required' => 'Block ID is required.',
             'block_id.unique' => 'This block ID is already used.',
             'basis.in' => 'Select BB or DBB.',
+            'breakfast_rate.required' => 'Enter the breakfast rate.',
+            'breakfast_rate.numeric' => 'Breakfast rate must be a number.',
+            'breakfast_rate.min' => 'Breakfast rate cannot be negative.',
+            'dinner_rate.required' => 'Enter the dinner rate.',
+            'dinner_rate.required_if' => 'Enter the dinner rate.',
+            'dinner_rate.numeric' => 'Dinner rate must be a number.',
+            'dinner_rate.min' => 'Dinner rate cannot be negative.',
             'email.email' => 'Enter a valid email address.',
+            'payment_status.in' => 'Select Pending or Received.',
             'payment_term.in' => 'Select Pre Arrival or Post Departure.',
             'payment_term_days.required_with' => 'Enter the number of days.',
             'payment_term_days.integer' => 'Number of days must be a whole number.',
@@ -323,7 +329,6 @@ class EnquiryController extends Controller
                 + ($data['double_rooms'] * $data['double_rate'])
                 + ($data['triple_rooms'] * $data['triple_rate'])
             ) * $nights, 2);
-            $data['bb_revenue'] = $totals['bb_revenue'];
             $data['daily_room_rates'] = $dailyRows;
         } else {
             $data['total_rns'] = ($data['single_rooms'] + $data['double_rooms'] + $data['triple_rooms']) * $nights;
@@ -332,14 +337,34 @@ class EnquiryController extends Controller
                 + ($data['double_rooms'] * $data['double_rate'])
                 + ($data['triple_rooms'] * $data['triple_rate'])
             ) * $nights, 2);
-            $data['bb_revenue'] = round((
-                ($data['single_rooms'] * 10)
-                + ($data['double_rooms'] * 20)
-                + ($data['triple_rooms'] * 30)
-            ) * $nights, 2);
         }
-        $data['dinner_revenue'] = 0;
-        $data['nett_rev_ex_vat'] = round((($data['total_revenue'] * 100) / 120) - $data['bb_revenue'], 2);
+        $basis = $data['basis'] ?? null;
+        if ($basis === 'DBB') {
+            $data['breakfast_rate'] = round((float) ($data['breakfast_rate'] ?? 0), 2);
+            $data['dinner_rate'] = round((float) ($data['dinner_rate'] ?? 0), 2);
+        } elseif ($basis === 'BB') {
+            $data['breakfast_rate'] = round((float) ($data['breakfast_rate'] ?? 0), 2);
+            $data['dinner_rate'] = null;
+        } else {
+            $data['breakfast_rate'] = null;
+            $data['dinner_rate'] = null;
+        }
+        $data['bb_revenue'] = $this->mealRevenue(
+            $nights,
+            (int) $data['single_rooms'],
+            (int) $data['double_rooms'],
+            (int) $data['triple_rooms'],
+            (float) ($data['breakfast_rate'] ?? 0)
+        );
+        $data['dinner_revenue'] = $this->mealRevenue(
+            $nights,
+            (int) $data['single_rooms'],
+            (int) $data['double_rooms'],
+            (int) $data['triple_rooms'],
+            (float) ($data['dinner_rate'] ?? 0)
+        );
+        $dinnerDeduction = $data['dinner_rate'] !== null ? (float) $data['dinner_revenue'] : 0;
+        $data['nett_rev_ex_vat'] = round((($data['total_revenue'] * 100) / 120) - $data['bb_revenue'] - $dinnerDeduction, 2);
         $data['status'] = 'Confirmed';
         $data['is_confirm'] = true;
         $data['is_cancel'] = false;
@@ -946,6 +971,15 @@ class EnquiryController extends Controller
         ksort($clean);
 
         return array_values($clean);
+    }
+
+    private function mealRevenue(int $nights, int $singleRooms, int $doubleRooms, int $tripleRooms, float $rate): float
+    {
+        $covers = ($nights * $singleRooms * 1)
+            + ($nights * $doubleRooms * 2)
+            + ($nights * $tripleRooms * 3);
+
+        return round($covers * $rate, 2);
     }
 
     /**

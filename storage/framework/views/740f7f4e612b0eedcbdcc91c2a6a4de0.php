@@ -18,6 +18,8 @@
   if ($selectedBasis === null) {
       $selectedBasis = in_array($enquiry->basis, ['BB', 'DBB'], true) ? $enquiry->basis : '';
   }
+  $showBreakfastRate = in_array($selectedBasis, ['BB', 'DBB'], true);
+  $showDinnerRate = $selectedBasis === 'DBB';
   $selectedDay = old('day', $enquiry->day);
 ?>
 
@@ -367,14 +369,18 @@ unset($__errorArgs, $__bag); ?>
         </div>
         <div class="col-md-6 col-xl-4">
           <label for="gb_payment_status" class="form-label">Payment Status</label>
-          <input type="text" name="payment_status" id="gb_payment_status" class="form-control <?php $__errorArgs = ['payment_status'];
+          <select name="payment_status" id="gb_payment_status" class="form-select <?php $__errorArgs = ['payment_status'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('payment_status')); ?>" maxlength="255">
+unset($__errorArgs, $__bag); ?>">
+            <option value="">Select status</option>
+            <option value="Pending" <?php if($v('payment_status') === 'Pending'): echo 'selected'; endif; ?>>Pending</option>
+            <option value="Received" <?php if($v('payment_status') === 'Received'): echo 'selected'; endif; ?>>Received</option>
+          </select>
           <?php $__errorArgs = ['payment_status'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -534,6 +540,68 @@ unset($__errorArgs, $__bag); ?>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6 col-xl-3">
+          <label for="gb_basis" class="form-label">BB/DBB</label>
+          <select name="basis" id="gb_basis" class="form-select gb-calc <?php $__errorArgs = ['basis'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+            <option value="">Select BB/DBB</option>
+            <?php $__currentLoopData = ['BB', 'DBB']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $basis): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+              <option value="<?php echo e($basis); ?>" <?php if($selectedBasis === $basis): echo 'selected'; endif; ?>><?php echo e($basis); ?></option>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+          </select>
+          <?php $__errorArgs = ['basis'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+        </div>
+        <div class="col-md-6 col-xl-3" id="gb_breakfast_rate_wrap" <?php if (! ($showBreakfastRate)): ?> hidden <?php endif; ?>>
+          <label for="gb_breakfast_rate" class="form-label">Breakfast rate <span class="text-danger">*</span></label>
+          <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc <?php $__errorArgs = ['breakfast_rate'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('breakfast_rate')); ?>">
+          <?php $__errorArgs = ['breakfast_rate'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+        </div>
+        <div class="col-md-6 col-xl-3" id="gb_dinner_rate_wrap" <?php if (! ($showDinnerRate)): ?> hidden <?php endif; ?>>
+          <label for="gb_dinner_rate" class="form-label">Dinner rate <span class="text-danger">*</span></label>
+          <input type="text" name="dinner_rate" id="gb_dinner_rate" inputmode="decimal" class="form-control js-decimal gb-calc <?php $__errorArgs = ['dinner_rate'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('dinner_rate')); ?>">
+          <?php $__errorArgs = ['dinner_rate'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+        </div>
+        <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_total_rns_display" class="form-label">Total RNs</label>
             <input type="text" id="gb_total_rns_display" class="form-control" value="" readonly>
@@ -561,7 +629,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" value="" readonly>
             <input type="hidden" name="bb_revenue" id="gb_bb_revenue" value="<?php echo e($v('bb_revenue')); ?>">
-            <div class="form-text" id="gb_bb_revenue_hint">(Single × 10 + Double × 20 + Triple × 30) × nights</div>
+            <div class="form-text" id="gb_bb_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate</div>
             <?php $__errorArgs = ['bb_revenue'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -572,7 +640,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
           </div>
         </div>
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-6 col-xl-3" id="gb_dinner_revenue_wrap" <?php if (! ($showDinnerRate)): ?> hidden <?php endif; ?>>
           <div class="revenue-panel">
             <label for="gb_dinner_revenue_display" class="form-label">Dinner Revenue (Nett £)</label>
             <input type="text" id="gb_dinner_revenue_display" class="form-control <?php $__errorArgs = ['dinner_revenue'];
@@ -584,7 +652,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" value="" readonly>
             <input type="hidden" name="dinner_revenue" id="gb_dinner_revenue" value="<?php echo e($v('dinner_revenue')); ?>">
-            <div class="form-text">£0</div>
+            <div class="form-text" id="gb_dinner_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × dinner rate</div>
             <?php $__errorArgs = ['dinner_revenue'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -607,7 +675,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" value="" readonly>
             <input type="hidden" name="nett_rev_ex_vat" id="gb_nett_rev_ex_vat" value="<?php echo e($v('nett_rev_ex_vat')); ?>">
-            <div class="form-text">(Total Rev × 100 / 120) − BB Revenue</div>
+            <div class="form-text" id="gb_nett_rev_ex_vat_hint">(Total Rev × 100 / 120) − BB Revenue</div>
             <?php $__errorArgs = ['nett_rev_ex_vat'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -617,30 +685,6 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
           </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <label for="gb_basis" class="form-label">BB/DBB</label>
-          <select name="basis" id="gb_basis" class="form-select <?php $__errorArgs = ['basis'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-            <option value="">Select BB/DBB</option>
-            <?php $__currentLoopData = ['BB', 'DBB']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $basis): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-              <option value="<?php echo e($basis); ?>" <?php if($selectedBasis === $basis): echo 'selected'; endif; ?>><?php echo e($basis); ?></option>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-          </select>
-          <?php $__errorArgs = ['basis'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
         </div>
       </div>
     </div>
