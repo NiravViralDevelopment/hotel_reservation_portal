@@ -340,6 +340,44 @@
     setMoney('gb_bb_revenue', 'gb_bb_revenue_display', bbRevenue);
     setMoney('gb_dinner_revenue', 'gb_dinner_revenue_display', dinnerRevenue);
     setMoney('gb_nett_rev_ex_vat', 'gb_nett_rev_ex_vat_display', nettRev);
+    writeCityTax(totalRns, nettRev);
+  }
+
+  function cityTaxConfig() {
+    var node = document.getElementById('gb-city-tax-config');
+    if (!node) return { basis: '', amount: 0, percentage: 0 };
+    try {
+      var parsed = JSON.parse(node.textContent || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : { basis: '', amount: 0, percentage: 0 };
+    } catch (error) {
+      return { basis: '', amount: 0, percentage: 0 };
+    }
+  }
+
+  function writeCityTax(totalRns, nettRev) {
+    var config = cityTaxConfig();
+    var hint = field('gb_city_tax_hint');
+    var display = field('gb_city_tax_display');
+    var input = field('gb_city_tax');
+    var basis = config.basis || '';
+    var cityTax = null;
+    if (basis === 'total_rns') {
+      var amount = parseAmount(config.amount);
+      cityTax = totalRns * amount;
+      if (hint) hint.textContent = 'Total RNs × £' + money(amount);
+    } else if (basis === 'nett_rev') {
+      var percentage = parseAmount(config.percentage);
+      cityTax = nettRev * percentage / 100;
+      if (hint) hint.textContent = 'Nett Rev EX VAT & BF × ' + money(percentage) + '%';
+    } else if (hint) {
+      hint.textContent = '';
+    }
+    if (cityTax === null) {
+      if (display) display.value = '';
+      if (input) input.value = '';
+      return;
+    }
+    setMoney('gb_city_tax', 'gb_city_tax_display', cityTax);
   }
 
   function mealTotals(summary) {

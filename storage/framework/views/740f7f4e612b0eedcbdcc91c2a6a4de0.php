@@ -34,8 +34,14 @@
     if (! is_array($segmentSeed)) {
         $segmentSeed = $enquiry->stay_segments ?? [];
     }
+    $cityTaxConfig = [
+        'basis' => $enquiry->hotel?->city_tax_basis ?? '',
+        'amount' => $enquiry->hotel?->city_tax_amount,
+        'percentage' => $enquiry->hotel?->city_tax_percentage,
+    ];
   ?>
   <script type="application/json" id="gb-stay-segment-seed"><?php echo json_encode(array_values(is_array($segmentSeed) ? $segmentSeed : []), 15, 512) ?></script>
+  <script type="application/json" id="gb-city-tax-config"><?php echo json_encode($cityTaxConfig, 15, 512) ?></script>
 
   <div class="card mb-3">
     <div class="card-header">
@@ -598,7 +604,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
         </div>
         <div class="col-md-6 col-xl-3" id="gb_breakfast_rate_wrap" <?php if (! ($showBreakfastRate)): ?> hidden <?php endif; ?>>
-          <label for="gb_breakfast_rate" class="form-label">Breakfast rate <span class="text-danger">*</span></label>
+          <label for="gb_breakfast_rate" class="form-label">Breakfast rate (Net)<span class="text-danger">*</span></label>
           <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc <?php $__errorArgs = ['breakfast_rate'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -718,6 +724,14 @@ $message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-bloc
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
+            <label for="gb_city_tax_display" class="form-label">City Tax</label>
+            <input type="text" id="gb_city_tax_display" class="form-control" value="" readonly>
+            <input type="hidden" name="city_tax" id="gb_city_tax" value="<?php echo e($v('city_tax')); ?>">
+            <div class="form-text" id="gb_city_tax_hint"></div>
           </div>
         </div>
       </div>

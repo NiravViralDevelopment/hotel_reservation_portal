@@ -75,6 +75,18 @@
           <div class="info-card-value"><x-badge-status :status="$hotel->status" /></div>
         </div>
         <div class="info-card mb-3">
+          <div class="info-card-label">City tax</div>
+          <div class="info-card-value">
+            @if ($hotel->city_tax_basis === 'total_rns')
+              Is City Tax on Total RNs — £{{ number_format((float) $hotel->city_tax_amount, 2) }}
+            @elseif ($hotel->city_tax_basis === 'nett_rev')
+              Is City Tax on Nett Rev EX VAT &amp; BF — {{ rtrim(rtrim(number_format((float) $hotel->city_tax_percentage, 2), '0'), '.') }}%
+            @else
+              —
+            @endif
+          </div>
+        </div>
+        <div class="info-card mb-3">
           <div class="info-card-label">Logo</div>
           <div class="info-card-value">
             @if ($hotel->hasLogo())

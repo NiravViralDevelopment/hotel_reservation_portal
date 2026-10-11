@@ -110,6 +110,9 @@ class HotelController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'city_tax_basis' => ['nullable', 'string', Rule::in(['total_rns', 'nett_rev'])],
+            'city_tax_amount' => ['nullable', 'numeric', 'min:0', 'required_if:city_tax_basis,total_rns'],
+            'city_tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:city_tax_basis,nett_rev'],
             'document' => [
                 'nullable',
                 'file',
@@ -131,6 +134,14 @@ class HotelController extends Controller
             'document.mimes' => 'Document must be a PDF, DOC, or DOCX file.',
             'logo.mimes' => 'Logo must be a JPG, PNG, WEBP, or GIF image.',
             'logo.max' => 'Logo must be 2 MB or smaller.',
+            'city_tax_basis.in' => 'Select one city tax method.',
+            'city_tax_amount.required_if' => 'Enter the city tax amount.',
+            'city_tax_amount.numeric' => 'City tax amount must be a number.',
+            'city_tax_amount.min' => 'City tax amount cannot be negative.',
+            'city_tax_percentage.required_if' => 'Enter the city tax percentage.',
+            'city_tax_percentage.numeric' => 'City tax percentage must be a number.',
+            'city_tax_percentage.min' => 'City tax percentage cannot be negative.',
+            'city_tax_percentage.max' => 'City tax percentage cannot be more than 100.',
         ]);
 
         $document = $request->file('document');
@@ -203,6 +214,9 @@ class HotelController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'city_tax_basis' => ['nullable', 'string', Rule::in(['total_rns', 'nett_rev'])],
+            'city_tax_amount' => ['nullable', 'numeric', 'min:0', 'required_if:city_tax_basis,total_rns'],
+            'city_tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:city_tax_basis,nett_rev'],
             'document' => [
                 'nullable',
                 'file',
@@ -226,6 +240,14 @@ class HotelController extends Controller
             'document.mimes' => 'Document must be a PDF, DOC, or DOCX file.',
             'logo.mimes' => 'Logo must be a JPG, PNG, WEBP, or GIF image.',
             'logo.max' => 'Logo must be 2 MB or smaller.',
+            'city_tax_basis.in' => 'Select one city tax method.',
+            'city_tax_amount.required_if' => 'Enter the city tax amount.',
+            'city_tax_amount.numeric' => 'City tax amount must be a number.',
+            'city_tax_amount.min' => 'City tax amount cannot be negative.',
+            'city_tax_percentage.required_if' => 'Enter the city tax percentage.',
+            'city_tax_percentage.numeric' => 'City tax percentage must be a number.',
+            'city_tax_percentage.min' => 'City tax percentage cannot be negative.',
+            'city_tax_percentage.max' => 'City tax percentage cannot be more than 100.',
         ]);
 
         $document = $request->file('document');
@@ -350,9 +372,23 @@ class HotelController extends Controller
         $data['rooms'] = (int) ($data['rooms'] ?? 0);
         $data['country'] = 'United Kingdom';
 
-        foreach (['manager_name', 'notes'] as $field) {
+        foreach (['manager_name', 'notes', 'city_tax_amount', 'city_tax_percentage'] as $field) {
             if (array_key_exists($field, $data) && $data[$field] === '') {
                 $data[$field] = null;
+            }
+        }
+
+        if (array_key_exists('city_tax_basis', $data)) {
+            if ($data['city_tax_basis'] === 'total_rns') {
+                $data['city_tax_amount'] = round((float) ($data['city_tax_amount'] ?? 0), 2);
+                $data['city_tax_percentage'] = null;
+            } elseif ($data['city_tax_basis'] === 'nett_rev') {
+                $data['city_tax_percentage'] = round((float) ($data['city_tax_percentage'] ?? 0), 2);
+                $data['city_tax_amount'] = null;
+            } else {
+                $data['city_tax_basis'] = null;
+                $data['city_tax_amount'] = null;
+                $data['city_tax_percentage'] = null;
             }
         }
 

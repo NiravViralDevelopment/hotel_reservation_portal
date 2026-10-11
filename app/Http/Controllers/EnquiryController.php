@@ -415,6 +415,8 @@ class EnquiryController extends Controller
         }
         $dinnerDeduction = $data['dinner_rate'] !== null ? (float) $data['dinner_revenue'] : 0;
         $data['nett_rev_ex_vat'] = round((($data['total_revenue'] * 100) / 120) - $data['bb_revenue'] - $dinnerDeduction, 2);
+        $enquiry->loadMissing('hotel');
+        $data['city_tax'] = $enquiry->hotel?->calculatedCityTax($data['total_rns'], $data['nett_rev_ex_vat']);
         $data['status'] = 'Confirmed';
         $data['is_confirm'] = true;
         $data['is_cancel'] = false;

@@ -31,6 +31,9 @@ class Hotel extends Model
         'email',
         'status',
         'notes',
+        'city_tax_basis',
+        'city_tax_amount',
+        'city_tax_percentage',
         'document_disk',
         'document_path',
         'document_original_name',
@@ -50,6 +53,8 @@ class Hotel extends Model
     {
         return [
             'rooms' => 'integer',
+            'city_tax_amount' => 'decimal:2',
+            'city_tax_percentage' => 'decimal:2',
             'document_size' => 'integer',
             'logo_size' => 'integer',
         ];
@@ -151,6 +156,19 @@ class Hotel extends Model
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public function calculatedCityTax(int|float|null $totalRns, int|float|null $nettRevExVat): ?float
+    {
+        if ($this->city_tax_basis === 'total_rns' && $this->city_tax_amount !== null) {
+            return round(((float) $totalRns) * (float) $this->city_tax_amount, 2);
+        }
+
+        if ($this->city_tax_basis === 'nett_rev' && $this->city_tax_percentage !== null) {
+            return round(((float) $nettRevExVat) * (float) $this->city_tax_percentage / 100, 2);
+        }
+
+        return null;
     }
 
     /**

@@ -170,6 +170,7 @@
         <div><div class="gb-label">BB Revenue (Nett £10)</div><div class="gb-value">{{ $money($enquiry->bb_revenue) }}</div></div>
         <div><div class="gb-label">Dinner Revenue (Nett £)</div><div class="gb-value">{{ $money($enquiry->dinner_revenue) }}</div></div>
         <div><div class="gb-label">Nett Rev EX VAT &amp; BF</div><div class="gb-value">{{ $money($enquiry->nett_rev_ex_vat) }}</div></div>
+        <div><div class="gb-label">City Tax</div><div class="gb-value">{{ $money($enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat)) }}</div></div>
         <div><div class="gb-label">BB/DBB</div><div class="gb-value">{{ $text($enquiry->basis) }}</div></div>
       </div>
       @php

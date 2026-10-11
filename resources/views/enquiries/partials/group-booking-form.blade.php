@@ -34,8 +34,14 @@
     if (! is_array($segmentSeed)) {
         $segmentSeed = $enquiry->stay_segments ?? [];
     }
+    $cityTaxConfig = [
+        'basis' => $enquiry->hotel?->city_tax_basis ?? '',
+        'amount' => $enquiry->hotel?->city_tax_amount,
+        'percentage' => $enquiry->hotel?->city_tax_percentage,
+    ];
   @endphp
   <script type="application/json" id="gb-stay-segment-seed">@json(array_values(is_array($segmentSeed) ? $segmentSeed : []))</script>
+  <script type="application/json" id="gb-city-tax-config">@json($cityTaxConfig)</script>
 
   <div class="card mb-3">
     <div class="card-header">
@@ -318,7 +324,7 @@
           @error('basis')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-3" id="gb_breakfast_rate_wrap" @unless ($showBreakfastRate) hidden @endunless>
-          <label for="gb_breakfast_rate" class="form-label">Breakfast rate <span class="text-danger">*</span></label>
+          <label for="gb_breakfast_rate" class="form-label">Breakfast rate (Net)<span class="text-danger">*</span></label>
           <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('breakfast_rate') is-invalid @enderror" value="{{ $v('breakfast_rate') }}">
           @error('breakfast_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
@@ -368,6 +374,14 @@
             <input type="hidden" name="nett_rev_ex_vat" id="gb_nett_rev_ex_vat" value="{{ $v('nett_rev_ex_vat') }}">
             <div class="form-text" id="gb_nett_rev_ex_vat_hint">(Total Rev × 100 / 120) − BB Revenue</div>
             @error('nett_rev_ex_vat')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
+            <label for="gb_city_tax_display" class="form-label">City Tax</label>
+            <input type="text" id="gb_city_tax_display" class="form-control" value="" readonly>
+            <input type="hidden" name="city_tax" id="gb_city_tax" value="{{ $v('city_tax') }}">
+            <div class="form-text" id="gb_city_tax_hint"></div>
           </div>
         </div>
       </div>

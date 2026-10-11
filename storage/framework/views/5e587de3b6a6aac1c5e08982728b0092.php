@@ -6,6 +6,7 @@
   <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
   <meta name="description" content="<?php echo $__env->yieldContent('meta_description', 'Hotel Group Booking Management System'); ?>">
   <title><?php echo $__env->yieldContent('title', 'HGBMS'); ?> | Hotel Group Booking Management</title>
+  <link rel="icon" href="<?php echo e(asset('assets/image/favicon.ico')); ?>" type="image/x-icon">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
