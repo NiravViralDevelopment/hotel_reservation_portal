@@ -37,9 +37,9 @@ const HGBMS_DATA = {
   ],
 
   agencyShare: [
-    { name: 'TUI UK', pct: 20, color: '#1e3a5f' },
-    { name: 'Jet2holidays', pct: 16, color: '#0d9488' },
-    { name: 'Riviera Travel', pct: 15, color: '#c9a227' },
+    { name: 'TUI UK', pct: 20, color: '#02225a' },
+    { name: 'Jet2holidays', pct: 16, color: '#1a4d9c' },
+    { name: 'Riviera Travel', pct: 15, color: '#b8954f' },
     { name: 'Titan Travel', pct: 14, color: '#3b82f6' },
     { name: 'Leger Holidays', pct: 13, color: '#8b5cf6' },
     { name: 'Others', pct: 22, color: '#6b7280' }

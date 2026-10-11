@@ -21,7 +21,7 @@
         .page:last-child { page-break-after: auto; }
         .header { text-align: center; margin-bottom: 14px; }
         .logo {
-            color: #17365d;
+            color: #02225a;
             font-size: 22px;
             font-weight: 700;
             letter-spacing: -1px;
@@ -59,7 +59,7 @@
             text-align: left;
         }
         th {
-            background: #17365d;
+            background: #02225a;
             color: #fff;
             font-size: 10.5px;
             font-weight: 700;
@@ -67,7 +67,7 @@
         .two-col th {
             text-align: center;
             background: #eaf0f6;
-            color: #17365d;
+            color: #02225a;
             font-size: 11px;
         }
         .requirements td:first-child {
@@ -78,7 +78,7 @@
         .section-title {
             margin: 14px 0 8px;
             padding: 7px 9px;
-            background: #17365d;
+            background: #02225a;
             color: #fff;
             font-size: 11px;
             font-weight: 700;
@@ -87,7 +87,7 @@
         .notice {
             padding: 9px 11px;
             background: #f7f9fb;
-            border-left: 4px solid #2d5f8b;
+            border-left: 4px solid #1a4d9c;
             margin: 10px 0 14px;
             font-size: 10px;
         }
@@ -108,7 +108,7 @@
         .signature-col:last-child { margin-right: 0; }
         .signature-col-title {
             background: #eef2f6;
-            color: #17365d;
+            color: #02225a;
             font-size: 10px;
             font-weight: 700;
             padding: 7px 8px;
