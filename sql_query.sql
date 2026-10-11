@@ -131,6 +131,28 @@ ALTER TABLE users
   ADD COLUMN signature_mime_type VARCHAR(191) NULL AFTER signature_original_name,
   ADD COLUMN signature_size BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER signature_mime_type;
 
+-- Group booking / enquiry columns (run only if column is missing)
+-- Skip any line that errors with "Duplicate column name"
+
+ALTER TABLE enquiries
+  ADD COLUMN payment_term_days SMALLINT UNSIGNED NULL AFTER payment_term;
+
+ALTER TABLE enquiries
+  ADD COLUMN has_commission TINYINT(1) NULL AFTER cxl_date;
+
+ALTER TABLE enquiries
+  ADD COLUMN breakfast_rate DECIMAL(12,2) NULL AFTER basis;
+
+ALTER TABLE enquiries
+  ADD COLUMN dinner_rate DECIMAL(12,2) NULL AFTER breakfast_rate;
+
+ALTER TABLE enquiries
+  ADD COLUMN invoice_number VARCHAR(191) NULL AFTER invoice_status;
+
+-- Editable booking contract HTML (group booking contract page)
+ALTER TABLE enquiries
+  ADD COLUMN booking_contract_html LONGTEXT NULL AFTER booking_contract_notes;
+
 -- Contract hotel photos (group booking contract page)
 CREATE TABLE IF NOT EXISTS enquiry_contract_photos (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
