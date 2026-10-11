@@ -6,8 +6,8 @@
     <div class="login-card">
       <div class="login-brand">
         <img src="<?php echo e(asset('assets/image/logo.png')); ?>" alt="Axcel Group" class="login-brand-logo">
-        <h1>Hotel Group Booking</h1>
-        <p>Management System &mdash; United Kingdom</p>
+        <!-- <h1>Hotel Group Booking</h1>
+        <p>Management System &mdash; United Kingdom</p> -->
       </div>
 
       <form method="POST" action="<?php echo e(route('login')); ?>" id="loginForm" class="login-form needs-validation" novalidate data-laravel-auth>
