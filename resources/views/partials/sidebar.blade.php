@@ -21,13 +21,13 @@
         ['route' => 'calendar.index', 'icon' => 'calendar3', 'label' => 'Calendar', 'permission' => 'bookings.view'],
       ],
     ],
-    [
-      'section' => 'Finance',
-      'items' => [
-        ['route' => 'revenue.index', 'icon' => 'currency-pound', 'label' => 'Revenue', 'permission' => 'revenue.view'],
-        ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports', 'permission' => 'reports.view', 'exact' => true],
-      ],
-    ],
+    // [
+    //   'section' => 'Finance',
+    //   'items' => [
+    //     ['route' => 'revenue.index', 'icon' => 'currency-pound', 'label' => 'Revenue', 'permission' => 'revenue.view'],
+    //     ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports', 'permission' => 'reports.view', 'exact' => true],
+    //   ],
+    // ],
     [
       'section' => 'Reports',
       'items' => [
@@ -39,7 +39,7 @@
   ];
 
   $adminItems = [
-    ['route' => 'status-masters.index', 'icon' => 'list-check', 'label' => 'Status Master', 'permission' => 'statuses.view'],
+    // ['route' => 'status-masters.index', 'icon' => 'list-check', 'label' => 'Status Master', 'permission' => 'statuses.view'],
     ['route' => 'users.index', 'icon' => 'people', 'label' => 'Users', 'permission' => 'users.view'],
     ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Roles', 'permission' => 'roles.view'],
     ['route' => 'audit-logs.index', 'icon' => 'journal-text', 'label' => 'Audit Logs', 'permission' => 'audit.view'],

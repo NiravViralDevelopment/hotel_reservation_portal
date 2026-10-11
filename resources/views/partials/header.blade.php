@@ -55,6 +55,7 @@
       </div>
     @endif
 
+    {{--
     <div class="dropdown">
       <button class="header-action-btn" data-bs-toggle="dropdown" aria-label="Notifications" type="button">
         <i class="bi bi-bell"></i>
@@ -66,6 +67,7 @@
         <div class="px-3 py-3 text-secondary small">No new notifications.</div>
       </div>
     </div>
+    --}}
 
     <div class="dropdown">
       <button class="header-user dropdown-toggle" data-bs-toggle="dropdown" type="button">
