@@ -52,7 +52,7 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
           <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-          <li class="breadcrumb-item"><a href="{{ ! empty($cancelledContext) ? route('cancelled-bookings.index') : route('group-bookings.index') }}">{{ ! empty($cancelledContext) ? 'Cancelled Bookings' : 'Group Bookings' }}</a></li>
+          <li class="breadcrumb-item"><a href="{{ ! empty($cancelledContext) ? route('cancelled-bookings.index') : route('group-bookings.index') }}">{{ ! empty($cancelledContext) ? 'Cancelled Bookings' : 'Confirm Group Bookings' }}</a></li>
           <li class="breadcrumb-item active">{{ $enquiry->block_id ?: ($enquiry->group_name ?: 'Booking') }}</li>
         </ol>
       </nav>

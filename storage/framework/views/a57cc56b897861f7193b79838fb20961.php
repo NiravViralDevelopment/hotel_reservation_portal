@@ -12,7 +12,7 @@
     [
       'section' => 'Bookings',
       'items' => [
-        ['route' => 'group-bookings.index', 'icon' => 'calendar-check', 'label' => 'Group Bookings', 'permission' => 'bookings.view'],
+        ['route' => 'group-bookings.index', 'icon' => 'calendar-check', 'label' => 'Confirm Group Bookings', 'permission' => 'bookings.view'],
         ['route' => 'enquiries.index', 'icon' => 'chat-square-text', 'label' => 'Enquiries', 'permission' => 'enquiries.view'],
         ['route' => 'cancelled-inquiries.index', 'icon' => 'x-octagon', 'label' => 'Cancelled Inquiry', 'permission' => 'enquiries.view'],
         ['route' => 'cancelled-bookings.index', 'icon' => 'x-circle', 'label' => 'Cancelled Bookings', 'permission' => 'bookings.view'],

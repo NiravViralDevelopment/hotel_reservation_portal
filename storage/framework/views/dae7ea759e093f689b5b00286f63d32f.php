@@ -93,6 +93,7 @@
               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
           </div>
+          <?php if(auth()->user()?->hasRole('Administrator')): ?>
           <div class="enquiry-filter-field">
             <label for="enquiry_created_by" class="enquiry-filter-label">Created by</label>
             <select name="created_by" id="enquiry_created_by" class="form-select form-select-sm select2" data-width="100%">
@@ -102,6 +103,7 @@
               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
           </div>
+          <?php endif; ?>
           <div class="enquiry-filter-field enquiry-filter-month">
             <label for="enquiry_month" class="enquiry-filter-label">Month</label>
             <input

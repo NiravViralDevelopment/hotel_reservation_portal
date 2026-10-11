@@ -5,10 +5,9 @@
   $emptyMessage = $emptyMessage ?? 'No records found.';
   $variant = $variant ?? 'full';
   $showCancellationReason = $showCancellationReason ?? false;
-  $showCreatedBy = $showCreatedBy ?? false;
+  $showCreatedBy = ($showCreatedBy ?? false) && auth()->user()?->hasRole('Administrator');
   $readOnly = $readOnly ?? false;
   $viewOnlyActions = $viewOnlyActions ?? false;
-  $showCreatedBy = $showCreatedBy ?? false;
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
@@ -59,9 +58,6 @@
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         @endif
-        @if ($showCreatedBy)
-          <th>Created by</th>
-        @endif
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -98,9 +94,6 @@
           @if ($showCancellationReason)
             <td class="text-nowrap">{{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $enquiry->cancellation_reason ?: '—' }}</td>
-          @endif
-          @if ($showCreatedBy)
-            <td class="text-nowrap">{{ $enquiry->assignedTo?->name ?: '—' }}</td>
           @endif
           <td class="text-end text-nowrap">
             @can('view', $enquiry)

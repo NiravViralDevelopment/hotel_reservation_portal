@@ -132,7 +132,7 @@
       </a>
       @can('convert', $enquiry)
         @if (! $enquiry->is_confirm && ! $enquiry->is_cancel)
-          <form method="POST" action="{{ route('enquiries.convert', $enquiry) }}" data-confirm-title="Confirm enquiry" data-confirm="{{ sprintf('Confirm enquiry "%s"? It will move to Group Bookings.', $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Confirm" data-confirm-variant="primary" data-confirm-icon="bi-check-circle">
+          <form method="POST" action="{{ route('enquiries.convert', $enquiry) }}" data-confirm-title="Confirm enquiry" data-confirm="{{ sprintf('Confirm enquiry "%s"? It will move to Confirm Group Bookings.', $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Confirm" data-confirm-variant="primary" data-confirm-icon="bi-check-circle">
             @csrf
             <button type="submit" class="btn btn-accent btn-sm">
               <i class="bi bi-check2-circle"></i> Confirm

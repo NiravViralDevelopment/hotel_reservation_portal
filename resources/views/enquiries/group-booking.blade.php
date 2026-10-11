@@ -37,10 +37,10 @@
       <ol class="breadcrumb mb-1">
         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
         <li class="breadcrumb-item"><a href="{{ route('enquiries.edit', $enquiry) }}">Edit enquiry</a></li>
-        <li class="breadcrumb-item active">Group Bookings</li>
+        <li class="breadcrumb-item active">Confirm Group Bookings</li>
       </ol>
     </nav>
-    <h1 class="page-title">Group Bookings</h1>
+    <h1 class="page-title">Confirm Group Bookings</h1>
     <p class="page-subtitle mb-0">{{ $enquiry->group_name ?: 'Enquiry' }}. Submitting sets the status to Confirmed.</p>
   </div>
 

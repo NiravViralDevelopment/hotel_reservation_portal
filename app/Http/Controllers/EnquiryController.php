@@ -636,7 +636,7 @@ class EnquiryController extends Controller
 
         return redirect()
             ->route('group-bookings.index')
-            ->with('success', 'Enquiry confirmed. Moved to Group Bookings.');
+            ->with('success', 'Enquiry confirmed. Moved to Confirm Group Bookings.');
     }
 
     /**
