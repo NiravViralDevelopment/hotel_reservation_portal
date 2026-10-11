@@ -140,6 +140,9 @@
     gap: 1rem;
     margin-top: 1.25rem;
   }
+  .enquiry-form-layout #gb-stay-segments .gb-segment-toolbar {
+    margin-top: 0;
+  }
   .enquiry-form-layout .gb-segment-note {
     margin: 0.65rem 0 0;
     font-size: 0.75rem;

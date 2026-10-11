@@ -487,26 +487,10 @@ unset($__errorArgs, $__bag); ?>
       <span class="enquiry-section-hint" id="gb_rooms_hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
     </div>
     <div class="card-body">
-      <div class="row g-3">
-        <?php $__currentLoopData = [
-          'single' => ['label' => 'Single', 'icon' => 'bi-person', 'rooms' => 'Single RNs', 'rate' => 'Single Gross Rate'],
-          'double' => ['label' => 'Double', 'icon' => 'bi-people', 'rooms' => 'Double RNs', 'rate' => 'Double Gross Rate'],
-          'triple' => ['label' => 'Triple', 'icon' => 'bi-people-fill', 'rooms' => 'Triple RNs', 'rate' => 'Triple Gross Rate'],
-        ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-          <div class="col-md-4">
-            <div class="room-rate-card">
-              <h3><i class="bi <?php echo e($meta['icon']); ?>"></i> <?php echo e($meta['label']); ?></h3>
-              <div class="mb-3">
-                <label for="gb_<?php echo e($type); ?>_rooms" class="form-label"><?php echo e($meta['rooms']); ?></label>
-                <input type="text" name="<?php echo e($type); ?>_rooms" id="gb_<?php echo e($type); ?>_rooms" inputmode="numeric" class="form-control js-digits gb-calc <?php $__errorArgs = [$type.'_rooms'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v($type.'_rooms')); ?>">
-                <?php $__errorArgs = [$type.'_rooms'];
+      <?php $__currentLoopData = ['single', 'double', 'triple']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <input type="hidden" name="<?php echo e($type); ?>_rooms" id="gb_<?php echo e($type); ?>_rooms" value="<?php echo e($v($type.'_rooms')); ?>">
+        <input type="hidden" name="<?php echo e($type); ?>_rate" id="gb_<?php echo e($type); ?>_rate" value="<?php echo e($v($type.'_rate')); ?>">
+        <?php $__errorArgs = [$type.'_rooms'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -514,18 +498,7 @@ $message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-bloc
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-              </div>
-              <div>
-                <label for="gb_<?php echo e($type); ?>_rate" class="form-label"><?php echo e($meta['rate']); ?></label>
-                <input type="text" name="<?php echo e($type); ?>_rate" id="gb_<?php echo e($type); ?>_rate" inputmode="decimal" class="form-control js-decimal gb-calc <?php $__errorArgs = [$type.'_rate'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v($type.'_rate')); ?>">
-                <?php $__errorArgs = [$type.'_rate'];
+        <?php $__errorArgs = [$type.'_rate'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -533,11 +506,7 @@ $message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-bloc
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-              </div>
-            </div>
-          </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-      </div>
+      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
       <div id="gb-stay-segments" class="gb-stay-segments">
         <div class="gb-segment-toolbar">
           <div>

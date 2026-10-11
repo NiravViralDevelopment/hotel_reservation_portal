@@ -235,29 +235,12 @@
       <span class="enquiry-section-hint" id="gb_rooms_hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
     </div>
     <div class="card-body">
-      <div class="row g-3">
-        @foreach ([
-          'single' => ['label' => 'Single', 'icon' => 'bi-person', 'rooms' => 'Single RNs', 'rate' => 'Single Gross Rate'],
-          'double' => ['label' => 'Double', 'icon' => 'bi-people', 'rooms' => 'Double RNs', 'rate' => 'Double Gross Rate'],
-          'triple' => ['label' => 'Triple', 'icon' => 'bi-people-fill', 'rooms' => 'Triple RNs', 'rate' => 'Triple Gross Rate'],
-        ] as $type => $meta)
-          <div class="col-md-4">
-            <div class="room-rate-card">
-              <h3><i class="bi {{ $meta['icon'] }}"></i> {{ $meta['label'] }}</h3>
-              <div class="mb-3">
-                <label for="gb_{{ $type }}_rooms" class="form-label">{{ $meta['rooms'] }}</label>
-                <input type="text" name="{{ $type }}_rooms" id="gb_{{ $type }}_rooms" inputmode="numeric" class="form-control js-digits gb-calc @error($type.'_rooms') is-invalid @enderror" value="{{ $v($type.'_rooms') }}">
-                @error($type.'_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-              </div>
-              <div>
-                <label for="gb_{{ $type }}_rate" class="form-label">{{ $meta['rate'] }}</label>
-                <input type="text" name="{{ $type }}_rate" id="gb_{{ $type }}_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error($type.'_rate') is-invalid @enderror" value="{{ $v($type.'_rate') }}">
-                @error($type.'_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-              </div>
-            </div>
-          </div>
-        @endforeach
-      </div>
+      @foreach (['single', 'double', 'triple'] as $type)
+        <input type="hidden" name="{{ $type }}_rooms" id="gb_{{ $type }}_rooms" value="{{ $v($type.'_rooms') }}">
+        <input type="hidden" name="{{ $type }}_rate" id="gb_{{ $type }}_rate" value="{{ $v($type.'_rate') }}">
+        @error($type.'_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        @error($type.'_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      @endforeach
       <div id="gb-stay-segments" class="gb-stay-segments">
         <div class="gb-segment-toolbar">
           <div>
