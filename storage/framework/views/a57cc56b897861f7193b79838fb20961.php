@@ -49,8 +49,7 @@
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <aside class="app-sidebar" id="appSidebar">
   <div class="sidebar-brand">
-    <div class="sidebar-brand-icon"><i class="bi bi-building"></i></div>
-    <span class="sidebar-brand-text">HGBMS</span>
+    <img src="<?php echo e(asset('assets/image/logo.png')); ?>" alt="Axcel Group" class="sidebar-brand-logo">
   </div>
 
   <nav class="sidebar-nav">
