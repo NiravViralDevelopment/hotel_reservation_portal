@@ -105,7 +105,6 @@
     <div class="card-body">
       <div class="gb-dl">
         <div><div class="gb-label">Client</div><div class="gb-value">{{ $text($enquiry->client) }}</div></div>
-        <div><div class="gb-label">Agency - Ref</div><div class="gb-value">{{ $text($enquiry->agency_ref) }}</div></div>
         <div><div class="gb-label">Contact</div><div class="gb-value">{{ $text($enquiry->contact_name) }}</div></div>
         <div><div class="gb-label">Email ID</div><div class="gb-value">{{ $text($enquiry->email) }}</div></div>
         <div><div class="gb-label">Status</div><div class="gb-value"><x-badge-status :status="$enquiry->status" /></div></div>
@@ -149,6 +148,9 @@
           <div><div class="gb-label">CXL Date</div><div class="gb-value">{{ $date($enquiry->cxl_date) }}</div></div>
         @endif
         <div><div class="gb-label">Commission</div><div class="gb-value">{{ $enquiry->has_commission === null ? '—' : ($enquiry->has_commission ? 'Yes' : 'No') }}</div></div>
+        @if ($enquiry->has_commission)
+          <div><div class="gb-label">Commission %</div><div class="gb-value">{{ $enquiry->commission_percentage === null ? '—' : rtrim(rtrim(number_format((float) $enquiry->commission_percentage, 2), '0'), '.').'%' }}</div></div>
+        @endif
       </div>
     </div>
   </div>

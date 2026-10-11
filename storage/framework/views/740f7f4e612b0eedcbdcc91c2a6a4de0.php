@@ -180,25 +180,6 @@ endif;
 unset($__errorArgs, $__bag); ?>
         </div>
         <div class="col-md-6">
-          <label for="gb_agency_ref" class="form-label">Agency - Ref</label>
-          <input type="text" name="agency_ref" id="gb_agency_ref" class="form-control <?php $__errorArgs = ['agency_ref'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('agency_ref')); ?>" maxlength="255">
-          <?php $__errorArgs = ['agency_ref'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-        </div>
-        <div class="col-md-6">
           <label for="gb_contact_name" class="form-label">Contact</label>
           <input type="text" name="contact_name" id="gb_contact_name" class="form-control <?php $__errorArgs = ['contact_name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -469,6 +450,25 @@ unset($__errorArgs, $__bag); ?>
             <label class="form-check-label" for="gb_has_commission_no">No</label>
           </div>
           <?php $__errorArgs = ['has_commission'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+        </div>
+        <div class="col-md-6 col-xl-3" id="gb_commission_percentage_wrap" <?php if (! ($selectedHasCommission === '1' || $selectedHasCommission === 1 || $selectedHasCommission === true)): ?> hidden <?php endif; ?>>
+          <label for="gb_commission_percentage" class="form-label">Commission %</label>
+          <input type="text" name="commission_percentage" id="gb_commission_percentage" inputmode="decimal" class="form-control js-decimal <?php $__errorArgs = ['commission_percentage'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('commission_percentage')); ?>" placeholder="0">
+          <?php $__errorArgs = ['commission_percentage'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }

@@ -106,11 +106,6 @@
             @error('client')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
-            <label for="agency_ref" class="form-label">Agency - Ref</label>
-            <input type="text" name="agency_ref" id="agency_ref" class="form-control @error('agency_ref') is-invalid @enderror" value="{{ $v('agency_ref') }}" maxlength="255">
-            @error('agency_ref')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-6">
             <label for="contact_name" class="form-label">Contact</label>
             <input type="text" name="contact_name" id="contact_name" class="form-control @error('contact_name') is-invalid @enderror" value="{{ $contactValue }}" maxlength="255">
             @error('contact_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror

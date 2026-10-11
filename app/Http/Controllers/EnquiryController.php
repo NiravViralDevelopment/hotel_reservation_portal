@@ -204,7 +204,7 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         foreach ([
-            'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status',
+            'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status', 'commission_percentage',
             'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'invoice_number', 'commission_payable_status',
             'basis', 'breakfast_rate', 'dinner_rate', 'client', 'email', 'day',
             'contract_sent_on', 'contract_received_on', 'payment_due_date', 'cxl_due_date', 'cxl_date', 'invoice_sent_on',
@@ -223,7 +223,6 @@ class EnquiryController extends Controller
             'nights' => ['required', 'integer', 'min:0'],
             'block_id' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'block_id')->ignore($enquiry->id)],
             'client' => ['nullable', 'string', 'max:255'],
-            'agency_ref' => ['nullable', 'string', 'max:255'],
             'contact_name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'contract_sent_on' => ['nullable', 'date'],
@@ -237,6 +236,7 @@ class EnquiryController extends Controller
             'cxl_due_date' => ['nullable', 'date'],
             'cxl_date' => ['nullable', 'date'],
             'has_commission' => ['nullable', 'in:0,1'],
+            'commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_commission,1'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],
             'single_rate' => ['nullable', 'numeric', 'min:0'],
             'double_rooms' => ['nullable', 'integer', 'min:0'],
@@ -295,6 +295,10 @@ class EnquiryController extends Controller
             'payment_term_days.integer' => 'Number of days must be a whole number.',
             'payment_term_days.min' => 'Number of days cannot be negative.',
             'has_commission.in' => 'Select Yes or No for commission.',
+            'commission_percentage.required_if' => 'Enter the commission percentage.',
+            'commission_percentage.numeric' => 'Commission percentage must be a number.',
+            'commission_percentage.min' => 'Commission percentage cannot be negative.',
+            'commission_percentage.max' => 'Commission percentage cannot be more than 100.',
             'commission_payable_status.required_if' => 'Select the commission payable status.',
             'commission_payable_status.in' => 'Select Pending or Received.',
         ]);
@@ -326,6 +330,9 @@ class EnquiryController extends Controller
         }
         if (! $data['has_commission']) {
             $data['commission_payable_status'] = null;
+            $data['commission_percentage'] = null;
+        } elseif (array_key_exists('commission_percentage', $data) && $data['commission_percentage'] !== null) {
+            $data['commission_percentage'] = round((float) $data['commission_percentage'], 2);
         }
 
         $nights = $data['nights'];

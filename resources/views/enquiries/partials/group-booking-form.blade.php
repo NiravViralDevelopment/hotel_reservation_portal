@@ -96,11 +96,6 @@
           @error('client')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6">
-          <label for="gb_agency_ref" class="form-label">Agency - Ref</label>
-          <input type="text" name="agency_ref" id="gb_agency_ref" class="form-control @error('agency_ref') is-invalid @enderror" value="{{ $v('agency_ref') }}" maxlength="255">
-          @error('agency_ref')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-        </div>
-        <div class="col-md-6">
           <label for="gb_contact_name" class="form-label">Contact</label>
           <input type="text" name="contact_name" id="gb_contact_name" class="form-control @error('contact_name') is-invalid @enderror" value="{{ $contactValue }}" maxlength="255">
           @error('contact_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -224,6 +219,11 @@
             <label class="form-check-label" for="gb_has_commission_no">No</label>
           </div>
           @error('has_commission')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+        <div class="col-md-6 col-xl-3" id="gb_commission_percentage_wrap" @unless ($selectedHasCommission === '1' || $selectedHasCommission === 1 || $selectedHasCommission === true) hidden @endunless>
+          <label for="gb_commission_percentage" class="form-label">Commission %</label>
+          <input type="text" name="commission_percentage" id="gb_commission_percentage" inputmode="decimal" class="form-control js-decimal @error('commission_percentage') is-invalid @enderror" value="{{ $v('commission_percentage') }}" placeholder="0">
+          @error('commission_percentage')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>
     </div>

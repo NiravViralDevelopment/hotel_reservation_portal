@@ -827,9 +827,13 @@
   function updateCommissionPayable() {
     var wrap = field('gb_commission_payable_wrap');
     var status = field('gb_commission_payable_status');
+    var percentWrap = field('gb_commission_percentage_wrap');
+    var percent = field('gb_commission_percentage');
     var hasCommission = selectedHasCommission() === '1';
     if (wrap) wrap.hidden = !hasCommission;
+    if (percentWrap) percentWrap.hidden = !hasCommission;
     if (!hasCommission && status) status.value = '';
+    if (!hasCommission && percent) percent.value = '';
   }
 
   form.querySelectorAll('.js-has-commission').forEach(function (box) {
