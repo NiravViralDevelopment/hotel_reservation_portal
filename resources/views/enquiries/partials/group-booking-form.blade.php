@@ -26,8 +26,16 @@
 <form method="POST" action="{{ route('enquiries.group-booking.store', $enquiry) }}" class="enquiry-form" id="group-booking-form">
   @csrf
   <input type="hidden" name="form_context" value="group">
+  <input type="hidden" name="stay_segments_present" value="1">
   <div id="gb-daily-room-fields" hidden></div>
   <script type="application/json" id="gb-daily-room-seed">@json($enquiry->daily_room_rates ?? [])</script>
+  @php
+    $segmentSeed = old('stay_segments');
+    if (! is_array($segmentSeed)) {
+        $segmentSeed = $enquiry->stay_segments ?? [];
+    }
+  @endphp
+  <script type="application/json" id="gb-stay-segment-seed">@json(array_values(is_array($segmentSeed) ? $segmentSeed : []))</script>
 
   <div class="card mb-3">
     <div class="card-header">
@@ -250,6 +258,63 @@
           </div>
         @endforeach
       </div>
+      <div id="gb-stay-segments" class="gb-stay-segments">
+        <div class="gb-segment-toolbar">
+          <div>
+            <h3 class="stay-date-title">Date ranges</h3>
+            <p class="stay-date-hint mb-0">Each row is one arrival and departure for this booking. A row’s revenue is nights × ((Single × rate) + (Double × rate) + (Triple × rate)). Room totals are room nights: rooms × nights. The total row adds every range, including ranges that overlap or have a different length of stay.</p>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" id="gb-add-stay-segment">
+            <i class="bi bi-plus-lg"></i> Add date range
+          </button>
+        </div>
+        @foreach ($errors->get('stay_segments.*') as $messages)
+          @foreach ($messages as $message)
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+          @endforeach
+        @endforeach
+        <p id="gb-segment-note" class="gb-segment-note" hidden></p>
+        <div class="table-responsive mt-2" id="gb-segment-wrap" hidden>
+          <table class="table table-sm table-hover stay-date-table mb-0" id="gb-segment-table">
+            <thead>
+              <tr>
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Day</th>
+                <th>Nights</th>
+                <th>Single</th>
+                <th>Rate</th>
+                <th>Double</th>
+                <th>Rate</th>
+                <th>Triple</th>
+                <th>Rate</th>
+                <th class="stay-calc">Revenue</th>
+                <th class="stay-calc gb-seg-bb">BB</th>
+                <th class="stay-calc gb-seg-dinner">Dinner</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="gb-segment-body"></tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="3">Total</th>
+                <td id="gb-segment-nights">0</td>
+                <td id="gb-segment-single-rooms">0</td>
+                <td id="gb-segment-single-rate">0.00</td>
+                <td id="gb-segment-double-rooms">0</td>
+                <td id="gb-segment-double-rate">0.00</td>
+                <td id="gb-segment-triple-rooms">0</td>
+                <td id="gb-segment-triple-rate">0.00</td>
+                <td class="stay-calc" id="gb-segment-revenue">0.00</td>
+                <td class="stay-calc gb-seg-bb" id="gb-segment-bb">0.00</td>
+                <td class="stay-calc gb-seg-dinner" id="gb-segment-dinner">0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div id="gb-daily-breakdown" class="gb-daily-breakdown"></div>
     </div>
   </div>
 
