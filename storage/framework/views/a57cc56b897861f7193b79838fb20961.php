@@ -6,7 +6,7 @@
         ['route' => 'dashboard', 'icon' => 'speedometer2', 'label' => 'Dashboard', 'permission' => 'dashboard.view'],
         ['route' => 'hotels.index', 'icon' => 'building', 'label' => 'Hotels', 'permission' => 'hotels.view'],
         ['route' => 'companies.index', 'icon' => 'briefcase', 'label' => 'Companies', 'permission' => 'companies.view'],
-        ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies', 'permission' => 'agencies.view'],
+        // ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies', 'permission' => 'agencies.view'],
       ],
     ],
     [
