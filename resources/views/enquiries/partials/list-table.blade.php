@@ -130,11 +130,8 @@
           </td>
         </tr>
       @empty
-<<<<<<< HEAD
         <tr><td colspan="{{ 24 + ($showCancellationReason ? 2 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
-=======
         <tr><td colspan="{{ $enquiryColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
->>>>>>> 5ab468e4d5e2385f616409731372f1caaf888c58
       @endforelse
     </tbody>
   </table>

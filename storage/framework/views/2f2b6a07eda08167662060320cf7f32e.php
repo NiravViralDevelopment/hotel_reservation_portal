@@ -7,9 +7,12 @@
   $showCancellationReason = $showCancellationReason ?? false;
   $showCreatedBy = $showCreatedBy ?? false;
   $readOnly = $readOnly ?? false;
+  $viewOnlyActions = $viewOnlyActions ?? false;
+  $showCreatedBy = $showCreatedBy ?? false;
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
+  $enquiryColspan = ($showCancellationReason ? 26 : 24) + ($showCreatedBy ? 1 : 0);
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -322,6 +325,9 @@
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         <?php endif; ?>
+        <?php if($showCreatedBy): ?>
+          <th>Created by</th>
+        <?php endif; ?>
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -435,13 +441,16 @@
             <td class="text-nowrap"><?php echo e($enquiry->cxl_date?->format('d M Y') ?? '—'); ?></td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?php echo e($enquiry->cancellation_reason); ?>"><?php echo e($enquiry->cancellation_reason ?: '—'); ?></td>
           <?php endif; ?>
+          <?php if($showCreatedBy): ?>
+            <td class="text-nowrap"><?php echo e($enquiry->assignedTo?->name ?: '—'); ?></td>
+          <?php endif; ?>
           <td class="text-end text-nowrap">
             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view', $enquiry)): ?>
               <a href="<?php echo e(route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery))); ?>" class="btn btn-sm btn-outline-secondary" title="View">
                 <i class="bi bi-eye"></i>
               </a>
             <?php endif; ?>
-            <?php if (! ($readOnly)): ?>
+            <?php if (! ($readOnly || $viewOnlyActions)): ?>
               <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $enquiry)): ?>
                 <a href="<?php echo e(route('enquiries.show', $enquiry)); ?>#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for <?php echo e($enquiry->group_name); ?>">
                   <i class="bi bi-chat-left-text"></i>
@@ -464,6 +473,7 @@
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
         <tr><td colspan="<?php echo e(24 + ($showCancellationReason ? 2 : 0) + ($showCreatedBy ? 1 : 0)); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
+        <tr><td colspan="<?php echo e($enquiryColspan); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
       <?php endif; ?>
     </tbody>
   </table>

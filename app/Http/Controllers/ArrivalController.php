@@ -15,7 +15,7 @@ class ArrivalController extends Controller
     {
         abort_unless(auth()->user()?->can('bookings.view'), 403);
 
-        [$dateFrom, $dateTo] = EnquiryIndexFilters::dateBounds($request);
+        [$dateFrom, $dateTo] = EnquiryIndexFilters::dateBounds($request, 'date_from', 'date_to', 'date_month');
 
         $query = Enquiry::query()
             ->accessibleBy()
@@ -27,7 +27,7 @@ class ArrivalController extends Controller
             });
 
         EnquiryIndexFilters::apply($query, $request);
-        EnquiryIndexFilters::applyDateRange($query, $request, 'check_in');
+        EnquiryIndexFilters::applyDateRange($query, $request, 'check_in', 'date_from', 'date_to', 'date_month');
 
         QuerySort::apply($query, $request, [
             'ref' => 'ref',

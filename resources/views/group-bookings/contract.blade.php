@@ -40,11 +40,11 @@
     outline: none;
   }
   .gb-contract .contract-paper:focus {
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2), 0 8px 24px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 0 0 3px rgba(2, 34, 90, 0.2), 0 8px 24px rgba(2, 34, 90, 0.12);
   }
   .gb-contract .contract-paper .document {
-    --primary: #17365d;
-    --accent: #2d5f8b;
+    --primary: #02225a;
+    --accent: #1a4d9c;
     --border: #b8c2cc;
     width: 100%;
     max-width: 100%;
@@ -64,7 +64,7 @@
   .gb-contract .contract-paper .page:last-child { margin-bottom: 0; }
   .gb-contract .contract-paper .header { text-align: center; margin-bottom: 18px; }
   .gb-contract .contract-paper .logo {
-    color: #17365d;
+    color: #02225a;
     font-size: 28px;
     font-weight: 900;
     letter-spacing: -1px;
@@ -109,7 +109,7 @@
     text-align: left;
   }
   .gb-contract .contract-paper .document th {
-    background: #17365d;
+    background: #02225a;
     color: #fff;
     font-size: 11px;
     font-weight: 700;
@@ -117,7 +117,7 @@
   .gb-contract .contract-paper .two-col th {
     text-align: center;
     background: #eaf0f6;
-    color: #17365d;
+    color: #02225a;
     font-size: 12px;
   }
   .gb-contract .contract-paper .requirements td:first-child {
@@ -141,7 +141,7 @@
   .gb-contract .contract-paper .section-title {
     margin: 18px 0 8px;
     padding: 8px 10px;
-    background: #17365d;
+    background: #02225a;
     color: #fff;
     border-radius: 5px;
     font-size: 12px;
@@ -152,7 +152,7 @@
   .gb-contract .contract-paper .notice {
     padding: 11px 13px;
     background: #f7f9fb;
-    border-left: 4px solid #2d5f8b;
+    border-left: 4px solid #1a4d9c;
     margin: 12px 0 18px;
     font-size: 10.5px;
   }
@@ -177,7 +177,7 @@
   }
   .gb-contract .contract-paper .signature-col-title {
     background: #eef2f6;
-    color: #17365d;
+    color: #02225a;
     font-size: 11px;
     font-weight: 700;
     padding: 8px 10px;
@@ -233,7 +233,7 @@
     gap: 0.35rem;
     margin: 0 0 8px;
     border: 0;
-    background: #17365d;
+    background: #02225a;
     color: #fff;
     border-radius: 5px;
     font-size: 12px;

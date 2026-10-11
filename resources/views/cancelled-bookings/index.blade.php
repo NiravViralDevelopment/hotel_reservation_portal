@@ -16,7 +16,7 @@
       <p class="page-subtitle">Cancelled group bookings, with the cancellation reason.</p>
     </div>
     <a
-      href="{{ route('cancelled-bookings.export', array_merge(request()->only(['q', 'hotel_id', 'sort', 'dir', 'date_from', 'date_to']), (! request()->exists('date_from') && ! request()->exists('date_to')) ? ['date_from' => $dateFrom, 'date_to' => $dateTo] : [])) }}"
+      href="{{ route('cancelled-bookings.export', array_merge(request()->only(['q', 'hotel_id', 'sort', 'dir', 'date_from', 'date_to', 'date_month']), (! request()->exists('date_from') && ! request()->exists('date_to') && ! request()->exists('date_month')) ? ['date_from' => $dateFrom, 'date_to' => $dateTo] : [])) }}"
       class="btn btn-outline-secondary btn-sm"
       title="Download the filtered list as Excel"
     >

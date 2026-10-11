@@ -22,7 +22,7 @@ class CancelledBookingController extends Controller
 
         $bookings = $this->filteredQuery($request)->paginate(10)->withQueryString();
         $hotels = Hotel::optionsForSelect();
-        [$dateFrom, $dateTo] = EnquiryIndexFilters::dateBounds($request);
+        [$dateFrom, $dateTo] = EnquiryIndexFilters::dateBounds($request, 'date_from', 'date_to', 'date_month');
 
         return view('cancelled-bookings.index', compact('bookings', 'hotels', 'dateFrom', 'dateTo'));
     }
@@ -168,7 +168,7 @@ class CancelledBookingController extends Controller
             $query->where('hotel_id', $request->integer('hotel_id'));
         }
 
-        EnquiryIndexFilters::applyDateRange($query, $request, 'enquiry_date');
+        EnquiryIndexFilters::applyDateRange($query, $request, 'enquiry_date', 'date_from', 'date_to', 'date_month');
 
         QuerySort::apply($query, $request, [
             'check_in' => 'check_in',
