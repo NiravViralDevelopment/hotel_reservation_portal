@@ -37,10 +37,10 @@
       <ol class="breadcrumb mb-1">
         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
         <li class="breadcrumb-item"><a href="{{ route('enquiries.edit', $enquiry) }}">Edit enquiry</a></li>
-        <li class="breadcrumb-item active">Group Bookings</li>
+        <li class="breadcrumb-item active">Confirm Group Bookings</li>
       </ol>
     </nav>
-    <h1 class="page-title">Group Bookings</h1>
+    <h1 class="page-title">Confirm Group Bookings</h1>
     <p class="page-subtitle mb-0">{{ $enquiry->group_name ?: 'Enquiry' }}. Submitting sets the status to Confirmed.</p>
   </div>
 
@@ -104,11 +104,6 @@
             <label for="client" class="form-label">Client</label>
             <input type="text" name="client" id="client" class="form-control @error('client') is-invalid @enderror" value="{{ $v('client') }}" maxlength="255">
             @error('client')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-6">
-            <label for="agency_ref" class="form-label">Agency - Ref</label>
-            <input type="text" name="agency_ref" id="agency_ref" class="form-control @error('agency_ref') is-invalid @enderror" value="{{ $v('agency_ref') }}" maxlength="255">
-            @error('agency_ref')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
             <label for="contact_name" class="form-label">Contact</label>

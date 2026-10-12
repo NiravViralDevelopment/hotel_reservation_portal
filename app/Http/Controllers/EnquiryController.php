@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -203,7 +204,7 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         foreach ([
-            'agency_ref', 'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status',
+            'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status', 'commission_percentage',
             'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'invoice_number', 'commission_payable_status',
             'basis', 'breakfast_rate', 'dinner_rate', 'client', 'email', 'day',
             'contract_sent_on', 'contract_received_on', 'payment_due_date', 'cxl_due_date', 'cxl_date', 'invoice_sent_on',
@@ -222,7 +223,6 @@ class EnquiryController extends Controller
             'nights' => ['required', 'integer', 'min:0'],
             'block_id' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'block_id')->ignore($enquiry->id)],
             'client' => ['nullable', 'string', 'max:255'],
-            'agency_ref' => ['nullable', 'string', 'max:255'],
             'contact_name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'contract_sent_on' => ['nullable', 'date'],
@@ -236,6 +236,7 @@ class EnquiryController extends Controller
             'cxl_due_date' => ['nullable', 'date'],
             'cxl_date' => ['nullable', 'date'],
             'has_commission' => ['nullable', 'in:0,1'],
+            'commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:has_commission,1'],
             'single_rooms' => ['nullable', 'integer', 'min:0'],
             'single_rate' => ['nullable', 'numeric', 'min:0'],
             'double_rooms' => ['nullable', 'integer', 'min:0'],
@@ -249,6 +250,15 @@ class EnquiryController extends Controller
             'daily_rooms.*.double_rate' => ['nullable', 'numeric', 'min:0'],
             'daily_rooms.*.triple_rooms' => ['nullable', 'numeric', 'min:0'],
             'daily_rooms.*.triple_rate' => ['nullable', 'numeric', 'min:0'],
+            'stay_segments' => ['nullable', 'array', 'max:50'],
+            'stay_segments.*.check_in' => ['nullable', 'date'],
+            'stay_segments.*.check_out' => ['nullable', 'date'],
+            'stay_segments.*.single_rooms' => ['nullable', 'integer', 'min:0'],
+            'stay_segments.*.single_rate' => ['nullable', 'numeric', 'min:0'],
+            'stay_segments.*.double_rooms' => ['nullable', 'integer', 'min:0'],
+            'stay_segments.*.double_rate' => ['nullable', 'numeric', 'min:0'],
+            'stay_segments.*.triple_rooms' => ['nullable', 'integer', 'min:0'],
+            'stay_segments.*.triple_rate' => ['nullable', 'numeric', 'min:0'],
             'bb_revenue' => ['nullable', 'numeric'],
             'dinner_revenue' => ['nullable', 'numeric'],
             'nett_rev_ex_vat' => ['nullable', 'numeric'],
@@ -285,6 +295,10 @@ class EnquiryController extends Controller
             'payment_term_days.integer' => 'Number of days must be a whole number.',
             'payment_term_days.min' => 'Number of days cannot be negative.',
             'has_commission.in' => 'Select Yes or No for commission.',
+            'commission_percentage.required_if' => 'Enter the commission percentage.',
+            'commission_percentage.numeric' => 'Commission percentage must be a number.',
+            'commission_percentage.min' => 'Commission percentage cannot be negative.',
+            'commission_percentage.max' => 'Commission percentage cannot be more than 100.',
             'commission_payable_status.required_if' => 'Select the commission payable status.',
             'commission_payable_status.in' => 'Select Pending or Received.',
         ]);
@@ -316,6 +330,9 @@ class EnquiryController extends Controller
         }
         if (! $data['has_commission']) {
             $data['commission_payable_status'] = null;
+            $data['commission_percentage'] = null;
+        } elseif (array_key_exists('commission_percentage', $data) && $data['commission_percentage'] !== null) {
+            $data['commission_percentage'] = round((float) $data['commission_percentage'], 2);
         }
 
         $nights = $data['nights'];
@@ -325,18 +342,35 @@ class EnquiryController extends Controller
             $dailyRows = $enquiry->daily_room_rates;
         }
 
-        if ($dailyRows !== []) {
+        $segmentsSubmitted = $request->boolean('stay_segments_present');
+        if ($segmentsSubmitted) {
+            $this->assertStaySegments($data['stay_segments'] ?? []);
+            $segments = $this->cleanStaySegments($data['stay_segments'] ?? []);
+        } else {
+            $segments = is_array($enquiry->stay_segments) ? $enquiry->stay_segments : [];
+        }
+        unset($data['stay_segments']);
+        $data['stay_segments'] = $segments;
+
+        if ($segments !== []) {
+            $totals = $this->totalsFromStaySegments($segments);
+            foreach (['single', 'double', 'triple'] as $type) {
+                $data[$type.'_rooms'] = $totals[$type.'_rooms'];
+                $data[$type.'_rate'] = $totals[$type.'_rate'];
+            }
+            $data['total_rns'] = $totals['total_rns'];
+            $data['total_revenue'] = $totals['total_revenue'];
+            if ($dailyRows !== []) {
+                $data['daily_room_rates'] = $dailyRows;
+            }
+        } elseif ($dailyRows !== []) {
             $totals = $this->totalsFromDailyRows($dailyRows);
             foreach (['single', 'double', 'triple'] as $type) {
                 $data[$type.'_rooms'] = $totals[$type.'_rooms'];
                 $data[$type.'_rate'] = $totals[$type.'_rate'];
             }
-            $data['total_rns'] = $totals['total_rns'] * $nights;
-            $data['total_revenue'] = round((
-                ($data['single_rooms'] * $data['single_rate'])
-                + ($data['double_rooms'] * $data['double_rate'])
-                + ($data['triple_rooms'] * $data['triple_rate'])
-            ) * $nights, 2);
+            $data['total_rns'] = $totals['total_rns'];
+            $data['total_revenue'] = $totals['total_revenue'];
             $data['daily_room_rates'] = $dailyRows;
         } else {
             $data['total_rns'] = ($data['single_rooms'] + $data['double_rooms'] + $data['triple_rooms']) * $nights;
@@ -357,22 +391,32 @@ class EnquiryController extends Controller
             $data['breakfast_rate'] = null;
             $data['dinner_rate'] = null;
         }
-        $data['bb_revenue'] = $this->mealRevenue(
-            $nights,
-            (int) $data['single_rooms'],
-            (int) $data['double_rooms'],
-            (int) $data['triple_rooms'],
-            (float) ($data['breakfast_rate'] ?? 0)
-        );
-        $data['dinner_revenue'] = $this->mealRevenue(
-            $nights,
-            (int) $data['single_rooms'],
-            (int) $data['double_rooms'],
-            (int) $data['triple_rooms'],
-            (float) ($data['dinner_rate'] ?? 0)
-        );
+        if ($segments !== []) {
+            $data['bb_revenue'] = $this->mealRevenueFromStaySegments($segments, (float) ($data['breakfast_rate'] ?? 0));
+            $data['dinner_revenue'] = $this->mealRevenueFromStaySegments($segments, (float) ($data['dinner_rate'] ?? 0));
+        } elseif ($dailyRows !== []) {
+            $data['bb_revenue'] = $this->mealRevenueFromDailyRows($dailyRows, (float) ($data['breakfast_rate'] ?? 0));
+            $data['dinner_revenue'] = $this->mealRevenueFromDailyRows($dailyRows, (float) ($data['dinner_rate'] ?? 0));
+        } else {
+            $data['bb_revenue'] = $this->mealRevenue(
+                $nights,
+                (int) $data['single_rooms'],
+                (int) $data['double_rooms'],
+                (int) $data['triple_rooms'],
+                (float) ($data['breakfast_rate'] ?? 0)
+            );
+            $data['dinner_revenue'] = $this->mealRevenue(
+                $nights,
+                (int) $data['single_rooms'],
+                (int) $data['double_rooms'],
+                (int) $data['triple_rooms'],
+                (float) ($data['dinner_rate'] ?? 0)
+            );
+        }
         $dinnerDeduction = $data['dinner_rate'] !== null ? (float) $data['dinner_revenue'] : 0;
         $data['nett_rev_ex_vat'] = round((($data['total_revenue'] * 100) / 120) - $data['bb_revenue'] - $dinnerDeduction, 2);
+        $enquiry->loadMissing('hotel');
+        $data['city_tax'] = $enquiry->hotel?->calculatedCityTax($data['total_rns'], $data['nett_rev_ex_vat']);
         $data['status'] = 'Confirmed';
         $data['is_confirm'] = true;
         $data['is_cancel'] = false;
@@ -594,7 +638,7 @@ class EnquiryController extends Controller
 
         return redirect()
             ->route('group-bookings.index')
-            ->with('success', 'Enquiry confirmed. Moved to Group Bookings.');
+            ->with('success', 'Enquiry confirmed. Moved to Confirm Group Bookings.');
     }
 
     /**
@@ -854,13 +898,22 @@ class EnquiryController extends Controller
     }
 
     /**
-     * Same total as a group booking: (single rooms × rate + double rooms × rate + triple rooms × rate) × nights.
-     * When daily rows exist, rooms are the sum of each stay date and rates are the average.
+     * Room revenue for the stay. Each daily row is one night, so those rows are summed.
+     * Without daily rows, the entered rooms and rates are one night and are multiplied by nights.
      *
      * @param  array<string, mixed>  $data
      */
     private function revenueFromRoomNights(array $data): float
     {
+        $daily = $data['daily_room_rates'] ?? null;
+        $segments = $data['stay_segments'] ?? null;
+        if (is_array($segments) && $segments !== []) {
+            return $this->totalsFromStaySegments($segments)['total_revenue'];
+        }
+        if (is_array($daily) && $daily !== []) {
+            return $this->totalsFromDailyRows($daily)['total_revenue'];
+        }
+
         $nights = max(0, (int) ($data['nights'] ?? 0));
         $amount = ((int) ($data['single_rooms'] ?? 0) * (float) ($data['single_rate'] ?? 0))
             + ((int) ($data['double_rooms'] ?? 0) * (float) ($data['double_rate'] ?? 0))
@@ -875,6 +928,26 @@ class EnquiryController extends Controller
      */
     private function applyDailyRooms(array $data): array
     {
+        if (array_key_exists('stay_segments', $data)) {
+            $rawSegments = is_array($data['stay_segments']) ? $data['stay_segments'] : [];
+            $this->assertStaySegments($rawSegments);
+            $segments = $this->cleanStaySegments($rawSegments);
+            unset($data['stay_segments'], $data['daily_rooms']);
+            $data['stay_segments'] = $segments;
+            if ($segments !== []) {
+                $data['daily_room_rates'] = $this->expandStaySegments($segments);
+                $totals = $this->totalsFromStaySegments($segments);
+                foreach (['single', 'double', 'triple'] as $type) {
+                    $data[$type.'_rooms'] = $totals[$type.'_rooms'];
+                    $data[$type.'_rate'] = $totals[$type.'_rate'];
+                }
+            } else {
+                $data['daily_room_rates'] = [];
+            }
+
+            return $data;
+        }
+
         if (! array_key_exists('daily_rooms', $data)) {
             return $data;
         }
@@ -992,6 +1065,225 @@ class EnquiryController extends Controller
 
     /**
      * @param  list<array<string, mixed>>  $rows
+     */
+    private function mealRevenueFromDailyRows(array $rows, float $rate): float
+    {
+        $total = 0.0;
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $covers = (max(0, (int) ($row['single_rooms'] ?? 0)) * 1)
+                + (max(0, (int) ($row['double_rooms'] ?? 0)) * 2)
+                + (max(0, (int) ($row['triple_rooms'] ?? 0)) * 3);
+            $total += $covers * $rate;
+        }
+
+        return round($total, 2);
+    }
+
+    /**
+     * @param  array<int, mixed>  $rows
+     */
+    private function assertStaySegments(array $rows): void
+    {
+        $errors = [];
+        foreach ($rows as $index => $row) {
+            if (! is_array($row) || $this->staySegmentIsBlank($row)) {
+                continue;
+            }
+
+            $label = 'Date range '.((int) $index + 1);
+            $checkIn = $row['check_in'] ?? null;
+            $checkOut = $row['check_out'] ?? null;
+            if (empty($checkIn) || empty($checkOut)) {
+                $errors['stay_segments.'.$index.'.check_in'] = $label.' needs an arrival date and a departure date.';
+
+                continue;
+            }
+
+            try {
+                $start = Carbon::parse($checkIn)->startOfDay();
+                $end = Carbon::parse($checkOut)->startOfDay();
+            } catch (\Throwable) {
+                $errors['stay_segments.'.$index.'.check_in'] = $label.' has a date that cannot be read.';
+
+                continue;
+            }
+
+            if ($end->lte($start)) {
+                $errors['stay_segments.'.$index.'.check_out'] = $label.' departure must be after its arrival.';
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private function staySegmentIsBlank(array $row): bool
+    {
+        foreach (['check_in', 'check_out', 'single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'] as $key) {
+            if (isset($row[$key]) && $row[$key] !== '' && $row[$key] !== null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param  array<int, mixed>  $rows
+     * @return list<array{check_in: string, check_out: string, day: string, nights: int, single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float}>
+     */
+    private function cleanStaySegments(array $rows): array
+    {
+        $clean = [];
+        foreach ($rows as $row) {
+            if (! is_array($row) || $this->staySegmentIsBlank($row) || empty($row['check_in']) || empty($row['check_out'])) {
+                continue;
+            }
+
+            try {
+                $start = Carbon::parse($row['check_in'])->startOfDay();
+                $end = Carbon::parse($row['check_out'])->startOfDay();
+            } catch (\Throwable) {
+                continue;
+            }
+
+            if ($end->lte($start)) {
+                continue;
+            }
+
+            $item = [
+                'check_in' => $start->toDateString(),
+                'check_out' => $end->toDateString(),
+                'day' => $start->format('l'),
+                'nights' => $start->diff($end)->days,
+            ];
+            foreach (['single', 'double', 'triple'] as $type) {
+                $item[$type.'_rooms'] = max(0, (int) ($row[$type.'_rooms'] ?? 0));
+                $item[$type.'_rate'] = round(max(0, (float) ($row[$type.'_rate'] ?? 0)), 2);
+            }
+            $clean[] = $item;
+
+            if (count($clean) >= 50) {
+                break;
+            }
+        }
+
+        return $clean;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $segments
+     * @return list<array{date: string, single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float}>
+     */
+    private function expandStaySegments(array $segments): array
+    {
+        $clean = [];
+        foreach ($segments as $segment) {
+            if (! is_array($segment) || empty($segment['check_in']) || empty($segment['check_out'])) {
+                continue;
+            }
+
+            try {
+                $cursor = Carbon::parse($segment['check_in'])->startOfDay();
+                $end = Carbon::parse($segment['check_out'])->startOfDay();
+            } catch (\Throwable) {
+                continue;
+            }
+
+            while ($cursor->lt($end) && count($clean) < 400) {
+                $item = ['date' => $cursor->toDateString()];
+                foreach (['single', 'double', 'triple'] as $type) {
+                    $item[$type.'_rooms'] = max(0, (int) ($segment[$type.'_rooms'] ?? 0));
+                    $item[$type.'_rate'] = round(max(0, (float) ($segment[$type.'_rate'] ?? 0)), 2);
+                }
+                $clean[$item['date']] = $item;
+                $cursor->addDay();
+            }
+        }
+
+        ksort($clean);
+
+        return array_values($clean);
+    }
+
+    /**
+     * Each segment uses the tracker formula: nights × ((single × rate) + (double × rate) + (triple × rate)).
+     *
+     * @param  list<array<string, mixed>>  $segments
+     * @return array{single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float, total_rns: int, total_revenue: float}
+     */
+    private function totalsFromStaySegments(array $segments): array
+    {
+        $totals = [
+            'single_rooms' => 0,
+            'single_rate' => 0.0,
+            'double_rooms' => 0,
+            'double_rate' => 0.0,
+            'triple_rooms' => 0,
+            'triple_rate' => 0.0,
+            'total_rns' => 0,
+            'total_revenue' => 0.0,
+        ];
+        $revenue = ['single' => 0.0, 'double' => 0.0, 'triple' => 0.0];
+
+        foreach ($segments as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $nights = max(0, (int) ($row['nights'] ?? 0));
+            foreach (['single', 'double', 'triple'] as $type) {
+                $rooms = max(0, (int) ($row[$type.'_rooms'] ?? 0));
+                $rate = max(0, (float) ($row[$type.'_rate'] ?? 0));
+                $roomNights = $nights * $rooms;
+                $totals[$type.'_rooms'] += $roomNights;
+                $amount = $roomNights * $rate;
+                $revenue[$type] += $amount;
+                $totals['total_rns'] += $roomNights;
+                $totals['total_revenue'] += $amount;
+            }
+        }
+
+        foreach (['single', 'double', 'triple'] as $type) {
+            $totals[$type.'_rate'] = $totals[$type.'_rooms'] > 0
+                ? round($revenue[$type] / $totals[$type.'_rooms'], 2)
+                : 0.0;
+        }
+        $totals['total_revenue'] = round($totals['total_revenue'], 2);
+
+        return $totals;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $segments
+     */
+    private function mealRevenueFromStaySegments(array $segments, float $rate): float
+    {
+        $total = 0.0;
+        foreach ($segments as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $nights = max(0, (int) ($row['nights'] ?? 0));
+            $covers = $nights * (
+                (max(0, (int) ($row['single_rooms'] ?? 0)) * 1)
+                + (max(0, (int) ($row['double_rooms'] ?? 0)) * 2)
+                + (max(0, (int) ($row['triple_rooms'] ?? 0)) * 3)
+            );
+            $total += $covers * $rate;
+        }
+
+        return round($total, 2);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
      * @return array{single_rooms: int, single_rate: float, double_rooms: int, double_rate: float, triple_rooms: int, triple_rate: float, total_rns: int, total_revenue: float, bb_revenue: float}
      */
     private function totalsFromDailyRows(array $rows): array
@@ -1007,8 +1299,7 @@ class EnquiryController extends Controller
             'total_revenue' => 0.0,
             'bb_revenue' => 0.0,
         ];
-        $rateSums = ['single' => 0.0, 'double' => 0.0, 'triple' => 0.0];
-        $rateCounts = ['single' => 0, 'double' => 0, 'triple' => 0];
+        $rateRevenue = ['single' => 0.0, 'double' => 0.0, 'triple' => 0.0];
         $allowance = ['single' => 10, 'double' => 20, 'triple' => 30];
 
         foreach ($rows as $row) {
@@ -1020,10 +1311,7 @@ class EnquiryController extends Controller
                 $rooms = max(0, (int) ($row[$type.'_rooms'] ?? 0));
                 $rate = max(0, (float) ($row[$type.'_rate'] ?? 0));
                 $totals[$type.'_rooms'] += $rooms;
-                if ($rooms > 0 || $rate > 0) {
-                    $rateSums[$type] += $rate;
-                    $rateCounts[$type]++;
-                }
+                $rateRevenue[$type] += $rooms * $rate;
                 $totals['total_rns'] += $rooms;
                 $totals['total_revenue'] += $rooms * $rate;
                 $totals['bb_revenue'] += $rooms * $allowance[$type];
@@ -1031,8 +1319,8 @@ class EnquiryController extends Controller
         }
 
         foreach (['single', 'double', 'triple'] as $type) {
-            $totals[$type.'_rate'] = $rateCounts[$type] > 0
-                ? round($rateSums[$type] / $rateCounts[$type], 2)
+            $totals[$type.'_rate'] = $totals[$type.'_rooms'] > 0
+                ? round($rateRevenue[$type] / $totals[$type.'_rooms'], 2)
                 : 0.0;
         }
 

@@ -307,7 +307,7 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
           <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-          <li class="breadcrumb-item"><a href="{{ route('group-bookings.index') }}">Group Bookings</a></li>
+          <li class="breadcrumb-item"><a href="{{ route('group-bookings.index') }}">Confirm Group Bookings</a></li>
           <li class="breadcrumb-item"><a href="{{ route('group-bookings.show', $enquiry) }}">{{ $enquiry->block_id ?: 'Booking' }}</a></li>
           <li class="breadcrumb-item active">Contract</li>
         </ol>

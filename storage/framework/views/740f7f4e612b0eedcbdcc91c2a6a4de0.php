@@ -26,8 +26,22 @@
 <form method="POST" action="<?php echo e(route('enquiries.group-booking.store', $enquiry)); ?>" class="enquiry-form" id="group-booking-form">
   <?php echo csrf_field(); ?>
   <input type="hidden" name="form_context" value="group">
+  <input type="hidden" name="stay_segments_present" value="1">
   <div id="gb-daily-room-fields" hidden></div>
   <script type="application/json" id="gb-daily-room-seed"><?php echo json_encode($enquiry->daily_room_rates ?? [], 15, 512) ?></script>
+  <?php
+    $segmentSeed = old('stay_segments');
+    if (! is_array($segmentSeed)) {
+        $segmentSeed = $enquiry->stay_segments ?? [];
+    }
+    $cityTaxConfig = [
+        'basis' => $enquiry->hotel?->city_tax_basis ?? '',
+        'amount' => $enquiry->hotel?->city_tax_amount,
+        'percentage' => $enquiry->hotel?->city_tax_percentage,
+    ];
+  ?>
+  <script type="application/json" id="gb-stay-segment-seed"><?php echo json_encode(array_values(is_array($segmentSeed) ? $segmentSeed : []), 15, 512) ?></script>
+  <script type="application/json" id="gb-city-tax-config"><?php echo json_encode($cityTaxConfig, 15, 512) ?></script>
 
   <div class="card mb-3">
     <div class="card-header">
@@ -163,25 +177,6 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('client')); ?>" maxlength="255">
           <?php $__errorArgs = ['client'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-        </div>
-        <div class="col-md-6">
-          <label for="gb_agency_ref" class="form-label">Agency - Ref</label>
-          <input type="text" name="agency_ref" id="gb_agency_ref" class="form-control <?php $__errorArgs = ['agency_ref'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('agency_ref')); ?>" maxlength="255">
-          <?php $__errorArgs = ['agency_ref'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -469,6 +464,25 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
         </div>
+        <div class="col-md-6 col-xl-3" id="gb_commission_percentage_wrap" <?php if (! ($selectedHasCommission === '1' || $selectedHasCommission === 1 || $selectedHasCommission === true)): ?> hidden <?php endif; ?>>
+          <label for="gb_commission_percentage" class="form-label">Commission %</label>
+          <input type="text" name="commission_percentage" id="gb_commission_percentage" inputmode="decimal" class="form-control js-decimal <?php $__errorArgs = ['commission_percentage'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('commission_percentage')); ?>" placeholder="0">
+          <?php $__errorArgs = ['commission_percentage'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+        </div>
       </div>
     </div>
   </div>
@@ -479,26 +493,10 @@ unset($__errorArgs, $__bag); ?>
       <span class="enquiry-section-hint" id="gb_rooms_hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
     </div>
     <div class="card-body">
-      <div class="row g-3">
-        <?php $__currentLoopData = [
-          'single' => ['label' => 'Single', 'icon' => 'bi-person', 'rooms' => 'Single RNs', 'rate' => 'Single Gross Rate'],
-          'double' => ['label' => 'Double', 'icon' => 'bi-people', 'rooms' => 'Double RNs', 'rate' => 'Double Gross Rate'],
-          'triple' => ['label' => 'Triple', 'icon' => 'bi-people-fill', 'rooms' => 'Triple RNs', 'rate' => 'Triple Gross Rate'],
-        ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-          <div class="col-md-4">
-            <div class="room-rate-card">
-              <h3><i class="bi <?php echo e($meta['icon']); ?>"></i> <?php echo e($meta['label']); ?></h3>
-              <div class="mb-3">
-                <label for="gb_<?php echo e($type); ?>_rooms" class="form-label"><?php echo e($meta['rooms']); ?></label>
-                <input type="text" name="<?php echo e($type); ?>_rooms" id="gb_<?php echo e($type); ?>_rooms" inputmode="numeric" class="form-control js-digits gb-calc <?php $__errorArgs = [$type.'_rooms'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v($type.'_rooms')); ?>">
-                <?php $__errorArgs = [$type.'_rooms'];
+      <?php $__currentLoopData = ['single', 'double', 'triple']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <input type="hidden" name="<?php echo e($type); ?>_rooms" id="gb_<?php echo e($type); ?>_rooms" value="<?php echo e($v($type.'_rooms')); ?>">
+        <input type="hidden" name="<?php echo e($type); ?>_rate" id="gb_<?php echo e($type); ?>_rate" value="<?php echo e($v($type.'_rate')); ?>">
+        <?php $__errorArgs = [$type.'_rooms'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -506,18 +504,7 @@ $message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-bloc
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-              </div>
-              <div>
-                <label for="gb_<?php echo e($type); ?>_rate" class="form-label"><?php echo e($meta['rate']); ?></label>
-                <input type="text" name="<?php echo e($type); ?>_rate" id="gb_<?php echo e($type); ?>_rate" inputmode="decimal" class="form-control js-decimal gb-calc <?php $__errorArgs = [$type.'_rate'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v($type.'_rate')); ?>">
-                <?php $__errorArgs = [$type.'_rate'];
+        <?php $__errorArgs = [$type.'_rate'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -525,11 +512,64 @@ $message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-bloc
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-              </div>
-            </div>
+      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+      <div id="gb-stay-segments" class="gb-stay-segments">
+        <div class="gb-segment-toolbar">
+          <div>
+            <h3 class="stay-date-title">Date ranges</h3>
+            <p class="stay-date-hint mb-0">Each row is one arrival and departure for this booking. A row’s revenue is nights × ((Single × rate) + (Double × rate) + (Triple × rate)). Room totals are room nights: rooms × nights. The total row adds every range, including ranges that overlap or have a different length of stay.</p>
           </div>
+          <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" id="gb-add-stay-segment">
+            <i class="bi bi-plus-lg"></i> Add date range
+          </button>
+        </div>
+        <?php $__currentLoopData = $errors->get('stay_segments.*'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $messages): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+          <?php $__currentLoopData = $messages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $message): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <div class="invalid-feedback d-block"><?php echo e($message); ?></div>
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        <p id="gb-segment-note" class="gb-segment-note" hidden></p>
+        <div class="table-responsive mt-2" id="gb-segment-wrap" hidden>
+          <table class="table table-sm table-hover stay-date-table mb-0" id="gb-segment-table">
+            <thead>
+              <tr>
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Day</th>
+                <th>Nights</th>
+                <th>Single</th>
+                <th>Rate</th>
+                <th>Double</th>
+                <th>Rate</th>
+                <th>Triple</th>
+                <th>Rate</th>
+                <th class="stay-calc">Revenue</th>
+                <th class="stay-calc gb-seg-bb">BB</th>
+                <th class="stay-calc gb-seg-dinner">Dinner</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="gb-segment-body"></tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="3">Total</th>
+                <td id="gb-segment-nights">0</td>
+                <td id="gb-segment-single-rooms">0</td>
+                <td id="gb-segment-single-rate">0.00</td>
+                <td id="gb-segment-double-rooms">0</td>
+                <td id="gb-segment-double-rate">0.00</td>
+                <td id="gb-segment-triple-rooms">0</td>
+                <td id="gb-segment-triple-rate">0.00</td>
+                <td class="stay-calc" id="gb-segment-revenue">0.00</td>
+                <td class="stay-calc gb-seg-bb" id="gb-segment-bb">0.00</td>
+                <td class="stay-calc gb-seg-dinner" id="gb-segment-dinner">0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
+      <div id="gb-daily-breakdown" class="gb-daily-breakdown"></div>
     </div>
   </div>
 
@@ -564,7 +604,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
         </div>
         <div class="col-md-6 col-xl-3" id="gb_breakfast_rate_wrap" <?php if (! ($showBreakfastRate)): ?> hidden <?php endif; ?>>
-          <label for="gb_breakfast_rate" class="form-label">Breakfast rate <span class="text-danger">*</span></label>
+          <label for="gb_breakfast_rate" class="form-label">Breakfast rate (Net)<span class="text-danger">*</span></label>
           <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc <?php $__errorArgs = ['breakfast_rate'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -684,6 +724,14 @@ $message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-bloc
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
+            <label for="gb_city_tax_display" class="form-label">City Tax</label>
+            <input type="text" id="gb_city_tax_display" class="form-control" value="" readonly>
+            <input type="hidden" name="city_tax" id="gb_city_tax" value="<?php echo e($v('city_tax')); ?>">
+            <div class="form-text" id="gb_city_tax_hint"></div>
           </div>
         </div>
       </div>

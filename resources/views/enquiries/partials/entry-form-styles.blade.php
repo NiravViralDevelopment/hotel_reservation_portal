@@ -112,4 +112,52 @@
     background: var(--bs-secondary-bg);
     border-top: 2px solid var(--border-color);
   }
+  .enquiry-form-layout .stay-date-table .stay-calc {
+    background: color-mix(in srgb, var(--brand-primary) 7%, var(--bs-body-bg));
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .enquiry-form-layout .stay-date-table thead .stay-calc {
+    text-align: right;
+  }
+  .enquiry-form-layout .gb-daily-breakdown {
+    margin-top: 1.25rem;
+  }
+  .enquiry-form-layout .gb-daily-breakdown .stay-date-table th,
+  .enquiry-form-layout .gb-daily-breakdown .stay-date-table td {
+    text-align: right;
+  }
+  .enquiry-form-layout .gb-daily-breakdown .stay-date-table th:first-child,
+  .enquiry-form-layout .gb-daily-breakdown .stay-date-table td:first-child {
+    text-align: left;
+  }
+  .enquiry-form-layout .gb-segment-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+  .enquiry-form-layout #gb-stay-segments .gb-segment-toolbar {
+    margin-top: 0;
+  }
+  .enquiry-form-layout .gb-segment-note {
+    margin: 0.65rem 0 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  .enquiry-form-layout .gb-stay-segments .stay-date-table .form-control {
+    min-width: 4.5rem;
+  }
+  .enquiry-form-layout .gb-stay-segments .stay-date-table input[type="date"] {
+    min-width: 8.5rem;
+  }
+  @media (max-width: 575.98px) {
+    .enquiry-form-layout .gb-segment-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
 </style>

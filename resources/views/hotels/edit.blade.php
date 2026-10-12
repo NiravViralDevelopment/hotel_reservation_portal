@@ -151,6 +151,8 @@
       </div>
     </div>
 
+    @include('hotels.partials.city-tax-fields')
+
     <div class="card mb-4">
       <div class="card-header">
         <h2 class="hotel-section-title"><i class="bi bi-image"></i> Logo</h2>

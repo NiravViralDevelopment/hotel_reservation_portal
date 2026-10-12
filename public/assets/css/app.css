@@ -156,6 +156,15 @@ a:hover {
   margin-bottom: 1rem;
 }
 
+.login-brand-logo {
+  display: block;
+  width: 148px;
+  height: auto;
+  margin: 0 auto 1.15rem;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
 .login-brand h1 {
   font-size: 1.375rem;
   font-weight: 700;
@@ -296,13 +305,37 @@ a:hover {
 }
 
 .sidebar-brand {
-  height: var(--header-height);
+  height: auto;
+  min-height: var(--header-height);
   display: flex;
   align-items: center;
-  padding: 0 1.25rem;
+  justify-content: center;
+  padding: 0.7rem 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
   gap: 0.75rem;
+}
+
+.sidebar-brand-logo {
+  display: block;
+  width: auto;
+  height: 82px;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 0.65rem;
+  background: #fff;
+  padding: 4px;
+}
+
+.app-sidebar.collapsed .sidebar-brand {
+  padding: 0.55rem 0;
+}
+
+.app-sidebar.collapsed .sidebar-brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  object-position: center 22%;
 }
 
 .sidebar-brand-icon {
@@ -1341,6 +1374,17 @@ a:hover {
     height: auto;
     padding: inherit;
     overflow: visible;
+  }
+
+  .app-sidebar.collapsed .sidebar-brand {
+    padding: 0.7rem 0.85rem;
+  }
+
+  .app-sidebar.collapsed .sidebar-brand-logo {
+    width: auto;
+    height: 82px;
+    object-fit: contain;
+    object-position: center;
   }
 
   .app-main {

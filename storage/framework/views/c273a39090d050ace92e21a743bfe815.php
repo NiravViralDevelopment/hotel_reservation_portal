@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Group bookings'); ?>
+<?php $__env->startSection('title', 'Confirm Group Bookings'); ?>
 <?php $__env->startSection('page', 'group-bookings'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -7,10 +7,10 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
           <li class="breadcrumb-item"><a href="<?php echo e(route('dashboard')); ?>">Home</a></li>
-          <li class="breadcrumb-item active">Group bookings</li>
+          <li class="breadcrumb-item active">Confirm Group Bookings</li>
         </ol>
       </nav>
-      <h1 class="page-title">Group bookings</h1>
+      <h1 class="page-title">Confirm Group Bookings</h1>
       <p class="page-subtitle">Watch arrival, payment due, and CXL due date highlights so deadlines are not missed.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">

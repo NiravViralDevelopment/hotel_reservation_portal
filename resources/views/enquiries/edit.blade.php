@@ -18,7 +18,7 @@
       </ol>
     </nav>
     <h1 class="page-title">{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? 'Edit cancelled inquiry' : 'Edit enquiry' }}</h1>
-    <p class="page-subtitle mb-0">{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? 'This inquiry stays in Cancelled Inquiry. Set the status to Quoted to move it back to Enquiries.' : 'Save changes to this enquiry, open Group Bookings, or cancel the inquiry.' }}</p>
+    <p class="page-subtitle mb-0">{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? 'This inquiry stays in Cancelled Inquiry. Set the status to Quoted to move it back to Enquiries.' : 'Save changes to this enquiry, open Confirm Group Bookings, or cancel the inquiry.' }}</p>
   </div>
 
   <form method="POST" action="{{ route('enquiries.update', $enquiry) }}" class="enquiry-form" data-enquiry-create="1" novalidate data-existing-pairs='@json($existingPairs)'>
@@ -31,7 +31,7 @@
         <i class="bi bi-check-lg"></i> Save enquiry
       </button>
       <button type="button" class="btn btn-outline-secondary" id="show-group-booking">
-        <i class="bi bi-calendar-check"></i> Group Bookings
+        <i class="bi bi-calendar-check"></i> Confirm Group Bookings
       </button>
       <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelInquiryModal">
         <i class="bi bi-x-circle"></i> Cancel Inquiry
@@ -46,7 +46,7 @@
   @endphp
   <div id="group-booking-section" class="mt-2 {{ $showGroupBooking ? '' : 'd-none' }}">
     <div class="page-header mb-3">
-      <h2 class="page-title h4 mb-1">Group Bookings</h2>
+      <h2 class="page-title h4 mb-1">Confirm Group Bookings</h2>
       <p class="page-subtitle mb-0">Fill in the booking details below. Submitting sets the status to Confirmed.</p>
     </div>
     @include('enquiries.partials.group-booking-form')

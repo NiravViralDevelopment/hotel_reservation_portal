@@ -158,7 +158,7 @@
         <?php endif; ?>
       <?php endif; ?>
       <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $enquiry)): ?>
-        <a href="<?php echo e(route('enquiries.edit', $enquiry)); ?>" class="btn btn-outline-secondary btn-sm">
+        <a href="<?php echo e($enquiry->is_cancel && ! $enquiry->is_confirm ? route('cancelled-inquiries.edit', $enquiry) : route('enquiries.edit', $enquiry)); ?>" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-pencil"></i> Edit
         </a>
         <a href="#client-response" class="btn btn-outline-secondary btn-sm">
@@ -298,9 +298,67 @@
                   $dailyByDate[\Illuminate\Support\Carbon::parse($row['date'])->toDateString()] = $row;
               }
           }
+          $hasDailyRooms = $dailyByDate !== [];
           $stayCursor = $enquiry->check_in->copy()->startOfDay();
           $stayEnd = $enquiry->check_out->copy()->startOfDay();
           $stayCount = 0;
+          $roomTotals = [
+              'single_rooms' => 0,
+              'double_rooms' => 0,
+              'triple_rooms' => 0,
+          ];
+          $revenueTotals = ['single' => 0.0, 'double' => 0.0, 'triple' => 0.0];
+          $dayRoomsTotal = 0;
+          $dayRevenueTotal = 0.0;
+          $showBreakfast = in_array($enquiry->basis, ['BB', 'DBB'], true);
+          $showDinner = $enquiry->basis === 'DBB';
+          $breakfastRate = (float) ($enquiry->breakfast_rate ?? 0);
+          $dinnerRate = (float) ($enquiry->dinner_rate ?? 0);
+          $bbTotal = 0.0;
+          $dinnerTotal = 0.0;
+          $stayDays = [];
+          while ($stayCursor->lt($stayEnd) && $stayCount < 400) {
+              $dayKey = $stayCursor->toDateString();
+              $dayRow = $dailyByDate[$dayKey] ?? null;
+              $singleRooms = (int) ($dayRow['single_rooms'] ?? ($hasDailyRooms ? 0 : ($enquiry->single_rooms ?? 0)));
+              $singleRate = (float) ($dayRow['single_rate'] ?? ($hasDailyRooms ? 0 : ($enquiry->single_rate ?? 0)));
+              $doubleRooms = (int) ($dayRow['double_rooms'] ?? ($hasDailyRooms ? 0 : ($enquiry->double_rooms ?? 0)));
+              $doubleRate = (float) ($dayRow['double_rate'] ?? ($hasDailyRooms ? 0 : ($enquiry->double_rate ?? 0)));
+              $tripleRooms = (int) ($dayRow['triple_rooms'] ?? ($hasDailyRooms ? 0 : ($enquiry->triple_rooms ?? 0)));
+              $tripleRate = (float) ($dayRow['triple_rate'] ?? ($hasDailyRooms ? 0 : ($enquiry->triple_rate ?? 0)));
+              $dayRooms = $singleRooms + $doubleRooms + $tripleRooms;
+              $dayRevenue = ($singleRooms * $singleRate) + ($doubleRooms * $doubleRate) + ($tripleRooms * $tripleRate);
+              $covers = ($singleRooms * 1) + ($doubleRooms * 2) + ($tripleRooms * 3);
+              $roomTotals['single_rooms'] += $singleRooms;
+              $roomTotals['double_rooms'] += $doubleRooms;
+              $roomTotals['triple_rooms'] += $tripleRooms;
+              $revenueTotals['single'] += $singleRooms * $singleRate;
+              $revenueTotals['double'] += $doubleRooms * $doubleRate;
+              $revenueTotals['triple'] += $tripleRooms * $tripleRate;
+              $dayRoomsTotal += $dayRooms;
+              $dayRevenueTotal += $dayRevenue;
+              $bbTotal += $covers * $breakfastRate;
+              $dinnerTotal += $covers * $dinnerRate;
+              $stayDays[] = [
+                  'label' => $stayCursor->format('d-m-Y'),
+                  'single_rooms' => $singleRooms,
+                  'single_rate' => $singleRate,
+                  'double_rooms' => $doubleRooms,
+                  'double_rate' => $doubleRate,
+                  'triple_rooms' => $tripleRooms,
+                  'triple_rate' => $tripleRate,
+                  'rooms' => $dayRooms,
+                  'average' => $dayRooms > 0 ? $dayRevenue / $dayRooms : 0,
+                  'revenue' => $dayRevenue,
+                  'bb' => $covers * $breakfastRate,
+                  'dinner' => $covers * $dinnerRate,
+              ];
+              $stayCursor->addDay();
+              $stayCount++;
+          }
+          $weighted = function (int $rooms, float $revenue): float {
+              return $rooms > 0 ? $revenue / $rooms : 0;
+          };
         ?>
         <div class="table-responsive">
           <table class="table table-sm table-hover mb-0">
@@ -310,6 +368,15 @@
                 <th colspan="2">Single Room &amp; Rate</th>
                 <th colspan="2">Double Room &amp; Rate</th>
                 <th colspan="2">Triple Room &amp; Rate</th>
+                <th rowspan="2" class="text-end">Total rooms</th>
+                <th rowspan="2" class="text-end">Avg rate</th>
+                <th rowspan="2" class="text-end">Revenue</th>
+                <?php if($showBreakfast): ?>
+                  <th rowspan="2" class="text-end">BB</th>
+                <?php endif; ?>
+                <?php if($showDinner): ?>
+                  <th rowspan="2" class="text-end">Dinner</th>
+                <?php endif; ?>
               </tr>
               <tr>
                 <th>Rooms</th>
@@ -321,32 +388,47 @@
               </tr>
             </thead>
             <tbody>
-              <?php while($stayCursor->lt($stayEnd) && $stayCount < 400): ?>
-                <?php
-                  $dayKey = $stayCursor->toDateString();
-                  $dayRow = $dailyByDate[$dayKey] ?? null;
-                  $singleRooms = $dayRow['single_rooms'] ?? $enquiry->single_rooms;
-                  $singleRate = $dayRow['single_rate'] ?? $enquiry->single_rate;
-                  $doubleRooms = $dayRow['double_rooms'] ?? $enquiry->double_rooms;
-                  $doubleRate = $dayRow['double_rate'] ?? $enquiry->double_rate;
-                  $tripleRooms = $dayRow['triple_rooms'] ?? $enquiry->triple_rooms;
-                  $tripleRate = $dayRow['triple_rate'] ?? $enquiry->triple_rate;
-                ?>
+              <?php $__currentLoopData = $stayDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
-                  <td class="fw-semibold text-nowrap"><?php echo e($stayCursor->format('d-m-Y')); ?></td>
-                  <td><?php echo e($singleRooms ?? '—'); ?></td>
-                  <td><?php echo e($money($singleRate)); ?></td>
-                  <td><?php echo e($doubleRooms ?? '—'); ?></td>
-                  <td><?php echo e($money($doubleRate)); ?></td>
-                  <td><?php echo e($tripleRooms ?? '—'); ?></td>
-                  <td><?php echo e($money($tripleRate)); ?></td>
+                  <td class="fw-semibold text-nowrap"><?php echo e($day['label']); ?></td>
+                  <td><?php echo e($day['single_rooms']); ?></td>
+                  <td><?php echo e($money($day['single_rate'])); ?></td>
+                  <td><?php echo e($day['double_rooms']); ?></td>
+                  <td><?php echo e($money($day['double_rate'])); ?></td>
+                  <td><?php echo e($day['triple_rooms']); ?></td>
+                  <td><?php echo e($money($day['triple_rate'])); ?></td>
+                  <td class="text-end fw-semibold"><?php echo e($day['rooms']); ?></td>
+                  <td class="text-end fw-semibold"><?php echo e($money($day['average'])); ?></td>
+                  <td class="text-end fw-semibold"><?php echo e($money($day['revenue'])); ?></td>
+                  <?php if($showBreakfast): ?>
+                    <td class="text-end fw-semibold"><?php echo e($money($day['bb'])); ?></td>
+                  <?php endif; ?>
+                  <?php if($showDinner): ?>
+                    <td class="text-end fw-semibold"><?php echo e($money($day['dinner'])); ?></td>
+                  <?php endif; ?>
                 </tr>
-                <?php
-                  $stayCursor->addDay();
-                  $stayCount++;
-                ?>
-              <?php endwhile; ?>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">Total</th>
+                <td class="fw-semibold"><?php echo e($roomTotals['single_rooms']); ?></td>
+                <td class="fw-semibold"><?php echo e($money($weighted($roomTotals['single_rooms'], $revenueTotals['single']))); ?></td>
+                <td class="fw-semibold"><?php echo e($roomTotals['double_rooms']); ?></td>
+                <td class="fw-semibold"><?php echo e($money($weighted($roomTotals['double_rooms'], $revenueTotals['double']))); ?></td>
+                <td class="fw-semibold"><?php echo e($roomTotals['triple_rooms']); ?></td>
+                <td class="fw-semibold"><?php echo e($money($weighted($roomTotals['triple_rooms'], $revenueTotals['triple']))); ?></td>
+                <td class="text-end fw-semibold"><?php echo e($dayRoomsTotal); ?></td>
+                <td class="text-end fw-semibold"><?php echo e($money($weighted($dayRoomsTotal, $dayRevenueTotal))); ?></td>
+                <td class="text-end fw-semibold"><?php echo e($money($dayRevenueTotal)); ?></td>
+                <?php if($showBreakfast): ?>
+                  <td class="text-end fw-semibold"><?php echo e($money($bbTotal)); ?></td>
+                <?php endif; ?>
+                <?php if($showDinner): ?>
+                  <td class="text-end fw-semibold"><?php echo e($money($dinnerTotal)); ?></td>
+                <?php endif; ?>
+              </tr>
+            </tfoot>
           </table>
         </div>
       <?php else: ?>

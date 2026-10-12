@@ -208,6 +208,15 @@ class EnquiryFieldRules
             'daily_rooms.*.double_rate' => $rate,
             'daily_rooms.*.triple_rooms' => $room,
             'daily_rooms.*.triple_rate' => $rate,
+            'stay_segments' => ['nullable', 'array', 'max:50'],
+            'stay_segments.*.check_in' => ['nullable', 'date'],
+            'stay_segments.*.check_out' => ['nullable', 'date'],
+            'stay_segments.*.single_rooms' => $room,
+            'stay_segments.*.single_rate' => $rate,
+            'stay_segments.*.double_rooms' => $room,
+            'stay_segments.*.double_rate' => $rate,
+            'stay_segments.*.triple_rooms' => $room,
+            'stay_segments.*.triple_rate' => $rate,
         ];
     }
 }

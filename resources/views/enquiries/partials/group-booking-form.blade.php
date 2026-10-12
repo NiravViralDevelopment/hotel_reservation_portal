@@ -26,8 +26,22 @@
 <form method="POST" action="{{ route('enquiries.group-booking.store', $enquiry) }}" class="enquiry-form" id="group-booking-form">
   @csrf
   <input type="hidden" name="form_context" value="group">
+  <input type="hidden" name="stay_segments_present" value="1">
   <div id="gb-daily-room-fields" hidden></div>
   <script type="application/json" id="gb-daily-room-seed">@json($enquiry->daily_room_rates ?? [])</script>
+  @php
+    $segmentSeed = old('stay_segments');
+    if (! is_array($segmentSeed)) {
+        $segmentSeed = $enquiry->stay_segments ?? [];
+    }
+    $cityTaxConfig = [
+        'basis' => $enquiry->hotel?->city_tax_basis ?? '',
+        'amount' => $enquiry->hotel?->city_tax_amount,
+        'percentage' => $enquiry->hotel?->city_tax_percentage,
+    ];
+  @endphp
+  <script type="application/json" id="gb-stay-segment-seed">@json(array_values(is_array($segmentSeed) ? $segmentSeed : []))</script>
+  <script type="application/json" id="gb-city-tax-config">@json($cityTaxConfig)</script>
 
   <div class="card mb-3">
     <div class="card-header">
@@ -86,11 +100,6 @@
           <label for="gb_client" class="form-label">Client</label>
           <input type="text" name="client" id="gb_client" class="form-control @error('client') is-invalid @enderror" value="{{ $v('client') }}" maxlength="255">
           @error('client')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-        </div>
-        <div class="col-md-6">
-          <label for="gb_agency_ref" class="form-label">Agency - Ref</label>
-          <input type="text" name="agency_ref" id="gb_agency_ref" class="form-control @error('agency_ref') is-invalid @enderror" value="{{ $v('agency_ref') }}" maxlength="255">
-          @error('agency_ref')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6">
           <label for="gb_contact_name" class="form-label">Contact</label>
@@ -217,6 +226,11 @@
           </div>
           @error('has_commission')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
+        <div class="col-md-6 col-xl-3" id="gb_commission_percentage_wrap" @unless ($selectedHasCommission === '1' || $selectedHasCommission === 1 || $selectedHasCommission === true) hidden @endunless>
+          <label for="gb_commission_percentage" class="form-label">Commission %</label>
+          <input type="text" name="commission_percentage" id="gb_commission_percentage" inputmode="decimal" class="form-control js-decimal @error('commission_percentage') is-invalid @enderror" value="{{ $v('commission_percentage') }}" placeholder="0">
+          @error('commission_percentage')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
       </div>
     </div>
   </div>
@@ -227,29 +241,69 @@
       <span class="enquiry-section-hint" id="gb_rooms_hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
     </div>
     <div class="card-body">
-      <div class="row g-3">
-        @foreach ([
-          'single' => ['label' => 'Single', 'icon' => 'bi-person', 'rooms' => 'Single RNs', 'rate' => 'Single Gross Rate'],
-          'double' => ['label' => 'Double', 'icon' => 'bi-people', 'rooms' => 'Double RNs', 'rate' => 'Double Gross Rate'],
-          'triple' => ['label' => 'Triple', 'icon' => 'bi-people-fill', 'rooms' => 'Triple RNs', 'rate' => 'Triple Gross Rate'],
-        ] as $type => $meta)
-          <div class="col-md-4">
-            <div class="room-rate-card">
-              <h3><i class="bi {{ $meta['icon'] }}"></i> {{ $meta['label'] }}</h3>
-              <div class="mb-3">
-                <label for="gb_{{ $type }}_rooms" class="form-label">{{ $meta['rooms'] }}</label>
-                <input type="text" name="{{ $type }}_rooms" id="gb_{{ $type }}_rooms" inputmode="numeric" class="form-control js-digits gb-calc @error($type.'_rooms') is-invalid @enderror" value="{{ $v($type.'_rooms') }}">
-                @error($type.'_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-              </div>
-              <div>
-                <label for="gb_{{ $type }}_rate" class="form-label">{{ $meta['rate'] }}</label>
-                <input type="text" name="{{ $type }}_rate" id="gb_{{ $type }}_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error($type.'_rate') is-invalid @enderror" value="{{ $v($type.'_rate') }}">
-                @error($type.'_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-              </div>
-            </div>
+      @foreach (['single', 'double', 'triple'] as $type)
+        <input type="hidden" name="{{ $type }}_rooms" id="gb_{{ $type }}_rooms" value="{{ $v($type.'_rooms') }}">
+        <input type="hidden" name="{{ $type }}_rate" id="gb_{{ $type }}_rate" value="{{ $v($type.'_rate') }}">
+        @error($type.'_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        @error($type.'_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      @endforeach
+      <div id="gb-stay-segments" class="gb-stay-segments">
+        <div class="gb-segment-toolbar">
+          <div>
+            <h3 class="stay-date-title">Date ranges</h3>
+            <p class="stay-date-hint mb-0">Each row is one arrival and departure for this booking. A row’s revenue is nights × ((Single × rate) + (Double × rate) + (Triple × rate)). Room totals are room nights: rooms × nights. The total row adds every range, including ranges that overlap or have a different length of stay.</p>
           </div>
+          <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" id="gb-add-stay-segment">
+            <i class="bi bi-plus-lg"></i> Add date range
+          </button>
+        </div>
+        @foreach ($errors->get('stay_segments.*') as $messages)
+          @foreach ($messages as $message)
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+          @endforeach
         @endforeach
+        <p id="gb-segment-note" class="gb-segment-note" hidden></p>
+        <div class="table-responsive mt-2" id="gb-segment-wrap" hidden>
+          <table class="table table-sm table-hover stay-date-table mb-0" id="gb-segment-table">
+            <thead>
+              <tr>
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Day</th>
+                <th>Nights</th>
+                <th>Single</th>
+                <th>Rate</th>
+                <th>Double</th>
+                <th>Rate</th>
+                <th>Triple</th>
+                <th>Rate</th>
+                <th class="stay-calc">Revenue</th>
+                <th class="stay-calc gb-seg-bb">BB</th>
+                <th class="stay-calc gb-seg-dinner">Dinner</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="gb-segment-body"></tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="3">Total</th>
+                <td id="gb-segment-nights">0</td>
+                <td id="gb-segment-single-rooms">0</td>
+                <td id="gb-segment-single-rate">0.00</td>
+                <td id="gb-segment-double-rooms">0</td>
+                <td id="gb-segment-double-rate">0.00</td>
+                <td id="gb-segment-triple-rooms">0</td>
+                <td id="gb-segment-triple-rate">0.00</td>
+                <td class="stay-calc" id="gb-segment-revenue">0.00</td>
+                <td class="stay-calc gb-seg-bb" id="gb-segment-bb">0.00</td>
+                <td class="stay-calc gb-seg-dinner" id="gb-segment-dinner">0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
+      <div id="gb-daily-breakdown" class="gb-daily-breakdown"></div>
     </div>
   </div>
 
@@ -270,7 +324,7 @@
           @error('basis')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-3" id="gb_breakfast_rate_wrap" @unless ($showBreakfastRate) hidden @endunless>
-          <label for="gb_breakfast_rate" class="form-label">Breakfast rate <span class="text-danger">*</span></label>
+          <label for="gb_breakfast_rate" class="form-label">Breakfast rate (Net)<span class="text-danger">*</span></label>
           <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('breakfast_rate') is-invalid @enderror" value="{{ $v('breakfast_rate') }}">
           @error('breakfast_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
@@ -320,6 +374,14 @@
             <input type="hidden" name="nett_rev_ex_vat" id="gb_nett_rev_ex_vat" value="{{ $v('nett_rev_ex_vat') }}">
             <div class="form-text" id="gb_nett_rev_ex_vat_hint">(Total Rev × 100 / 120) − BB Revenue</div>
             @error('nett_rev_ex_vat')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
+            <label for="gb_city_tax_display" class="form-label">City Tax</label>
+            <input type="text" id="gb_city_tax_display" class="form-control" value="" readonly>
+            <input type="hidden" name="city_tax" id="gb_city_tax" value="{{ $v('city_tax') }}">
+            <div class="form-text" id="gb_city_tax_hint"></div>
           </div>
         </div>
       </div>

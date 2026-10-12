@@ -122,10 +122,14 @@
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-    <span class="enquiry-section-hint">Room dates run from arrival through the night before departure (checkout day is not charged).</span>
+    <span class="enquiry-section-hint">Each row is one date range. Enter the rooms per night. That row’s revenue is nights × ((Single × rate) + (Double × rate) + (Triple × rate)). The total adds every row.</span>
   </div>
   <div class="card-body">
     @php
+      $segmentSeed = old('stay_segments');
+      if (! is_array($segmentSeed)) {
+          $segmentSeed = $e?->stay_segments ?? [];
+      }
       $dailySeed = old('daily_rooms');
       if (! is_array($dailySeed)) {
           $dailySeed = [];
@@ -136,9 +140,14 @@
           }
       }
     @endphp
+    <script type="application/json" id="stay-segment-seed">@json(array_values(is_array($segmentSeed) ? $segmentSeed : []))</script>
     <script type="application/json" id="daily-room-seed">@json($dailySeed)</script>
     <div class="stay-date-breakdown" id="stay-date-breakdown">
-      <div id="stay-date-list"></div>
+      <div class="gb-segment-toolbar">
+        <p class="stay-date-hint mb-0">Rooms are per night, as in the tracker. A 3-night row is entered once, and the nights figure multiplies it.</p>
+        <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" id="add-stay-range"><i class="bi bi-plus-lg"></i> Add date range</button>
+      </div>
+      <div id="stay-date-list" class="mt-2"></div>
     </div>
   </div>
 </div>
@@ -188,7 +197,7 @@
           <label for="total_revenue_display" class="form-label">Total Revenue</label>
           <input type="text" id="total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
           <input type="hidden" name="total_revenue" id="total_revenue" value="{{ $v('total_revenue') }}">
-          <div class="form-text">((Single × rate) + (Double × rate) + (Triple × rate)) × nights</div>
+          <div class="form-text">Sum of each row: Nights × ((Single × rate) + (Double × rate) + (Triple × rate))</div>
           @error('total_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>

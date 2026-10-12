@@ -52,7 +52,7 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
           <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-          <li class="breadcrumb-item"><a href="{{ ! empty($cancelledContext) ? route('cancelled-bookings.index') : route('group-bookings.index') }}">{{ ! empty($cancelledContext) ? 'Cancelled Bookings' : 'Group Bookings' }}</a></li>
+          <li class="breadcrumb-item"><a href="{{ ! empty($cancelledContext) ? route('cancelled-bookings.index') : route('group-bookings.index') }}">{{ ! empty($cancelledContext) ? 'Cancelled Bookings' : 'Confirm Group Bookings' }}</a></li>
           <li class="breadcrumb-item active">{{ $enquiry->block_id ?: ($enquiry->group_name ?: 'Booking') }}</li>
         </ol>
       </nav>
@@ -105,7 +105,6 @@
     <div class="card-body">
       <div class="gb-dl">
         <div><div class="gb-label">Client</div><div class="gb-value">{{ $text($enquiry->client) }}</div></div>
-        <div><div class="gb-label">Agency - Ref</div><div class="gb-value">{{ $text($enquiry->agency_ref) }}</div></div>
         <div><div class="gb-label">Contact</div><div class="gb-value">{{ $text($enquiry->contact_name) }}</div></div>
         <div><div class="gb-label">Email ID</div><div class="gb-value">{{ $text($enquiry->email) }}</div></div>
         <div><div class="gb-label">Status</div><div class="gb-value"><x-badge-status :status="$enquiry->status" /></div></div>
@@ -149,6 +148,9 @@
           <div><div class="gb-label">CXL Date</div><div class="gb-value">{{ $date($enquiry->cxl_date) }}</div></div>
         @endif
         <div><div class="gb-label">Commission</div><div class="gb-value">{{ $enquiry->has_commission === null ? '—' : ($enquiry->has_commission ? 'Yes' : 'No') }}</div></div>
+        @if ($enquiry->has_commission)
+          <div><div class="gb-label">Commission %</div><div class="gb-value">{{ $enquiry->commission_percentage === null ? '—' : rtrim(rtrim(number_format((float) $enquiry->commission_percentage, 2), '0'), '.').'%' }}</div></div>
+        @endif
       </div>
     </div>
   </div>
@@ -168,8 +170,103 @@
         <div><div class="gb-label">BB Revenue (Nett £10)</div><div class="gb-value">{{ $money($enquiry->bb_revenue) }}</div></div>
         <div><div class="gb-label">Dinner Revenue (Nett £)</div><div class="gb-value">{{ $money($enquiry->dinner_revenue) }}</div></div>
         <div><div class="gb-label">Nett Rev EX VAT &amp; BF</div><div class="gb-value">{{ $money($enquiry->nett_rev_ex_vat) }}</div></div>
+        <div><div class="gb-label">City Tax</div><div class="gb-value">{{ $money($enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat)) }}</div></div>
         <div><div class="gb-label">BB/DBB</div><div class="gb-value">{{ $text($enquiry->basis) }}</div></div>
       </div>
+      @php
+        $staySegments = is_array($enquiry->stay_segments) ? array_values($enquiry->stay_segments) : [];
+        $showSegmentBreakfast = in_array($enquiry->basis, ['BB', 'DBB'], true);
+        $showSegmentDinner = $enquiry->basis === 'DBB';
+        $segmentBreakfast = (float) ($enquiry->breakfast_rate ?? 0);
+        $segmentDinner = (float) ($enquiry->dinner_rate ?? 0);
+      @endphp
+      @if ($staySegments !== [])
+        <div class="table-responsive mt-3">
+          <table class="table table-sm table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Day</th>
+                <th class="text-end">Nights</th>
+                <th class="text-end">Single</th>
+                <th class="text-end">Rate</th>
+                <th class="text-end">Double</th>
+                <th class="text-end">Rate</th>
+                <th class="text-end">Triple</th>
+                <th class="text-end">Rate</th>
+                <th class="text-end">Revenue</th>
+                @if ($showSegmentBreakfast)
+                  <th class="text-end">BB</th>
+                @endif
+                @if ($showSegmentDinner)
+                  <th class="text-end">Dinner</th>
+                @endif
+              </tr>
+            </thead>
+            <tbody>
+              @php
+                $segmentNightsTotal = 0;
+                $segmentRevenueTotal = 0.0;
+                $segmentBbTotal = 0.0;
+                $segmentDinnerTotal = 0.0;
+              @endphp
+              @foreach ($staySegments as $segment)
+                @php
+                  $segmentNights = (int) ($segment['nights'] ?? 0);
+                  $segmentSingle = (int) ($segment['single_rooms'] ?? 0);
+                  $segmentSingleRate = (float) ($segment['single_rate'] ?? 0);
+                  $segmentDouble = (int) ($segment['double_rooms'] ?? 0);
+                  $segmentDoubleRate = (float) ($segment['double_rate'] ?? 0);
+                  $segmentTriple = (int) ($segment['triple_rooms'] ?? 0);
+                  $segmentTripleRate = (float) ($segment['triple_rate'] ?? 0);
+                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTriple * $segmentTripleRate));
+                  $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTriple * 3));
+                  $segmentBb = $segmentCovers * $segmentBreakfast;
+                  $segmentDinnerAmount = $segmentCovers * $segmentDinner;
+                  $segmentNightsTotal += $segmentNights;
+                  $segmentRevenueTotal += $segmentRevenue;
+                  $segmentBbTotal += $segmentBb;
+                  $segmentDinnerTotal += $segmentDinnerAmount;
+                @endphp
+                <tr>
+                  <td class="text-nowrap">{{ \Illuminate\Support\Carbon::parse($segment['check_in'])->format('d-m-Y') }}</td>
+                  <td class="text-nowrap">{{ \Illuminate\Support\Carbon::parse($segment['check_out'])->format('d-m-Y') }}</td>
+                  <td>{{ $segment['day'] ?? '—' }}</td>
+                  <td class="text-end">{{ $segmentNights }}</td>
+                  <td class="text-end">{{ $segmentSingle }}</td>
+                  <td class="text-end">{{ $money($segmentSingleRate) }}</td>
+                  <td class="text-end">{{ $segmentDouble }}</td>
+                  <td class="text-end">{{ $money($segmentDoubleRate) }}</td>
+                  <td class="text-end">{{ $segmentTriple }}</td>
+                  <td class="text-end">{{ $money($segmentTripleRate) }}</td>
+                  <td class="text-end fw-semibold">{{ $money($segmentRevenue) }}</td>
+                  @if ($showSegmentBreakfast)
+                    <td class="text-end">{{ $money($segmentBb) }}</td>
+                  @endif
+                  @if ($showSegmentDinner)
+                    <td class="text-end">{{ $money($segmentDinnerAmount) }}</td>
+                  @endif
+                </tr>
+              @endforeach
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="3">Total</th>
+                <td class="text-end fw-semibold">{{ $segmentNightsTotal }}</td>
+                <td colspan="6"></td>
+                <td class="text-end fw-semibold">{{ $money($segmentRevenueTotal) }}</td>
+                @if ($showSegmentBreakfast)
+                  <td class="text-end fw-semibold">{{ $money($segmentBbTotal) }}</td>
+                @endif
+                @if ($showSegmentDinner)
+                  <td class="text-end fw-semibold">{{ $money($segmentDinnerTotal) }}</td>
+                @endif
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      @endif
     </div>
   </div>
 

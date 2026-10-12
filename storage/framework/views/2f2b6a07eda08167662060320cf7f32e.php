@@ -5,10 +5,9 @@
   $emptyMessage = $emptyMessage ?? 'No records found.';
   $variant = $variant ?? 'full';
   $showCancellationReason = $showCancellationReason ?? false;
-  $showCreatedBy = $showCreatedBy ?? false;
+  $showCreatedBy = ($showCreatedBy ?? false) && auth()->user()?->hasRole('Administrator');
   $readOnly = $readOnly ?? false;
   $viewOnlyActions = $viewOnlyActions ?? false;
-  $showCreatedBy = $showCreatedBy ?? false;
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
@@ -325,9 +324,6 @@
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         <?php endif; ?>
-        <?php if($showCreatedBy): ?>
-          <th>Created by</th>
-        <?php endif; ?>
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -440,9 +436,6 @@
           <?php if($showCancellationReason): ?>
             <td class="text-nowrap"><?php echo e($enquiry->cxl_date?->format('d M Y') ?? '—'); ?></td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?php echo e($enquiry->cancellation_reason); ?>"><?php echo e($enquiry->cancellation_reason ?: '—'); ?></td>
-          <?php endif; ?>
-          <?php if($showCreatedBy): ?>
-            <td class="text-nowrap"><?php echo e($enquiry->assignedTo?->name ?: '—'); ?></td>
           <?php endif; ?>
           <td class="text-end text-nowrap">
             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view', $enquiry)): ?>

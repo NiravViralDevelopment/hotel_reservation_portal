@@ -6,13 +6,13 @@
         ['route' => 'dashboard', 'icon' => 'speedometer2', 'label' => 'Dashboard', 'permission' => 'dashboard.view'],
         ['route' => 'hotels.index', 'icon' => 'building', 'label' => 'Hotels', 'permission' => 'hotels.view'],
         ['route' => 'companies.index', 'icon' => 'briefcase', 'label' => 'Companies', 'permission' => 'companies.view'],
-        ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies', 'permission' => 'agencies.view'],
+        // ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies', 'permission' => 'agencies.view'],
       ],
     ],
     [
       'section' => 'Bookings',
       'items' => [
-        ['route' => 'group-bookings.index', 'icon' => 'calendar-check', 'label' => 'Group Bookings', 'permission' => 'bookings.view'],
+        ['route' => 'group-bookings.index', 'icon' => 'calendar-check', 'label' => 'Confirm Group Bookings', 'permission' => 'bookings.view'],
         ['route' => 'enquiries.index', 'icon' => 'chat-square-text', 'label' => 'Enquiries', 'permission' => 'enquiries.view'],
         ['route' => 'cancelled-inquiries.index', 'icon' => 'x-octagon', 'label' => 'Cancelled Inquiry', 'permission' => 'enquiries.view'],
         ['route' => 'cancelled-bookings.index', 'icon' => 'x-circle', 'label' => 'Cancelled Bookings', 'permission' => 'bookings.view'],
@@ -21,13 +21,13 @@
         ['route' => 'calendar.index', 'icon' => 'calendar3', 'label' => 'Calendar', 'permission' => 'bookings.view'],
       ],
     ],
-    [
-      'section' => 'Finance',
-      'items' => [
-        ['route' => 'revenue.index', 'icon' => 'currency-pound', 'label' => 'Revenue', 'permission' => 'revenue.view'],
-        ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports', 'permission' => 'reports.view', 'exact' => true],
-      ],
-    ],
+    // [
+    //   'section' => 'Finance',
+    //   'items' => [
+    //     ['route' => 'revenue.index', 'icon' => 'currency-pound', 'label' => 'Revenue', 'permission' => 'revenue.view'],
+    //     ['route' => 'reports.index', 'icon' => 'file-earmark-bar-graph', 'label' => 'Reports', 'permission' => 'reports.view', 'exact' => true],
+    //   ],
+    // ],
     [
       'section' => 'Reports',
       'items' => [
@@ -39,7 +39,7 @@
   ];
 
   $adminItems = [
-    ['route' => 'status-masters.index', 'icon' => 'list-check', 'label' => 'Status Master', 'permission' => 'statuses.view'],
+    // ['route' => 'status-masters.index', 'icon' => 'list-check', 'label' => 'Status Master', 'permission' => 'statuses.view'],
     ['route' => 'users.index', 'icon' => 'people', 'label' => 'Users', 'permission' => 'users.view'],
     ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Roles', 'permission' => 'roles.view'],
     ['route' => 'audit-logs.index', 'icon' => 'journal-text', 'label' => 'Audit Logs', 'permission' => 'audit.view'],
@@ -49,8 +49,7 @@
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <aside class="app-sidebar" id="appSidebar">
   <div class="sidebar-brand">
-    <div class="sidebar-brand-icon"><i class="bi bi-building"></i></div>
-    <span class="sidebar-brand-text">HGBMS</span>
+    <img src="<?php echo e(asset('assets/image/logo.png')); ?>" alt="Axcel Group" class="sidebar-brand-logo">
   </div>
 
   <nav class="sidebar-nav">

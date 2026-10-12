@@ -21,6 +21,7 @@
         @endif
       </p>
     </div>
+    {{--
     <div class="d-flex gap-2 flex-wrap">
       @if (! empty($currentHotel))
         <form method="POST" action="{{ route('hotel-context.clear') }}" class="m-0">
@@ -50,6 +51,7 @@
       <a href="{{ route('arrivals.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-in-right"></i> Arrivals</a>
       <a href="{{ route('group-bookings.create') }}" class="btn btn-accent btn-sm"><i class="bi bi-plus-lg"></i> New booking</a>
     </div>
+    --}}
   </div>
 
   <div class="row g-3 mb-4">
@@ -67,6 +69,7 @@
         <div class="stat-card-meta"><a href="{{ route('companies.index') }}">View companies</a></div>
       </div>
     </div>
+    {{--
     <div class="col-6 col-lg-3">
       <div class="stat-card">
         <div class="stat-card-label">Travel Agencies</div>
@@ -74,6 +77,7 @@
         <div class="stat-card-meta"><a href="{{ route('travel-agencies.index') }}">View agencies</a></div>
       </div>
     </div>
+    --}}
     <div class="col-6 col-lg-3">
       <div class="stat-card">
         <div class="stat-card-label">Active Groups</div>
