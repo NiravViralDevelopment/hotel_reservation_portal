@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Cancelled Inquiry')
-@section('page', 'enquiries')
+@section('page', 'cancelled-inquiries')
 
 @section('content')
   <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -42,6 +42,7 @@
       'defaultDir' => 'desc',
       'emptyMessage' => 'No cancelled inquiries found.',
       'editRoute' => 'cancelled-inquiries.edit',
+      'recordRoute' => 'cancelled-inquiries.show',
     ])
     @include('partials.pagination-footer', ['paginator' => $enquiries])
   </div>

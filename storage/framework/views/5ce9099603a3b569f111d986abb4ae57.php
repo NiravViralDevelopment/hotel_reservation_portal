@@ -1,5 +1,5 @@
 <?php $__env->startSection('title', 'Cancelled Inquiry'); ?>
-<?php $__env->startSection('page', 'enquiries'); ?>
+<?php $__env->startSection('page', 'cancelled-inquiries'); ?>
 
 <?php $__env->startSection('content'); ?>
   <div class="page-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
@@ -40,6 +40,7 @@
       'defaultDir' => 'desc',
       'emptyMessage' => 'No cancelled inquiries found.',
       'editRoute' => 'cancelled-inquiries.edit',
+      'recordRoute' => 'cancelled-inquiries.show',
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo $__env->make('partials.pagination-footer', ['paginator' => $enquiries], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   </div>

@@ -1,5 +1,5 @@
 <?php $__env->startSection('title', $enquiry->group_name ?: ($enquiry->ref ?: 'Enquiry')); ?>
-<?php $__env->startSection('page', 'enquiries'); ?>
+<?php $__env->startSection('page', ! empty($cancelledContext) ? 'cancelled-inquiries' : 'enquiries'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
@@ -19,22 +19,50 @@
     align-items: center;
     gap: 0.5rem;
   }
-  .enq-show .enq-section-title i { color: var(--brand-accent); }
+  .enq-show .enq-section-title i {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(26, 77, 156, 0.1);
+    color: var(--brand-accent);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
   .enq-show .enq-dl {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.85rem 1.25rem;
+    gap: 0.75rem;
+  }
+  .enq-show .enq-dl.enq-dl-wide {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  @media (max-width: 1199.98px) {
+    .enq-show .enq-dl.enq-dl-wide { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 575.98px) {
-    .enq-show .enq-dl { grid-template-columns: 1fr; }
+    .enq-show .enq-dl,
+    .enq-show .enq-dl.enq-dl-wide { grid-template-columns: 1fr; }
   }
-  .enq-show .enq-dl-item { min-width: 0; }
+  .enq-show .enq-dl-item {
+    min-width: 0;
+    background: var(--bg-body);
+    border-radius: 0.65rem;
+    padding: 0.8rem 0.9rem;
+  }
+  .enq-show .enq-dl-item.is-highlight {
+    background: linear-gradient(135deg, rgba(2, 34, 90, 0.06), rgba(26, 77, 156, 0.12));
+    border: 1px solid rgba(26, 77, 156, 0.16);
+  }
   .enq-show .enq-dl-label {
     font-size: 0.6875rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--text-muted);
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.25rem;
   }
   .enq-show .enq-dl-value {
     font-weight: 600;
@@ -114,7 +142,7 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
           <li class="breadcrumb-item"><a href="<?php echo e(route('dashboard')); ?>">Home</a></li>
-          <li class="breadcrumb-item"><a href="<?php echo e(route('enquiries.index')); ?>">Enquiries</a></li>
+          <li class="breadcrumb-item"><a href="<?php echo e(! empty($cancelledContext) ? route('cancelled-inquiries.index') : route('enquiries.index')); ?>"><?php echo e(! empty($cancelledContext) ? 'Cancelled Inquiry' : 'Enquiries'); ?></a></li>
           <li class="breadcrumb-item active"><?php echo e($enquiry->group_name ?: ($enquiry->ref ?: 'Enquiry')); ?></li>
         </ol>
       </nav>
@@ -143,13 +171,13 @@
 <?php endif; ?>
       </div>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="<?php echo e(route('enquiries.index')); ?>" class="btn btn-outline-secondary btn-sm">
+    <div class="show-actions">
+      <a href="<?php echo e(! empty($cancelledContext) ? route('cancelled-inquiries.index') : route('enquiries.index')); ?>" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left"></i> Back
       </a>
       <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('convert', $enquiry)): ?>
         <?php if(! $enquiry->is_confirm && ! $enquiry->is_cancel): ?>
-          <form method="POST" action="<?php echo e(route('enquiries.convert', $enquiry)); ?>" data-confirm-title="Confirm enquiry" data-confirm="<?php echo e(sprintf('Confirm enquiry "%s"? It will move to Group Bookings.', $enquiry->group_name ?? 'this enquiry')); ?>" data-confirm-button="Confirm" data-confirm-variant="primary" data-confirm-icon="bi-check-circle">
+          <form method="POST" action="<?php echo e(route('enquiries.convert', $enquiry)); ?>" data-confirm-title="Confirm enquiry" data-confirm="<?php echo e(sprintf('Confirm enquiry "%s"? It will move to Confirm Group Bookings.', $enquiry->group_name ?? 'this enquiry')); ?>" data-confirm-button="Confirm" data-confirm-variant="primary" data-confirm-icon="bi-check-circle">
             <?php echo csrf_field(); ?>
             <button type="submit" class="btn btn-accent btn-sm">
               <i class="bi bi-check2-circle"></i> Confirm
@@ -177,7 +205,43 @@
     </div>
   </div>
 
-  <div class="card mb-3">
+  <?php if(! empty($cancelledContext)): ?>
+    <div class="cancel-banner">
+      <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+      <div>
+        <div class="fw-semibold mb-1">Cancellation reason</div>
+        <div class="mb-1"><?php echo e($enquiry->cancellation_reason ?: '—'); ?></div>
+        <div class="small text-secondary mb-0">CXL date: <?php echo e($enquiry->cxl_date?->format('d M Y') ?? '—'); ?></div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <div class="detail-kpis">
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Arrival</div>
+      <div class="detail-kpi-value"><?php echo e($enquiry->check_in?->format('d M Y') ?? '—'); ?></div>
+    </div>
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Departure</div>
+      <div class="detail-kpi-value"><?php echo e($enquiry->check_out?->format('d M Y') ?? '—'); ?></div>
+    </div>
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Nights</div>
+      <div class="detail-kpi-value"><?php echo e($enquiry->nights ?? '—'); ?></div>
+    </div>
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Rooms / night</div>
+      <div class="detail-kpi-value"><?php echo e($enquiry->rooms_per_night ?? '—'); ?></div>
+    </div>
+    <div class="detail-kpi is-primary">
+      <div class="detail-kpi-label">Total revenue</div>
+      <div class="detail-kpi-value"><?php echo e($money($enquiry->total_revenue)); ?></div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7 d-flex">
+  <div class="card mb-0 h-100 w-100">
     <div class="card-header">
       <h2 class="enq-section-title"><i class="bi bi-calendar3"></i> Dates</h2>
     </div>
@@ -233,8 +297,9 @@
       </div>
     </div>
   </div>
-
-  <div class="card mb-3">
+    </div>
+    <div class="col-lg-5 d-flex">
+  <div class="card mb-0 h-100 w-100">
     <div class="card-header">
       <h2 class="enq-section-title"><i class="bi bi-people"></i> Group</h2>
     </div>
@@ -284,13 +349,78 @@
       </div>
     </div>
   </div>
+    </div>
+  </div>
 
   <div class="card mb-3">
     <div class="card-header">
       <h2 class="enq-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
     </div>
     <div class="card-body">
-      <?php if($enquiry->check_in && $enquiry->check_out && $enquiry->check_out->gte($enquiry->check_in)): ?>
+      <?php if(is_array($enquiry->stay_segments) && $enquiry->stay_segments !== []): ?>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Day</th>
+                <th class="text-end">Nights</th>
+                <th class="text-end">Single RNs</th>
+                <th class="text-end">Single Rate</th>
+                <th class="text-end">Double RNs</th>
+                <th class="text-end">Double Rate</th>
+                <th class="text-end">Triple RNs</th>
+                <th class="text-end">Triple Rate</th>
+                <th class="text-end">Total Room Nights</th>
+                <th class="text-end">Total Rev</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php
+                $segmentRevenueTotal = 0.0;
+                $segmentRoomNightsTotal = 0;
+              ?>
+              <?php $__currentLoopData = $enquiry->stay_segments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $segment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
+                  $segmentNights = (int) ($segment['nights'] ?? 0);
+                  $segmentSingle = (int) ($segment['single_rooms'] ?? 0);
+                  $segmentSingleRate = (float) ($segment['single_rate'] ?? 0);
+                  $segmentDouble = (int) ($segment['double_rooms'] ?? 0);
+                  $segmentDoubleRate = (float) ($segment['double_rate'] ?? 0);
+                  $segmentTriple = (int) ($segment['triple_rooms'] ?? 0);
+                  $segmentTripleRate = (float) ($segment['triple_rate'] ?? 0);
+                  $segmentRoomNights = $segmentNights * ($segmentSingle + $segmentDouble + $segmentTriple);
+                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTriple * $segmentTripleRate));
+                  $segmentRevenueTotal += $segmentRevenue;
+                  $segmentRoomNightsTotal += $segmentRoomNights;
+                ?>
+                <tr>
+                  <td class="text-nowrap"><?php echo e(\Illuminate\Support\Carbon::parse($segment['check_in'])->format('d-m-Y')); ?></td>
+                  <td class="text-nowrap"><?php echo e(\Illuminate\Support\Carbon::parse($segment['check_out'])->format('d-m-Y')); ?></td>
+                  <td><?php echo e($segment['day'] ?? '—'); ?></td>
+                  <td class="text-end"><?php echo e($segmentNights); ?></td>
+                  <td class="text-end"><?php echo e($segmentSingle); ?></td>
+                  <td class="text-end"><?php echo e($money($segmentSingleRate)); ?></td>
+                  <td class="text-end"><?php echo e($segmentDouble); ?></td>
+                  <td class="text-end"><?php echo e($money($segmentDoubleRate)); ?></td>
+                  <td class="text-end"><?php echo e($segmentTriple); ?></td>
+                  <td class="text-end"><?php echo e($money($segmentTripleRate)); ?></td>
+                  <td class="text-end fw-semibold"><?php echo e($segmentRoomNights); ?></td>
+                  <td class="text-end fw-semibold"><?php echo e($money($segmentRevenue)); ?></td>
+                </tr>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="10">Total</th>
+                <td class="text-end fw-semibold"><?php echo e($segmentRoomNightsTotal); ?></td>
+                <td class="text-end fw-semibold"><?php echo e($money($segmentRevenueTotal)); ?></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      <?php elseif($enquiry->check_in && $enquiry->check_out && $enquiry->check_out->gte($enquiry->check_in)): ?>
         <?php
           $dailyByDate = [];
           foreach (($enquiry->daily_room_rates ?? []) as $row) {
@@ -442,7 +572,7 @@
       <h2 class="enq-section-title"><i class="bi bi-currency-pound"></i> Revenue and terms</h2>
     </div>
     <div class="card-body">
-      <div class="enq-dl">
+      <div class="enq-dl enq-dl-wide">
         <div class="enq-dl-item">
           <div class="enq-dl-label">Basis</div>
           <div class="enq-dl-value"><?php echo e($text($enquiry->basis)); ?></div>
@@ -497,7 +627,7 @@
           <div class="enq-dl-label">CXL Policy</div>
           <div class="enq-dl-value"><?php echo e($text($enquiry->cxl_policy)); ?></div>
         </div>
-        <div class="enq-dl-item">
+        <div class="enq-dl-item is-highlight">
           <div class="enq-dl-label">Total Revenue</div>
           <div class="enq-dl-value revenue-value"><?php echo e($money($enquiry->total_revenue)); ?></div>
         </div>
