@@ -103,7 +103,7 @@
             @endcan
             @unless ($readOnly || $viewOnlyActions)
               @can('update', $enquiry)
-                <a href="{{ route('enquiries.show', $enquiry) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
+                <a href="{{ route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery)) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
                   <i class="bi bi-chat-left-text"></i>
                 </a>
                 <a href="{{ route($editRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">

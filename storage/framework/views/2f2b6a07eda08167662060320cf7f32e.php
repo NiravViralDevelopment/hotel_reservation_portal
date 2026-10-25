@@ -445,7 +445,7 @@
             <?php endif; ?>
             <?php if (! ($readOnly || $viewOnlyActions)): ?>
               <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $enquiry)): ?>
-                <a href="<?php echo e(route('enquiries.show', $enquiry)); ?>#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for <?php echo e($enquiry->group_name); ?>">
+                <a href="<?php echo e(route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery))); ?>#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for <?php echo e($enquiry->group_name); ?>">
                   <i class="bi bi-chat-left-text"></i>
                 </a>
                 <a href="<?php echo e(route($editRoute, $enquiry)); ?>" class="btn btn-sm btn-outline-secondary" title="Edit">

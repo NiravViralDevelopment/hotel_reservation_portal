@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $enquiry->group_name ?: ($enquiry->ref ?: 'Enquiry'))
-@section('page', 'enquiries')
+@section('page', ! empty($cancelledContext) ? 'cancelled-inquiries' : 'enquiries')
 
 @push('styles')
 <style>
@@ -21,22 +21,50 @@
     align-items: center;
     gap: 0.5rem;
   }
-  .enq-show .enq-section-title i { color: var(--brand-accent); }
+  .enq-show .enq-section-title i {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(26, 77, 156, 0.1);
+    color: var(--brand-accent);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
   .enq-show .enq-dl {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.85rem 1.25rem;
+    gap: 0.75rem;
+  }
+  .enq-show .enq-dl.enq-dl-wide {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  @media (max-width: 1199.98px) {
+    .enq-show .enq-dl.enq-dl-wide { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 575.98px) {
-    .enq-show .enq-dl { grid-template-columns: 1fr; }
+    .enq-show .enq-dl,
+    .enq-show .enq-dl.enq-dl-wide { grid-template-columns: 1fr; }
   }
-  .enq-show .enq-dl-item { min-width: 0; }
+  .enq-show .enq-dl-item {
+    min-width: 0;
+    background: var(--bg-body);
+    border-radius: 0.65rem;
+    padding: 0.8rem 0.9rem;
+  }
+  .enq-show .enq-dl-item.is-highlight {
+    background: linear-gradient(135deg, rgba(2, 34, 90, 0.06), rgba(26, 77, 156, 0.12));
+    border: 1px solid rgba(26, 77, 156, 0.16);
+  }
   .enq-show .enq-dl-label {
     font-size: 0.6875rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--text-muted);
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.25rem;
   }
   .enq-show .enq-dl-value {
     font-weight: 600;
@@ -116,7 +144,7 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
           <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-          <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+          <li class="breadcrumb-item"><a href="{{ ! empty($cancelledContext) ? route('cancelled-inquiries.index') : route('enquiries.index') }}">{{ ! empty($cancelledContext) ? 'Cancelled Inquiry' : 'Enquiries' }}</a></li>
           <li class="breadcrumb-item active">{{ $enquiry->group_name ?: ($enquiry->ref ?: 'Enquiry') }}</li>
         </ol>
       </nav>
@@ -126,8 +154,8 @@
         <x-badge-status :status="$enquiry->status" />
       </div>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="{{ route('enquiries.index') }}" class="btn btn-outline-secondary btn-sm">
+    <div class="show-actions">
+      <a href="{{ ! empty($cancelledContext) ? route('cancelled-inquiries.index') : route('enquiries.index') }}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left"></i> Back
       </a>
       @can('convert', $enquiry)
@@ -160,7 +188,43 @@
     </div>
   </div>
 
-  <div class="card mb-3">
+  @if (! empty($cancelledContext))
+    <div class="cancel-banner">
+      <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+      <div>
+        <div class="fw-semibold mb-1">Cancellation reason</div>
+        <div class="mb-1">{{ $enquiry->cancellation_reason ?: '—' }}</div>
+        <div class="small text-secondary mb-0">CXL date: {{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</div>
+      </div>
+    </div>
+  @endif
+
+  <div class="detail-kpis">
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Arrival</div>
+      <div class="detail-kpi-value">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</div>
+    </div>
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Departure</div>
+      <div class="detail-kpi-value">{{ $enquiry->check_out?->format('d M Y') ?? '—' }}</div>
+    </div>
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Nights</div>
+      <div class="detail-kpi-value">{{ $enquiry->nights ?? '—' }}</div>
+    </div>
+    <div class="detail-kpi">
+      <div class="detail-kpi-label">Rooms / night</div>
+      <div class="detail-kpi-value">{{ $enquiry->rooms_per_night ?? '—' }}</div>
+    </div>
+    <div class="detail-kpi is-primary">
+      <div class="detail-kpi-label">Total revenue</div>
+      <div class="detail-kpi-value">{{ $money($enquiry->total_revenue) }}</div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7 d-flex">
+  <div class="card mb-0 h-100 w-100">
     <div class="card-header">
       <h2 class="enq-section-title"><i class="bi bi-calendar3"></i> Dates</h2>
     </div>
@@ -197,8 +261,9 @@
       </div>
     </div>
   </div>
-
-  <div class="card mb-3">
+    </div>
+    <div class="col-lg-5 d-flex">
+  <div class="card mb-0 h-100 w-100">
     <div class="card-header">
       <h2 class="enq-section-title"><i class="bi bi-people"></i> Group</h2>
     </div>
@@ -227,6 +292,8 @@
           <div class="enq-dl-value"><x-badge-status :status="$enquiry->status" /></div>
         </div>
       </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -450,7 +517,7 @@
       <h2 class="enq-section-title"><i class="bi bi-currency-pound"></i> Revenue and terms</h2>
     </div>
     <div class="card-body">
-      <div class="enq-dl">
+      <div class="enq-dl enq-dl-wide">
         <div class="enq-dl-item">
           <div class="enq-dl-label">Basis</div>
           <div class="enq-dl-value">{{ $text($enquiry->basis) }}</div>
@@ -467,7 +534,7 @@
           <div class="enq-dl-label">CXL Policy</div>
           <div class="enq-dl-value">{{ $text($enquiry->cxl_policy) }}</div>
         </div>
-        <div class="enq-dl-item">
+        <div class="enq-dl-item is-highlight">
           <div class="enq-dl-label">Total Revenue</div>
           <div class="enq-dl-value revenue-value">{{ $money($enquiry->total_revenue) }}</div>
         </div>

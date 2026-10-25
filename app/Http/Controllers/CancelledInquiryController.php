@@ -27,6 +27,19 @@ class CancelledInquiryController extends Controller
         return view('cancelled-inquiries.index', compact('enquiries', 'hotels', 'dateFrom', 'dateTo'));
     }
 
+    public function show(Enquiry $enquiry): View
+    {
+        $this->authorize('view', $enquiry);
+        abort_unless($enquiry->is_cancel && ! $enquiry->is_confirm, 404);
+
+        $enquiry->load(['travelAgency', 'hotel', 'assignedTo', 'responses.user']);
+
+        return view('enquiries.show', [
+            'enquiry' => $enquiry,
+            'cancelledContext' => true,
+        ]);
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $this->authorize('viewAny', Enquiry::class);

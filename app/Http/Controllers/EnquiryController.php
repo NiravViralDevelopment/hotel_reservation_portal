@@ -608,8 +608,12 @@ class EnquiryController extends Controller
         $enquiry->update($data);
         Audit::log('updated', 'enquiries', $enquiry->ref.' remark', $enquiry);
 
+        $showRoute = ($enquiry->is_cancel && ! $enquiry->is_confirm)
+            ? 'cancelled-inquiries.show'
+            : 'enquiries.show';
+
         return redirect()
-            ->route('enquiries.show', $enquiry)
+            ->route($showRoute, $enquiry)
             ->with('success', 'Remark saved for '.$enquiry->group_name.'.');
     }
 
@@ -618,10 +622,13 @@ class EnquiryController extends Controller
         $this->authorize('delete', $enquiry);
 
         $ref = $enquiry->ref;
+        $wasCancelledInquiry = $enquiry->is_cancel && ! $enquiry->is_confirm;
         $enquiry->delete();
         Audit::log('deleted', 'enquiries', $ref);
 
-        return redirect()->route('enquiries.index')->with('success', 'Enquiry deleted.');
+        return redirect()
+            ->route($wasCancelledInquiry ? 'cancelled-inquiries.index' : 'enquiries.index')
+            ->with('success', $wasCancelledInquiry ? 'Cancelled inquiry deleted.' : 'Enquiry deleted.');
     }
 
     public function convert(Enquiry $enquiry): RedirectResponse
