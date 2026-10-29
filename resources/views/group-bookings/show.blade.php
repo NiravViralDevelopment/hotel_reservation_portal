@@ -270,10 +270,10 @@
                 @if ($showSegmentBreakfast)
                   <th class="text-end">BB</th>
                 @endif
-                <th class="text-end">Nett Rev EX VAT &amp; BF</th>
                 @if ($showSegmentDinner)
                   <th class="text-end">Dinner</th>
                 @endif
+                <th class="text-end">Nett Rev EX VAT &amp; BF</th>
               </tr>
             </thead>
             <tbody>
@@ -319,10 +319,10 @@
                   @if ($showSegmentBreakfast)
                     <td class="text-end">{{ $money($segmentBb) }}</td>
                   @endif
-                  <td class="text-end fw-semibold">{{ $money($segmentNett) }}</td>
                   @if ($showSegmentDinner)
                     <td class="text-end">{{ $money($segmentDinnerAmount) }}</td>
                   @endif
+                  <td class="text-end fw-semibold">{{ $money($segmentNett) }}</td>
                 </tr>
               @endforeach
             </tbody>
@@ -335,10 +335,10 @@
                 @if ($showSegmentBreakfast)
                   <td class="text-end fw-semibold">{{ $money($segmentBbTotal) }}</td>
                 @endif
-                <td class="text-end fw-semibold">{{ $money($segmentNettTotal) }}</td>
                 @if ($showSegmentDinner)
                   <td class="text-end fw-semibold">{{ $money($segmentDinnerTotal) }}</td>
                 @endif
+                <td class="text-end fw-semibold">{{ $money($segmentNettTotal) }}</td>
               </tr>
             </tfoot>
           </table>

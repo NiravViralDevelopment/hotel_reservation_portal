@@ -280,8 +280,8 @@
                 <th>Rate</th>
                 <th class="stay-calc">Revenue</th>
                 <th class="stay-calc gb-seg-bb">BB</th>
-                <th class="stay-calc gb-seg-nett">Nett Rev EX VAT &amp; BF</th>
                 <th class="stay-calc gb-seg-dinner">Dinner</th>
+                <th class="stay-calc gb-seg-nett">Nett Rev EX VAT &amp; BF</th>
                 <th></th>
               </tr>
             </thead>
@@ -298,8 +298,8 @@
                 <td id="gb-segment-triple-rate">0.00</td>
                 <td class="stay-calc" id="gb-segment-revenue">0.00</td>
                 <td class="stay-calc gb-seg-bb" id="gb-segment-bb">0.00</td>
-                <td class="stay-calc gb-seg-nett" id="gb-segment-nett">0.00</td>
                 <td class="stay-calc gb-seg-dinner" id="gb-segment-dinner">0.00</td>
+                <td class="stay-calc gb-seg-nett" id="gb-segment-nett">0.00</td>
                 <td></td>
               </tr>
             </tfoot>

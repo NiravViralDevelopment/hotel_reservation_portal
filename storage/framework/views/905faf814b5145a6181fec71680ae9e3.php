@@ -292,6 +292,16 @@
     return el ? el.value : '';
   }
 
+  function nettInputsReady() {
+    var basis = selectedBasis();
+    var breakfastRateEl = field('gb_breakfast_rate');
+    var dinnerRateEl = field('gb_dinner_rate');
+    if (basis !== 'BB' && basis !== 'DBB') return false;
+    if (!breakfastRateEl || breakfastRateEl.value.trim() === '') return false;
+    if (basis === 'DBB' && (!dinnerRateEl || dinnerRateEl.value.trim() === '')) return false;
+    return true;
+  }
+
   function updateMealInputs() {
     var basis = selectedBasis();
     var showBreakfast = basis === 'BB' || basis === 'DBB';
@@ -339,7 +349,14 @@
     setMoney('gb_total_revenue', 'gb_total_revenue_display', totalRev);
     setMoney('gb_bb_revenue', 'gb_bb_revenue_display', bbRevenue);
     setMoney('gb_dinner_revenue', 'gb_dinner_revenue_display', dinnerRevenue);
-    setMoney('gb_nett_rev_ex_vat', 'gb_nett_rev_ex_vat_display', nettRev);
+    if (nettInputsReady()) {
+      setMoney('gb_nett_rev_ex_vat', 'gb_nett_rev_ex_vat_display', nettRev);
+    } else {
+      var nettInput = field('gb_nett_rev_ex_vat');
+      var nettDisplay = field('gb_nett_rev_ex_vat_display');
+      if (nettInput) nettInput.value = '';
+      if (nettDisplay) nettDisplay.value = '';
+    }
     writeCityTax(totalRns, nettRev);
   }
 
@@ -523,8 +540,8 @@
         + '<td>' + segField('triple_rate', row.triple_rate, false, false) + '</td>'
         + '<td class="stay-calc" data-seg-revenue>0.00</td>'
         + '<td class="stay-calc gb-seg-bb" data-seg-bb>0.00</td>'
-        + '<td class="stay-calc gb-seg-nett" data-seg-nett>0.00</td>'
         + '<td class="stay-calc gb-seg-dinner" data-seg-dinner>0.00</td>'
+        + '<td class="stay-calc gb-seg-nett" data-seg-nett>0.00</td>'
         + '<td><button type="button" class="btn btn-sm btn-outline-secondary" data-remove-segment="' + index + '" aria-label="Remove date range"><i class="bi bi-x-lg"></i></button></td>'
         + '</tr>';
     }).join('');
@@ -584,6 +601,7 @@
     var dinnerRate = basis === 'DBB' ? num('gb_dinner_rate') : 0;
     var dinnerRateEl = field('gb_dinner_rate');
     var hasDinnerRate = basis === 'DBB' && dinnerRateEl && dinnerRateEl.value !== '';
+    var ready = nettInputsReady();
     var totals = {
       nights: 0,
       revenue: 0,
@@ -604,7 +622,7 @@
       var fig = segmentFigure(row);
       var bb = fig.covers * breakfastRate;
       var dinner = fig.covers * dinnerRate;
-      var nett = ((fig.revenue * 100) / 120) - bb - (hasDinnerRate ? dinner : 0);
+      var nett = ready ? ((fig.revenue * 100) / 120) - bb - (hasDinnerRate ? dinner : 0) : 0;
       var tr = trs[index];
       if (tr) {
         var dayCell = tr.querySelector('[data-seg-day]');
@@ -617,7 +635,7 @@
         if (nightsCell) nightsCell.textContent = fig.nights > 0 ? String(fig.nights) : '—';
         if (revenueCell) revenueCell.textContent = money(fig.revenue);
         if (bbCell) bbCell.textContent = money(bb);
-        if (nettCell) nettCell.textContent = money(nett);
+        if (nettCell) nettCell.textContent = ready ? money(nett) : '—';
         if (dinnerCell) dinnerCell.textContent = money(dinner);
       }
       if (fig.nights <= 0) return;
@@ -625,7 +643,7 @@
       totals.revenue += fig.revenue;
       totals.bb += bb;
       totals.dinner += dinner;
-      totals.nett += nett;
+      if (ready) totals.nett += nett;
       totals.singleRn += fig.singleRn;
       totals.singleRev += fig.singleRev;
       totals.doubleRn += fig.doubleRn;
@@ -643,7 +661,7 @@
     setSegmentText('gb-segment-triple-rate', money(weightedRate(totals.tripleRn, totals.tripleRev)));
     setSegmentText('gb-segment-revenue', money(totals.revenue));
     setSegmentText('gb-segment-bb', money(totals.bb));
-    setSegmentText('gb-segment-nett', money(totals.nett));
+    setSegmentText('gb-segment-nett', ready ? money(totals.nett) : '—');
     setSegmentText('gb-segment-dinner', money(totals.dinner));
     var note = document.getElementById('gb-segment-note');
     if (note) {
