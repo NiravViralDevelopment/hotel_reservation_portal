@@ -523,6 +523,7 @@
         + '<td>' + segField('triple_rate', row.triple_rate, false, false) + '</td>'
         + '<td class="stay-calc" data-seg-revenue>0.00</td>'
         + '<td class="stay-calc gb-seg-bb" data-seg-bb>0.00</td>'
+        + '<td class="stay-calc gb-seg-nett" data-seg-nett>0.00</td>'
         + '<td class="stay-calc gb-seg-dinner" data-seg-dinner>0.00</td>'
         + '<td><button type="button" class="btn btn-sm btn-outline-secondary" data-remove-segment="' + index + '" aria-label="Remove date range"><i class="bi bi-x-lg"></i></button></td>'
         + '</tr>';
@@ -581,11 +582,14 @@
     var basis = selectedBasis();
     var breakfastRate = (basis === 'BB' || basis === 'DBB') ? num('gb_breakfast_rate') : 0;
     var dinnerRate = basis === 'DBB' ? num('gb_dinner_rate') : 0;
+    var dinnerRateEl = field('gb_dinner_rate');
+    var hasDinnerRate = basis === 'DBB' && dinnerRateEl && dinnerRateEl.value !== '';
     var totals = {
       nights: 0,
       revenue: 0,
       bb: 0,
       dinner: 0,
+      nett: 0,
       singleRn: 0,
       singleRev: 0,
       doubleRn: 0,
@@ -600,17 +604,20 @@
       var fig = segmentFigure(row);
       var bb = fig.covers * breakfastRate;
       var dinner = fig.covers * dinnerRate;
+      var nett = ((fig.revenue * 100) / 120) - bb - (hasDinnerRate ? dinner : 0);
       var tr = trs[index];
       if (tr) {
         var dayCell = tr.querySelector('[data-seg-day]');
         var nightsCell = tr.querySelector('[data-seg-nights]');
         var revenueCell = tr.querySelector('[data-seg-revenue]');
         var bbCell = tr.querySelector('[data-seg-bb]');
+        var nettCell = tr.querySelector('[data-seg-nett]');
         var dinnerCell = tr.querySelector('[data-seg-dinner]');
         if (dayCell) dayCell.textContent = fig.day;
         if (nightsCell) nightsCell.textContent = fig.nights > 0 ? String(fig.nights) : '—';
         if (revenueCell) revenueCell.textContent = money(fig.revenue);
         if (bbCell) bbCell.textContent = money(bb);
+        if (nettCell) nettCell.textContent = money(nett);
         if (dinnerCell) dinnerCell.textContent = money(dinner);
       }
       if (fig.nights <= 0) return;
@@ -618,6 +625,7 @@
       totals.revenue += fig.revenue;
       totals.bb += bb;
       totals.dinner += dinner;
+      totals.nett += nett;
       totals.singleRn += fig.singleRn;
       totals.singleRev += fig.singleRev;
       totals.doubleRn += fig.doubleRn;
@@ -635,6 +643,7 @@
     setSegmentText('gb-segment-triple-rate', money(weightedRate(totals.tripleRn, totals.tripleRev)));
     setSegmentText('gb-segment-revenue', money(totals.revenue));
     setSegmentText('gb-segment-bb', money(totals.bb));
+    setSegmentText('gb-segment-nett', money(totals.nett));
     setSegmentText('gb-segment-dinner', money(totals.dinner));
     var note = document.getElementById('gb-segment-note');
     if (note) {

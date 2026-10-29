@@ -186,7 +186,7 @@
     <div class="card-body">
       <div class="gb-dl">
         <div><div class="gb-label">Client</div><div class="gb-value"><?php echo e($text($enquiry->client)); ?></div></div>
-        <div><div class="gb-label">Contact</div><div class="gb-value"><?php echo e($text($enquiry->contact_name)); ?></div></div>
+        <div><div class="gb-label">Contact number</div><div class="gb-value"><?php echo e($text($enquiry->contact_number)); ?></div></div>
         <div><div class="gb-label">Email ID</div><div class="gb-value"><?php echo e($text($enquiry->email)); ?></div></div>
         <div><div class="gb-label">Status</div><div class="gb-value"><?php if (isset($component)) { $__componentOriginal435aefee4aa6dd7f20df034696ae03b9 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal435aefee4aa6dd7f20df034696ae03b9 = $attributes; } ?>
@@ -306,6 +306,7 @@
                 <?php if($showSegmentBreakfast): ?>
                   <th class="text-end">BB</th>
                 <?php endif; ?>
+                <th class="text-end">Nett Rev EX VAT &amp; BF</th>
                 <?php if($showSegmentDinner): ?>
                   <th class="text-end">Dinner</th>
                 <?php endif; ?>
@@ -317,6 +318,7 @@
                 $segmentRevenueTotal = 0.0;
                 $segmentBbTotal = 0.0;
                 $segmentDinnerTotal = 0.0;
+                $segmentNettTotal = 0.0;
               ?>
               <?php $__currentLoopData = $staySegments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $segment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php
@@ -331,10 +333,12 @@
                   $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTriple * 3));
                   $segmentBb = $segmentCovers * $segmentBreakfast;
                   $segmentDinnerAmount = $segmentCovers * $segmentDinner;
+                  $segmentNett = (($segmentRevenue * 100) / 120) - $segmentBb - ($enquiry->dinner_rate !== null ? $segmentDinnerAmount : 0);
                   $segmentNightsTotal += $segmentNights;
                   $segmentRevenueTotal += $segmentRevenue;
                   $segmentBbTotal += $segmentBb;
                   $segmentDinnerTotal += $segmentDinnerAmount;
+                  $segmentNettTotal += $segmentNett;
                 ?>
                 <tr>
                   <td class="text-nowrap"><?php echo e(\Illuminate\Support\Carbon::parse($segment['check_in'])->format('d-m-Y')); ?></td>
@@ -351,6 +355,7 @@
                   <?php if($showSegmentBreakfast): ?>
                     <td class="text-end"><?php echo e($money($segmentBb)); ?></td>
                   <?php endif; ?>
+                  <td class="text-end fw-semibold"><?php echo e($money($segmentNett)); ?></td>
                   <?php if($showSegmentDinner): ?>
                     <td class="text-end"><?php echo e($money($segmentDinnerAmount)); ?></td>
                   <?php endif; ?>
@@ -366,6 +371,7 @@
                 <?php if($showSegmentBreakfast): ?>
                   <td class="text-end fw-semibold"><?php echo e($money($segmentBbTotal)); ?></td>
                 <?php endif; ?>
+                <td class="text-end fw-semibold"><?php echo e($money($segmentNettTotal)); ?></td>
                 <?php if($showSegmentDinner): ?>
                   <td class="text-end fw-semibold"><?php echo e($money($segmentDinnerTotal)); ?></td>
                 <?php endif; ?>

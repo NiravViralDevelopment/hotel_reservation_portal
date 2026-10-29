@@ -150,7 +150,7 @@
 <?php $component = $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
 <?php unset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
 <?php endif; ?>
-        <th>Contact</th>
+        <th>Contact number</th>
         <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'email','label' => 'Email ID','default' => $defaultSort,'defaultDir' => $defaultDir]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -298,7 +298,7 @@
           <td><?php echo e($enquiry->nights ?? '—'); ?></td>
           <td class="fw-semibold text-nowrap"><a href="<?php echo e(route($recordRoute, $enquiry)); ?>"><?php echo e($text($enquiry->block_id)); ?></a></td>
           <td class="text-nowrap"><?php echo e($text($enquiry->client)); ?></td>
-          <td class="text-nowrap"><?php echo e($text($enquiry->contact_name)); ?></td>
+          <td class="text-nowrap"><?php echo e($text($enquiry->contact_number)); ?></td>
           <td class="text-nowrap"><?php echo e($text($enquiry->email)); ?></td>
           <td><?php if (isset($component)) { $__componentOriginal435aefee4aa6dd7f20df034696ae03b9 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal435aefee4aa6dd7f20df034696ae03b9 = $attributes; } ?>

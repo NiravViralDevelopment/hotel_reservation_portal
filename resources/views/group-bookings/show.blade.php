@@ -270,6 +270,7 @@
                 @if ($showSegmentBreakfast)
                   <th class="text-end">BB</th>
                 @endif
+                <th class="text-end">Nett Rev EX VAT &amp; BF</th>
                 @if ($showSegmentDinner)
                   <th class="text-end">Dinner</th>
                 @endif
@@ -281,6 +282,7 @@
                 $segmentRevenueTotal = 0.0;
                 $segmentBbTotal = 0.0;
                 $segmentDinnerTotal = 0.0;
+                $segmentNettTotal = 0.0;
               @endphp
               @foreach ($staySegments as $segment)
                 @php
@@ -295,10 +297,12 @@
                   $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTriple * 3));
                   $segmentBb = $segmentCovers * $segmentBreakfast;
                   $segmentDinnerAmount = $segmentCovers * $segmentDinner;
+                  $segmentNett = (($segmentRevenue * 100) / 120) - $segmentBb - ($enquiry->dinner_rate !== null ? $segmentDinnerAmount : 0);
                   $segmentNightsTotal += $segmentNights;
                   $segmentRevenueTotal += $segmentRevenue;
                   $segmentBbTotal += $segmentBb;
                   $segmentDinnerTotal += $segmentDinnerAmount;
+                  $segmentNettTotal += $segmentNett;
                 @endphp
                 <tr>
                   <td class="text-nowrap">{{ \Illuminate\Support\Carbon::parse($segment['check_in'])->format('d-m-Y') }}</td>
@@ -315,6 +319,7 @@
                   @if ($showSegmentBreakfast)
                     <td class="text-end">{{ $money($segmentBb) }}</td>
                   @endif
+                  <td class="text-end fw-semibold">{{ $money($segmentNett) }}</td>
                   @if ($showSegmentDinner)
                     <td class="text-end">{{ $money($segmentDinnerAmount) }}</td>
                   @endif
@@ -330,6 +335,7 @@
                 @if ($showSegmentBreakfast)
                   <td class="text-end fw-semibold">{{ $money($segmentBbTotal) }}</td>
                 @endif
+                <td class="text-end fw-semibold">{{ $money($segmentNettTotal) }}</td>
                 @if ($showSegmentDinner)
                   <td class="text-end fw-semibold">{{ $money($segmentDinnerTotal) }}</td>
                 @endif

@@ -122,6 +122,12 @@
   .enquiry-form-layout .stay-date-table thead .stay-calc {
     text-align: right;
   }
+  .enquiry-form-layout .stay-date-table thead .gb-seg-nett {
+    white-space: normal;
+    min-width: 7.5rem;
+    max-width: 8.75rem;
+    line-height: 1.2;
+  }
   .enquiry-form-layout .gb-daily-breakdown {
     margin-top: 1.25rem;
   }
