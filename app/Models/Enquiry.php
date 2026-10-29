@@ -92,7 +92,7 @@ class Enquiry extends Model
         'is_cancel',
         'cancellation_reason',
         'block_id',
-        'contact_name',
+        'contact_number',
         'contract_sent_on',
         'contract_received_on',
         'saved_to_doc',

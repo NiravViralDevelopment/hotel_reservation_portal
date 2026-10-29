@@ -10,9 +10,10 @@
 
       return $value === null || $value === '' ? $fallback : $value;
   };
-  $contactValue = old('contact_name');
+  $contactValue = old('contact_number');
   if ($contactValue === null) {
-      $contactValue = $enquiry->contact_name ?: ($enquiry->contact?->name ?? '');
+      $contactValue = preg_replace('/\D+/', '', (string) ($enquiry->contact_number ?: ($enquiry->contact?->phone ?? '')));
+      $contactValue = substr($contactValue, 0, 15);
   }
   $selectedBasis = old('basis');
   if ($selectedBasis === null) {
@@ -186,16 +187,16 @@ endif;
 unset($__errorArgs, $__bag); ?>
         </div>
         <div class="col-md-6">
-          <label for="gb_contact_name" class="form-label">Contact</label>
-          <input type="text" name="contact_name" id="gb_contact_name" class="form-control <?php $__errorArgs = ['contact_name'];
+          <label for="gb_contact_number" class="form-label">Contact number</label>
+          <input type="text" name="contact_number" id="gb_contact_number" inputmode="numeric" pattern="[0-9]*" class="form-control js-digits <?php $__errorArgs = ['contact_number'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($contactValue); ?>" maxlength="255">
-          <?php $__errorArgs = ['contact_name'];
+unset($__errorArgs, $__bag); ?>" value="<?php echo e($contactValue); ?>" maxlength="15">
+          <?php $__errorArgs = ['contact_number'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }

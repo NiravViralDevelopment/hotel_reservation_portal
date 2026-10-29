@@ -39,9 +39,9 @@ class BookingContractHtml
 
         $clientName = $agency?->name ?: ($enquiry->client ?: $enquiry->group_name);
         $clientCityLine = collect([$agency?->city, $agency?->country])->filter()->implode(', ');
-        $clientContact = $enquiry->contact_name ?: ($contact?->name ?: $agency?->contact_name);
+        $clientContact = $contact?->name ?: $agency?->contact_name;
         $clientRole = $contact?->position;
-        $clientPhone = $enquiry->mobile ?: ($contact?->phone ?: $agency?->phone);
+        $clientPhone = $enquiry->contact_number ?: ($enquiry->mobile ?: ($contact?->phone ?: $agency?->phone));
         $clientEmail = $enquiry->email ?: ($contact?->email ?: $agency?->email);
 
         $nights = (int) ($enquiry->nights ?? 0);

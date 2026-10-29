@@ -36,7 +36,7 @@
         <x-sortable-th column="nights" label="No. of Nights" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="block_id" label="Block ID" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="client" label="Client" :default="$defaultSort" :default-dir="$defaultDir" />
-        <th>Contact</th>
+        <th>Contact number</th>
         <x-sortable-th column="email" label="Email ID" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="status" label="Status" :default="$defaultSort" :default-dir="$defaultDir" />
         <th>Contract Sent On</th>
@@ -89,7 +89,7 @@
           <td>{{ $enquiry->nights ?? '—' }}</td>
           <td class="fw-semibold text-nowrap"><a href="{{ route($recordRoute, $enquiry) }}">{{ $text($enquiry->block_id) }}</a></td>
           <td class="text-nowrap">{{ $text($enquiry->client) }}</td>
-          <td class="text-nowrap">{{ $text($enquiry->contact_name) }}</td>
+          <td class="text-nowrap">{{ $text($enquiry->contact_number) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->email) }}</td>
           <td><x-badge-status :status="$enquiry->status" /></td>
           <td class="text-nowrap">{{ $date($enquiry->contract_sent_on) }}</td>

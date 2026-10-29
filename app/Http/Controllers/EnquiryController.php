@@ -204,7 +204,7 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         foreach ([
-            'contact_name', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status', 'commission_percentage',
+            'contact_number', 'saved_to_doc', 'payment_term', 'payment_term_days', 'payment_status', 'commission_percentage',
             'cxl_policy', 'booking_update', 'rooming', 'invoice_status', 'invoice_number', 'commission_payable_status',
             'basis', 'breakfast_rate', 'dinner_rate', 'client', 'email', 'day',
             'contract_sent_on', 'contract_received_on', 'payment_due_date', 'cxl_due_date', 'cxl_date', 'invoice_sent_on',
@@ -223,7 +223,7 @@ class EnquiryController extends Controller
             'nights' => ['required', 'integer', 'min:0'],
             'block_id' => ['required', 'string', 'max:255', Rule::unique('enquiries', 'block_id')->ignore($enquiry->id)],
             'client' => ['nullable', 'string', 'max:255'],
-            'contact_name' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:15', 'regex:/^[0-9]+$/'],
             'email' => ['nullable', 'email', 'max:255'],
             'contract_sent_on' => ['nullable', 'date'],
             'contract_received_on' => ['nullable', 'date'],
@@ -288,6 +288,8 @@ class EnquiryController extends Controller
             'dinner_rate.required_if' => 'Enter the dinner rate.',
             'dinner_rate.numeric' => 'Dinner rate must be a number.',
             'dinner_rate.min' => 'Dinner rate cannot be negative.',
+            'contact_number.regex' => 'Contact number may only contain numbers.',
+            'contact_number.max' => 'Contact number may not be greater than 15 digits.',
             'email.email' => 'Enter a valid email address.',
             'payment_status.in' => 'Select Pending or Received.',
             'payment_term.in' => 'Select Pre Arrival or Post Departure.',

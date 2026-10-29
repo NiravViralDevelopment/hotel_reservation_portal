@@ -169,7 +169,7 @@
     <div class="card-body">
       <div class="gb-dl">
         <div><div class="gb-label">Client</div><div class="gb-value">{{ $text($enquiry->client) }}</div></div>
-        <div><div class="gb-label">Contact</div><div class="gb-value">{{ $text($enquiry->contact_name) }}</div></div>
+        <div><div class="gb-label">Contact number</div><div class="gb-value">{{ $text($enquiry->contact_number) }}</div></div>
         <div><div class="gb-label">Email ID</div><div class="gb-value">{{ $text($enquiry->email) }}</div></div>
         <div><div class="gb-label">Status</div><div class="gb-value"><x-badge-status :status="$enquiry->status" /></div></div>
       </div>
