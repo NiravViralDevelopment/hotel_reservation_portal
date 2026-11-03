@@ -11,7 +11,7 @@
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
-  $enquiryColspan = ($showCancellationReason ? 26 : 24) + ($showCreatedBy ? 1 : 0);
+  $enquiryColspan = ($showCancellationReason ? 27 : 24) + ($showCreatedBy ? 1 : 0);
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -55,6 +55,7 @@
         <x-sortable-th column="total_revenue" label="Total Revenue" :default="$defaultSort" :default-dir="$defaultDir" />
         <th>Remarks</th>
         @if ($showCancellationReason)
+          <x-sortable-th column="cancel_at" label="Cancel At" :default="$defaultSort" :default-dir="$defaultDir" />
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         @endif
@@ -92,6 +93,7 @@
           <td class="text-nowrap fw-semibold">{{ $money($enquiry->total_revenue) }}</td>
           <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->remarks }}">{{ $enquiry->remarks ?: '—' }}</td>
           @if ($showCancellationReason)
+            <td class="text-nowrap">{{ $enquiry->cancel_at?->format('d M Y') ?? '—' }}</td>
             <td class="text-nowrap">{{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $enquiry->cancellation_reason ?: '—' }}</td>
           @endif
@@ -123,7 +125,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ 24 + ($showCancellationReason ? 2 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ 24 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
         <tr><td colspan="{{ $enquiryColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>

@@ -64,6 +64,12 @@
         </div>
         <div class="modal-body">
           <p class="text-secondary">Cancel enquiry <strong>{{ $enquiry->group_name ?: 'this enquiry' }}</strong>? It will move to Cancelled Inquiry.</p>
+          <label for="inquiry_cancel_at" class="form-label">Cancel At</label>
+          <div class="date-placeholder-wrap mb-3">
+            <input type="date" name="cancel_at" id="inquiry_cancel_at" class="form-control @error('cancel_at') is-invalid @enderror" value="{{ old('cancel_at', now()->toDateString()) }}">
+            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          </div>
+          @error('cancel_at')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
           <label for="inquiry_cxl_date" class="form-label">CXL Date</label>
           <div class="date-placeholder-wrap mb-3">
             <input type="date" name="cxl_date" id="inquiry_cxl_date" class="form-control @error('cxl_date') is-invalid @enderror" value="{{ old('cxl_date') }}">
@@ -87,7 +93,7 @@
 @push('scripts')
   @include('enquiries.partials.entry-form-scripts')
   @include('enquiries.partials.group-booking-scripts')
-  @if ($errors->has('cancellation_reason') || $errors->has('cxl_date'))
+  @if ($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at'))
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         var modalId = @json(old('cancel_scope') === 'group' ? 'cancelGroupBookingModal' : 'cancelInquiryModal');

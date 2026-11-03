@@ -306,10 +306,10 @@
                 <?php if($showSegmentBreakfast): ?>
                   <th class="text-end">BB</th>
                 <?php endif; ?>
-                <th class="text-end">Nett Rev EX VAT &amp; BF</th>
                 <?php if($showSegmentDinner): ?>
                   <th class="text-end">Dinner</th>
                 <?php endif; ?>
+                <th class="text-end">Nett Rev EX VAT &amp; BF</th>
               </tr>
             </thead>
             <tbody>
@@ -355,10 +355,10 @@
                   <?php if($showSegmentBreakfast): ?>
                     <td class="text-end"><?php echo e($money($segmentBb)); ?></td>
                   <?php endif; ?>
-                  <td class="text-end fw-semibold"><?php echo e($money($segmentNett)); ?></td>
                   <?php if($showSegmentDinner): ?>
                     <td class="text-end"><?php echo e($money($segmentDinnerAmount)); ?></td>
                   <?php endif; ?>
+                  <td class="text-end fw-semibold"><?php echo e($money($segmentNett)); ?></td>
                 </tr>
               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tbody>
@@ -371,10 +371,10 @@
                 <?php if($showSegmentBreakfast): ?>
                   <td class="text-end fw-semibold"><?php echo e($money($segmentBbTotal)); ?></td>
                 <?php endif; ?>
-                <td class="text-end fw-semibold"><?php echo e($money($segmentNettTotal)); ?></td>
                 <?php if($showSegmentDinner): ?>
                   <td class="text-end fw-semibold"><?php echo e($money($segmentDinnerTotal)); ?></td>
                 <?php endif; ?>
+                <td class="text-end fw-semibold"><?php echo e($money($segmentNettTotal)); ?></td>
               </tr>
             </tfoot>
           </table>

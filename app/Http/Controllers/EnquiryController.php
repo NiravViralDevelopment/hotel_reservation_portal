@@ -423,6 +423,7 @@ class EnquiryController extends Controller
         $data['is_confirm'] = true;
         $data['is_cancel'] = false;
         $data['cancellation_reason'] = null;
+        $data['cancel_at'] = null;
 
         $enquiry->update($data);
         Audit::log('confirmed', 'group_bookings', $enquiry->block_id ?: $enquiry->ref, $enquiry);
@@ -440,12 +441,19 @@ class EnquiryController extends Controller
             $request->merge(['cxl_date' => null]);
         }
 
+        if ($request->input('cancel_at') === '' || $request->input('cancel_at') === null) {
+            $request->merge(['cancel_at' => now()->toDateString()]);
+        }
+
         $data = $request->validate([
             'cancellation_reason' => ['required', 'string', 'max:2000'],
             'cxl_date' => ['nullable', 'date'],
+            'cancel_at' => ['required', 'date'],
         ], [
             'cancellation_reason.required' => 'Enter the cancellation reason.',
             'cxl_date.date' => 'Enter a valid CXL date.',
+            'cancel_at.required' => 'Cancel at is required.',
+            'cancel_at.date' => 'Enter a valid cancel at date.',
         ]);
 
         $enquiry->update([
@@ -454,6 +462,7 @@ class EnquiryController extends Controller
             'is_confirm' => false,
             'cancellation_reason' => $data['cancellation_reason'],
             'cxl_date' => $data['cxl_date'] ?? null,
+            'cancel_at' => $data['cancel_at'],
         ]);
         Audit::log('cancelled', 'enquiries', $enquiry->group_name ?: $enquiry->ref, $enquiry);
 
@@ -559,6 +568,7 @@ class EnquiryController extends Controller
             $data['is_confirm'] = false;
             $data['cancellation_reason'] = null;
             $data['cxl_date'] = null;
+            $data['cancel_at'] = null;
         } elseif ($cancelledInquiry) {
             $data['is_cancel'] = true;
             $data['is_confirm'] = false;
@@ -642,6 +652,7 @@ class EnquiryController extends Controller
             'is_confirm' => true,
             'is_cancel' => false,
             'cancellation_reason' => null,
+            'cancel_at' => null,
         ]);
         Audit::log('confirmed', 'enquiries', $enquiry->ref, $enquiry);
 

@@ -62,6 +62,26 @@
         </div>
         <div class="modal-body">
           <p class="text-secondary">Cancel enquiry <strong><?php echo e($enquiry->group_name ?: 'this enquiry'); ?></strong>? It will move to Cancelled Inquiry.</p>
+          <label for="inquiry_cancel_at" class="form-label">Cancel At</label>
+          <div class="date-placeholder-wrap mb-3">
+            <input type="date" name="cancel_at" id="inquiry_cancel_at" class="form-control <?php $__errorArgs = ['cancel_at'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('cancel_at', now()->toDateString())); ?>">
+            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+          </div>
+          <?php $__errorArgs = ['cancel_at'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block mb-3"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
           <label for="inquiry_cxl_date" class="form-label">CXL Date</label>
           <div class="date-placeholder-wrap mb-3">
             <input type="date" name="cxl_date" id="inquiry_cxl_date" class="form-control <?php $__errorArgs = ['cxl_date'];
@@ -113,7 +133,7 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->startPush('scripts'); ?>
   <?php echo $__env->make('enquiries.partials.entry-form-scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('enquiries.partials.group-booking-scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-  <?php if($errors->has('cancellation_reason') || $errors->has('cxl_date')): ?>
+  <?php if($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at')): ?>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         var modalId = <?php echo json_encode(old('cancel_scope') === 'group' ? 'cancelGroupBookingModal' : 'cancelInquiryModal', 15, 512) ?>;

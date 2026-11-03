@@ -11,7 +11,7 @@
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
-  $enquiryColspan = ($showCancellationReason ? 26 : 24) + ($showCreatedBy ? 1 : 0);
+  $enquiryColspan = ($showCancellationReason ? 27 : 24) + ($showCreatedBy ? 1 : 0);
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -321,6 +321,26 @@
 <?php endif; ?>
         <th>Remarks</th>
         <?php if($showCancellationReason): ?>
+          <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'cancel_at','label' => 'Cancel At','default' => $defaultSort,'defaultDir' => $defaultDir]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('sortable-th'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['column' => 'cancel_at','label' => 'Cancel At','default' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($defaultSort),'default-dir' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($defaultDir)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
+<?php $attributes = $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
+<?php unset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
+<?php $component = $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07; ?>
+<?php unset($__componentOriginal3c1df23c66879bbdd25946c6c08cdc07); ?>
+<?php endif; ?>
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         <?php endif; ?>
@@ -434,6 +454,7 @@
           <td class="text-nowrap fw-semibold"><?php echo e($money($enquiry->total_revenue)); ?></td>
           <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?php echo e($enquiry->remarks); ?>"><?php echo e($enquiry->remarks ?: '—'); ?></td>
           <?php if($showCancellationReason): ?>
+            <td class="text-nowrap"><?php echo e($enquiry->cancel_at?->format('d M Y') ?? '—'); ?></td>
             <td class="text-nowrap"><?php echo e($enquiry->cxl_date?->format('d M Y') ?? '—'); ?></td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?php echo e($enquiry->cancellation_reason); ?>"><?php echo e($enquiry->cancellation_reason ?: '—'); ?></td>
           <?php endif; ?>
@@ -465,7 +486,7 @@
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <tr><td colspan="<?php echo e(24 + ($showCancellationReason ? 2 : 0) + ($showCreatedBy ? 1 : 0)); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
+        <tr><td colspan="<?php echo e(24 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0)); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
         <tr><td colspan="<?php echo e($enquiryColspan); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
       <?php endif; ?>
     </tbody>

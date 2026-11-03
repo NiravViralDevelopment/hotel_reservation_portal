@@ -194,6 +194,7 @@
       <div>
         <div class="fw-semibold mb-1">Cancellation reason</div>
         <div class="mb-1">{{ $enquiry->cancellation_reason ?: '—' }}</div>
+        <div class="small text-secondary mb-0">Cancel at: {{ $enquiry->cancel_at?->format('d M Y') ?? '—' }}</div>
         <div class="small text-secondary mb-0">CXL date: {{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</div>
       </div>
     </div>
