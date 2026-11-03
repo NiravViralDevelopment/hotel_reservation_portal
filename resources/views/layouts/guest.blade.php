@@ -22,5 +22,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{{ asset('assets/js/app.js') }}"></script>
   @stack('scripts')
+  <script src="{{ asset('assets/js/required-field-validation.js') }}?v={{ @filemtime(public_path('assets/js/required-field-validation.js')) }}"></script>
 </body>
 </html>

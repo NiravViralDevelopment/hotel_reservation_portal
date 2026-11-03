@@ -7,8 +7,9 @@
   $highlightDates = $highlightDates ?? false;
   $viewOnlyActions = $viewOnlyActions ?? false;
   $showCreatedBy = $showCreatedBy ?? false;
+  $showAttachments = $showAttachments ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
-  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0);
+  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -76,6 +77,9 @@
         @if ($showCreatedBy)
           <th>Created by</th>
         @endif
+        @if ($showAttachments)
+          <th class="text-nowrap">Attachment</th>
+        @endif
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -128,6 +132,13 @@
           @endif
           @if ($showCreatedBy)
             <td class="text-nowrap">{{ $enquiry->assignedTo?->name ?: '—' }}</td>
+          @endif
+          @if ($showAttachments)
+            <td class="text-nowrap">
+              <a href="{{ route('group-bookings.attachments.index', $enquiry) }}" class="btn btn-sm btn-outline-primary">
+                Manage Attachment
+              </a>
+            </td>
           @endif
           <td class="text-end text-nowrap">
             <a href="{{ route($recordRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">

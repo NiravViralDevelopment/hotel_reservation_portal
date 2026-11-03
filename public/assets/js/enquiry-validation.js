@@ -211,6 +211,17 @@
 
   function buildRules(form) {
     var isCreate = form.getAttribute('data-enquiry-create') === '1';
+    var isGroup = form.id === 'group-booking-form';
+
+    function mealRequired(wrapId, bases) {
+      return function () {
+        if (!isGroup) return false;
+        var wrap = document.getElementById(wrapId);
+        if (wrap && wrap.hidden) return false;
+        var basis = form.querySelector('[name="basis"]');
+        return !!(basis && bases.indexOf(basis.value) !== -1);
+      };
+    }
 
     return {
       group_name: { required: true, max: 255, uniquePair: true, requiredMessage: 'Group name is required.' },
@@ -223,10 +234,23 @@
       ref: { required: isCreate, max: 255, uniquePair: true, requiredMessage: 'Ref no is required.' },
       year: { year: true },
       nights: {
-        required: isCreate,
+        required: isCreate || isGroup,
         integer: true,
         min: 1,
-        requiredMessage: 'Nights is required.'
+        requiredMessage: isGroup && !isCreate ? 'No. of nights is required.' : 'Nights is required.'
+      },
+      block_id: {
+        required: isGroup,
+        max: 255,
+        requiredMessage: 'Block ID is required.'
+      },
+      breakfast_rate: {
+        required: mealRequired('gb_breakfast_rate_wrap', ['BB', 'DBB']),
+        requiredMessage: 'Enter the breakfast rate.'
+      },
+      dinner_rate: {
+        required: mealRequired('gb_dinner_rate_wrap', ['DBB']),
+        requiredMessage: 'Enter the dinner rate.'
       },
       rooms_per_night: {
         required: isCreate,
@@ -250,15 +274,17 @@
       remarks: { max: 5000 },
       cxl_policy: { max: 255 },
       basis: { max: 10 },
-      check_in: isCreate
-        ? { required: true, requiredMessage: 'Arrival date is required.' }
+      check_in: (isCreate || isGroup)
+        ? { required: true, requiredMessage: isGroup && !isCreate ? 'Date of arrival is required.' : 'Arrival date is required.' }
         : {},
-      check_out: isCreate
+      check_out: (isCreate || isGroup)
         ? {
             required: true,
-            requiredMessage: 'Departure date is required.',
+            requiredMessage: isGroup && !isCreate ? 'Date of departure is required.' : 'Departure date is required.',
             afterField: 'check_in',
-            afterMessage: 'Departure date must be after the arrival date.'
+            afterMessage: isGroup && !isCreate
+              ? 'Date of departure must be after the date of arrival.'
+              : 'Departure date must be after the arrival date.'
           }
         : {
             afterField: 'check_in',
@@ -354,6 +380,16 @@
       hasTaxEl.addEventListener('change', function () {
         var taxPct = form.querySelector('#tax_percentage');
         if (taxPct) runField(taxPct);
+      });
+    }
+
+    var basisEl = form.querySelector('[name="basis"]');
+    if (basisEl && form.id === 'group-booking-form') {
+      basisEl.addEventListener('change', function () {
+        ['breakfast_rate', 'dinner_rate'].forEach(function (name) {
+          var field = form.querySelector('[name="' + name + '"]');
+          if (field) runField(field);
+        });
       });
     }
 

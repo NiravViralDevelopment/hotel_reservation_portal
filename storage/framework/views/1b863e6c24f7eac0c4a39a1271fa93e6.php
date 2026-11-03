@@ -7,8 +7,9 @@
   $highlightDates = $highlightDates ?? false;
   $viewOnlyActions = $viewOnlyActions ?? false;
   $showCreatedBy = $showCreatedBy ?? false;
+  $showAttachments = $showAttachments ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
-  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0);
+  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -266,6 +267,9 @@
         <?php if($showCreatedBy): ?>
           <th>Created by</th>
         <?php endif; ?>
+        <?php if($showAttachments): ?>
+          <th class="text-nowrap">Attachment</th>
+        <?php endif; ?>
         <th class="text-end">Actions</th>
       </tr>
     </thead>
@@ -394,6 +398,13 @@
           <?php endif; ?>
           <?php if($showCreatedBy): ?>
             <td class="text-nowrap"><?php echo e($enquiry->assignedTo?->name ?: '—'); ?></td>
+          <?php endif; ?>
+          <?php if($showAttachments): ?>
+            <td class="text-nowrap">
+              <a href="<?php echo e(route('group-bookings.attachments.index', $enquiry)); ?>" class="btn btn-sm btn-outline-primary">
+                Manage Attachment
+              </a>
+            </td>
           <?php endif; ?>
           <td class="text-end text-nowrap">
             <a href="<?php echo e(route($recordRoute, $enquiry)); ?>" class="btn btn-sm btn-outline-secondary" title="View">

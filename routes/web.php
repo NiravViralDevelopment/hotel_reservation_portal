@@ -13,6 +13,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartureController;
 use App\Http\Controllers\EnquiryController;
+use App\Http\Controllers\GroupBookingAttachmentController;
 use App\Http\Controllers\GroupBookingController;
 use App\Http\Controllers\HotelContextController;
 use App\Http\Controllers\HotelController;
@@ -101,6 +102,11 @@ Route::middleware('auth')->group(function () {
     Route::get('group-bookings/{enquiry}/contract/pdf', [GroupBookingController::class, 'previewContractPdf'])->name('group-bookings.contract.pdf');
     Route::get('group-bookings/{enquiry}/contract/hotel-preview', [GroupBookingController::class, 'previewHotelContract'])->name('group-bookings.contract.hotel-preview');
     Route::get('group-bookings/{enquiry}/contract/download', [GroupBookingController::class, 'downloadBookingContract'])->name('group-bookings.contract.download');
+    Route::get('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'index'])->name('group-bookings.attachments.index');
+    Route::get('group-bookings/{enquiry}/attachments/create', [GroupBookingAttachmentController::class, 'create'])->name('group-bookings.attachments.create');
+    Route::post('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'store'])->name('group-bookings.attachments.store');
+    Route::get('group-bookings/{enquiry}/attachments/{attachment}/download', [GroupBookingAttachmentController::class, 'download'])->name('group-bookings.attachments.download');
+    Route::delete('group-bookings/{enquiry}/attachments/{attachment}', [GroupBookingAttachmentController::class, 'destroy'])->name('group-bookings.attachments.destroy');
     Route::get('group-bookings/{enquiry}', [GroupBookingController::class, 'show'])->name('group-bookings.show');
     Route::get('group-bookings/{enquiry}/edit', [GroupBookingController::class, 'edit'])->name('group-bookings.edit');
 

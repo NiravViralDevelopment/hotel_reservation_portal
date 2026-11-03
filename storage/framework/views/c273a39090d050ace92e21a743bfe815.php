@@ -138,6 +138,7 @@ unset($__errorArgs, $__bag); ?>
       'defaultSort' => 'check_in',
       'defaultDir' => 'asc',
       'emptyMessage' => 'No confirmed bookings found.',
+      'showAttachments' => true,
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <?php echo $__env->make('partials.pagination-footer', ['paginator' => $bookings], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

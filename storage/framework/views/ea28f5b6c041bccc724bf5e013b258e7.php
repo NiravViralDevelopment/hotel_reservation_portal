@@ -40,6 +40,7 @@
   <script src="<?php echo e(asset('assets/js/pages.js')); ?>"></script>
   <script src="<?php echo e(asset('assets/js/app.js')); ?>?v=<?php echo e(@filemtime(public_path('assets/js/app.js'))); ?>"></script>
   <?php echo $__env->yieldPushContent('scripts'); ?>
+  <script src="<?php echo e(asset('assets/js/required-field-validation.js')); ?>?v=<?php echo e(@filemtime(public_path('assets/js/required-field-validation.js'))); ?>"></script>
 </body>
 </html>
 <?php /**PATH E:\Working\hotel_reservation_portal\resources\views/layouts/app.blade.php ENDPATH**/ ?>

@@ -22,6 +22,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="<?php echo e(asset('assets/js/app.js')); ?>"></script>
   <?php echo $__env->yieldPushContent('scripts'); ?>
+  <script src="<?php echo e(asset('assets/js/required-field-validation.js')); ?>?v=<?php echo e(@filemtime(public_path('assets/js/required-field-validation.js'))); ?>"></script>
 </body>
 </html>
 <?php /**PATH E:\Working\hotel_reservation_portal\resources\views/layouts/guest.blade.php ENDPATH**/ ?>
