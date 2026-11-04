@@ -323,14 +323,14 @@
         <?php if($showCancellationReason): ?>
           <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'cancel_at','label' => 'Cancel At','default' => $defaultSort,'defaultDir' => $defaultDir]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sortable-th','data' => ['column' => 'cancel_at','label' => 'Cancel on','default' => $defaultSort,'defaultDir' => $defaultDir]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sortable-th'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['column' => 'cancel_at','label' => 'Cancel At','default' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($defaultSort),'default-dir' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($defaultDir)]); ?>
+<?php $component->withAttributes(['column' => 'cancel_at','label' => 'Cancel on','default' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($defaultSort),'default-dir' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($defaultDir)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal3c1df23c66879bbdd25946c6c08cdc07)): ?>
@@ -454,7 +454,7 @@
           <td class="text-nowrap fw-semibold"><?php echo e($money($enquiry->total_revenue)); ?></td>
           <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?php echo e($enquiry->remarks); ?>"><?php echo e($enquiry->remarks ?: '—'); ?></td>
           <?php if($showCancellationReason): ?>
-            <td class="text-nowrap"><?php echo e($enquiry->cancel_at?->format('d M Y') ?? '—'); ?></td>
+            <td class="text-nowrap"><?php echo e($enquiry->cancel_at?->format('d M Y H:i') ?? '—'); ?></td>
             <td class="text-nowrap"><?php echo e($enquiry->cxl_date?->format('d M Y') ?? '—'); ?></td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?php echo e($enquiry->cancellation_reason); ?>"><?php echo e($enquiry->cancellation_reason ?: '—'); ?></td>
           <?php endif; ?>

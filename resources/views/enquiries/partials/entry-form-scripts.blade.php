@@ -246,16 +246,16 @@
     list.innerHTML = '<div class="table-responsive"><table class="table table-sm table-hover stay-date-table mb-0">'
       + '<thead><tr>'
       + '<th>Arrival</th><th>Departure</th><th>Day</th><th>Nights</th>'
-      + '<th>Single RNs</th><th>Single Rate</th>'
-      + '<th>Double RNs</th><th>Double Rate</th>'
-      + '<th>Triple RNs</th><th>Triple Rate</th>'
+      + '<th>Single Room</th><th>Single Rate</th>'
+      + '<th>Double Room</th><th>Double Rate</th>'
+      + '<th>Triple Room</th><th>Triple Rate</th>'
       + '<th class="stay-calc">Total Room Nights</th>'
       + '<th class="stay-calc">Total Rev</th>'
       + '<th></th>'
       + '</tr></thead><tbody>' + body + '</tbody>'
       + '<tfoot><tr>'
       + '<th scope="row" colspan="3">Total</th>'
-      + '<td data-total="nights">0</td>'
+      + '<td data-total="nights"></td>'
       + '<td data-total="single_rooms">0</td><td data-total="single_rate">0.00</td>'
       + '<td data-total="double_rooms">0</td><td data-total="double_rate">0.00</td>'
       + '<td data-total="triple_rooms">0</td><td data-total="triple_rate">0.00</td>'
@@ -324,7 +324,6 @@
     }
     var typeRooms = { single: 0, double: 0, triple: 0 };
     var typeRevenue = { single: 0, double: 0, triple: 0 };
-    var nightTotal = 0;
     var roomNights = 0;
     var revenueTotal = 0;
     rows.forEach(function (row) {
@@ -345,7 +344,6 @@
       typeRevenue.single += nights * single * singleRate;
       typeRevenue.double += nights * doubleRooms * doubleRate;
       typeRevenue.triple += nights * triple * tripleRate;
-      nightTotal += nights;
       roomNights += rowRoomNights;
       revenueTotal += rowRevenue;
       setCalc(row, 'day', weekdayName(rowAmountText(row, 'check_in')));
@@ -353,7 +351,6 @@
       setCalc(row, 'room_nights', String(Math.round(rowRoomNights)));
       setCalc(row, 'revenue', rowRevenue.toFixed(2));
     });
-    setStayTotal('nights', nightTotal, false);
     setStayTotal('single_rooms', typeRooms.single, false);
     setStayTotal('single_rate', typeRooms.single > 0 ? typeRevenue.single / typeRooms.single : 0, true);
     setStayTotal('double_rooms', typeRooms.double, false);

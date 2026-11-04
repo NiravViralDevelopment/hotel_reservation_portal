@@ -159,14 +159,26 @@ unset($__errorArgs, $__bag); ?>
       </div>
       <div class="col-md-6 col-xl-3">
         <label for="rooms_per_night" class="form-label">Total Room per Night <span class="text-danger">*</span></label>
-        <input type="text" name="rooms_per_night" id="rooms_per_night" inputmode="numeric" class="form-control js-digits <?php $__errorArgs = ['rooms_per_night'];
+        <?php
+          $selectedRooms = $v('rooms_per_night');
+          $selectedRooms = ($selectedRooms === '' || $selectedRooms === null) ? null : (int) $selectedRooms;
+        ?>
+        <select name="rooms_per_night" id="rooms_per_night" class="form-select <?php $__errorArgs = ['rooms_per_night'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('rooms_per_night')); ?>" placeholder="Enter total rooms" required>
+unset($__errorArgs, $__bag); ?>" required>
+          <option value="" <?php if($selectedRooms === null): echo 'selected'; endif; ?>>Select total rooms</option>
+          <?php for($rooms = 1; $rooms <= 50; $rooms++): ?>
+            <option value="<?php echo e($rooms); ?>" <?php if($selectedRooms === $rooms): echo 'selected'; endif; ?>><?php echo e($rooms); ?></option>
+          <?php endfor; ?>
+          <?php if($selectedRooms !== null && ($selectedRooms < 1 || $selectedRooms > 50)): ?>
+            <option value="<?php echo e($selectedRooms); ?>" selected><?php echo e($selectedRooms); ?></option>
+          <?php endif; ?>
+        </select>
         <?php $__errorArgs = ['rooms_per_night'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -361,15 +373,34 @@ unset($__errorArgs, $__bag); ?>
       </div>
       <div class="col-xl-6">
         <label for="cxl_policy" class="form-label">CXL Policy</label>
-        <input type="text" name="cxl_policy" id="cxl_policy" class="form-control <?php $__errorArgs = ['cxl_policy'];
+        <?php
+          $cxlPolicy = trim((string) $v('cxl_policy'));
+          $cxlDays = null;
+          if (preg_match('/^(\d+)\s*(days?)?$/i', $cxlPolicy, $cxlMatch)) {
+              $parsedCxlDays = (int) $cxlMatch[1];
+              if ($parsedCxlDays >= 1 && $parsedCxlDays <= 60) {
+                  $cxlDays = $parsedCxlDays;
+              }
+          }
+        ?>
+        <select name="cxl_policy" id="cxl_policy" class="form-select <?php $__errorArgs = ['cxl_policy'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e($v('cxl_policy')); ?>" placeholder="e.g. 30 days" maxlength="255">
-        <div class="form-text">Enter the number of days before arrival.</div>
+unset($__errorArgs, $__bag); ?>">
+          <option value="">Select days</option>
+          <?php for($days = 1; $days <= 60; $days++): ?>
+            <?php $cxlLabel = $days === 1 ? '1 day' : $days.' days'; ?>
+            <option value="<?php echo e($cxlLabel); ?>" <?php if($cxlDays === $days): echo 'selected'; endif; ?>><?php echo e($cxlLabel); ?></option>
+          <?php endfor; ?>
+          <?php if($cxlPolicy !== '' && $cxlDays === null): ?>
+            <option value="<?php echo e($cxlPolicy); ?>" selected><?php echo e($cxlPolicy); ?></option>
+          <?php endif; ?>
+        </select>
+        <div class="form-text">Select the number of days before arrival.</div>
         <?php $__errorArgs = ['cxl_policy'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :

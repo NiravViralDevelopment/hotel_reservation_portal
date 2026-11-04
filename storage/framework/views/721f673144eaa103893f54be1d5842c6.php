@@ -62,18 +62,15 @@
         </div>
         <div class="modal-body">
           <p class="text-secondary">Cancel enquiry <strong><?php echo e($enquiry->group_name ?: 'this enquiry'); ?></strong>? It will move to Cancelled Inquiry.</p>
-          <label for="inquiry_cancel_at" class="form-label">Cancel At</label>
-          <div class="date-placeholder-wrap mb-3">
-            <input type="date" name="cancel_at" id="inquiry_cancel_at" class="form-control <?php $__errorArgs = ['cancel_at'];
+          <label for="inquiry_cancel_at" class="form-label">Cancel on</label>
+          <input type="datetime-local" name="cancel_at" id="inquiry_cancel_at" class="form-control mb-3 <?php $__errorArgs = ['cancel_at'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('cancel_at', now()->toDateString())); ?>">
-            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
-          </div>
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('cancel_at', now()->format('Y-m-d\TH:i'))); ?>" readonly tabindex="-1" aria-readonly="true">
           <?php $__errorArgs = ['cancel_at'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -133,6 +130,25 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->startPush('scripts'); ?>
   <?php echo $__env->make('enquiries.partials.entry-form-scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('enquiries.partials.group-booking-scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php if (! (old('cancel_at'))): ?>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var input = document.getElementById('inquiry_cancel_at');
+        var modal = document.getElementById('cancelInquiryModal');
+        if (!input) return;
+
+        function stampCancelOn() {
+          var now = new Date();
+          var pad = function (value) { return String(value).padStart(2, '0'); };
+          input.value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+            + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+        }
+
+        stampCancelOn();
+        if (modal) modal.addEventListener('show.bs.modal', stampCancelOn);
+      });
+    </script>
+  <?php endif; ?>
   <?php if($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at')): ?>
     <script>
       document.addEventListener('DOMContentLoaded', function () {

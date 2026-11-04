@@ -71,7 +71,7 @@ class CancelledInquiryController extends Controller
                 $enquiry->cxl_due_date?->format('Y-m-d'),
                 $this->exportMoney($enquiry->total_revenue),
                 $enquiry->remarks,
-                $enquiry->cancel_at?->format('Y-m-d'),
+                $enquiry->cancel_at?->format('Y-m-d H:i'),
                 $enquiry->cancellation_reason,
             ];
         })->all();
@@ -104,7 +104,7 @@ class CancelledInquiryController extends Controller
                 'CXL Due Date',
                 'Total Revenue',
                 'Remarks',
-                'Cancel At',
+                'Cancel on',
                 'Cancellation Reason',
             ],
             $rows

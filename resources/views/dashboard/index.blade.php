@@ -115,7 +115,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card mb-4">
     <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3 px-4">
       <h2 class="h5 fw-semibold mb-0">Upcoming arrivals</h2>
       <a href="{{ route('calendar.index') }}" class="btn btn-sm btn-outline-secondary">Calendar</a>
@@ -153,6 +153,51 @@
           @empty
             <tr>
               <td colspan="8" class="text-center text-secondary py-4">No upcoming arrivals.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+      <h2 class="h5 fw-semibold mb-0">Upcoming departures</h2>
+      <a href="{{ route('departures.index') }}" class="btn btn-sm btn-outline-secondary">Departures</a>
+    </div>
+    <div class="table-wrapper">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Group</th>
+            <th>Hotel</th>
+            <th>Travel agency</th>
+            <th>Departure</th>
+            <th class="text-center">Rooms</th>
+            <th class="text-center">Pax</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse ($upcomingDepartures as $booking)
+            <tr>
+              <td><code>{{ $booking->ref ?: '—' }}</code></td>
+              <td class="fw-semibold">{{ $booking->group_name }}</td>
+              <td>{{ $booking->hotel?->name ?? '—' }}</td>
+              <td>{{ $booking->travelAgency?->name ?? '—' }}</td>
+              <td>{{ $booking->check_out?->format('d M Y') ?? '—' }}</td>
+              <td class="text-center">{{ $booking->rooms_per_night ?? '—' }}</td>
+              <td class="text-center">{{ $booking->total_pax ?? '—' }}</td>
+              <td class="text-end">
+                <a href="{{ route('enquiries.show', $booking) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="8" class="text-center text-secondary py-4">No upcoming departures.</td>
             </tr>
           @endforelse
         </tbody>

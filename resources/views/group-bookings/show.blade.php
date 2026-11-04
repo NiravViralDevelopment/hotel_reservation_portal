@@ -379,6 +379,15 @@
             </div>
             <div class="modal-body">
               <p class="text-secondary">Cancel this group booking? The status will be set to Cancelled and it will move to Cancelled Bookings.</p>
+              <label for="show_booking_cancel_at" class="form-label">Cancel on</label>
+              <input type="datetime-local" name="cancel_at" id="show_booking_cancel_at" class="form-control mb-3 @error('cancel_at') is-invalid @enderror" value="{{ old('cancel_at', now()->format('Y-m-d\TH:i')) }}" @if (old('cancel_at')) data-keep="1" @endif readonly tabindex="-1" aria-readonly="true">
+              @error('cancel_at')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
+              <label for="show_booking_cxl_date" class="form-label">CXL Date</label>
+              <div class="date-placeholder-wrap mb-3">
+                <input type="date" name="cxl_date" id="show_booking_cxl_date" class="form-control @error('cxl_date') is-invalid @enderror" value="{{ old('cxl_date') }}">
+                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+              </div>
+              @error('cxl_date')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
               <label for="booking_cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
               <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancellation_reason') }}</textarea>
               @error('cancellation_reason')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -392,10 +401,27 @@
       </div>
     </div>
   @endcan
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var input = document.getElementById('show_booking_cancel_at');
+      var modal = document.getElementById('cancelGroupBookingModal');
+      if (!input || input.dataset.keep === '1') return;
+
+      function stampCancelOn() {
+        var now = new Date();
+        var pad = function (value) { return String(value).padStart(2, '0'); };
+        input.value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+          + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+      }
+
+      stampCancelOn();
+      if (modal) modal.addEventListener('show.bs.modal', stampCancelOn);
+    });
+  </script>
 @endif
 @endsection
 
-@if ($errors->has('cancellation_reason'))
+@if ($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at'))
   @push('scripts')
     <script>
       document.addEventListener('DOMContentLoaded', function () {

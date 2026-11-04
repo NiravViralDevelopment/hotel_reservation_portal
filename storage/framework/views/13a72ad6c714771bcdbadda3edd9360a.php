@@ -28,7 +28,7 @@
 <?php $__env->startPush('scripts'); ?>
   <?php echo $__env->make('enquiries.partials.entry-form-scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('enquiries.partials.group-booking-scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-  <?php if($errors->has('cancellation_reason') && old('cancel_scope') === 'group'): ?>
+  <?php if(($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at')) && old('cancel_scope') === 'group'): ?>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         var modalEl = document.getElementById('cancelGroupBookingModal');

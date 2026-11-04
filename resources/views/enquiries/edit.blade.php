@@ -64,11 +64,8 @@
         </div>
         <div class="modal-body">
           <p class="text-secondary">Cancel enquiry <strong>{{ $enquiry->group_name ?: 'this enquiry' }}</strong>? It will move to Cancelled Inquiry.</p>
-          <label for="inquiry_cancel_at" class="form-label">Cancel At</label>
-          <div class="date-placeholder-wrap mb-3">
-            <input type="date" name="cancel_at" id="inquiry_cancel_at" class="form-control @error('cancel_at') is-invalid @enderror" value="{{ old('cancel_at', now()->toDateString()) }}">
-            <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
-          </div>
+          <label for="inquiry_cancel_at" class="form-label">Cancel on</label>
+          <input type="datetime-local" name="cancel_at" id="inquiry_cancel_at" class="form-control mb-3 @error('cancel_at') is-invalid @enderror" value="{{ old('cancel_at', now()->format('Y-m-d\TH:i')) }}" readonly tabindex="-1" aria-readonly="true">
           @error('cancel_at')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
           <label for="inquiry_cxl_date" class="form-label">CXL Date</label>
           <div class="date-placeholder-wrap mb-3">
@@ -93,6 +90,25 @@
 @push('scripts')
   @include('enquiries.partials.entry-form-scripts')
   @include('enquiries.partials.group-booking-scripts')
+  @unless (old('cancel_at'))
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var input = document.getElementById('inquiry_cancel_at');
+        var modal = document.getElementById('cancelInquiryModal');
+        if (!input) return;
+
+        function stampCancelOn() {
+          var now = new Date();
+          var pad = function (value) { return String(value).padStart(2, '0'); };
+          input.value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+            + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+        }
+
+        stampCancelOn();
+        if (modal) modal.addEventListener('show.bs.modal', stampCancelOn);
+      });
+    </script>
+  @endunless
   @if ($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at'))
     <script>
       document.addEventListener('DOMContentLoaded', function () {

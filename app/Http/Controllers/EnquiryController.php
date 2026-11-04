@@ -442,7 +442,7 @@ class EnquiryController extends Controller
         }
 
         if ($request->input('cancel_at') === '' || $request->input('cancel_at') === null) {
-            $request->merge(['cancel_at' => now()->toDateString()]);
+            $request->merge(['cancel_at' => now()->format('Y-m-d H:i:s')]);
         }
 
         $data = $request->validate([
@@ -452,8 +452,8 @@ class EnquiryController extends Controller
         ], [
             'cancellation_reason.required' => 'Enter the cancellation reason.',
             'cxl_date.date' => 'Enter a valid CXL date.',
-            'cancel_at.required' => 'Cancel at is required.',
-            'cancel_at.date' => 'Enter a valid cancel at date.',
+            'cancel_at.required' => 'Cancel on is required.',
+            'cancel_at.date' => 'Enter a valid cancel on date and time.',
         ]);
 
         $enquiry->update([
@@ -476,10 +476,23 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
         abort_unless($enquiry->is_confirm && ! $enquiry->is_cancel, 404);
 
+        if ($request->input('cxl_date') === '') {
+            $request->merge(['cxl_date' => null]);
+        }
+
+        if ($request->input('cancel_at') === '' || $request->input('cancel_at') === null) {
+            $request->merge(['cancel_at' => now()->format('Y-m-d H:i:s')]);
+        }
+
         $data = $request->validate([
             'cancellation_reason' => ['required', 'string', 'max:2000'],
+            'cxl_date' => ['nullable', 'date'],
+            'cancel_at' => ['required', 'date'],
         ], [
             'cancellation_reason.required' => 'Enter the cancellation reason.',
+            'cxl_date.date' => 'Enter a valid CXL date.',
+            'cancel_at.required' => 'Cancel on is required.',
+            'cancel_at.date' => 'Enter a valid cancel on date and time.',
         ]);
 
         $enquiry->update([
@@ -487,6 +500,8 @@ class EnquiryController extends Controller
             'is_cancel' => true,
             'is_confirm' => true,
             'cancellation_reason' => $data['cancellation_reason'],
+            'cxl_date' => $data['cxl_date'] ?? null,
+            'cancel_at' => $data['cancel_at'],
         ]);
         Audit::log('cancelled', 'group_bookings', $enquiry->block_id ?: $enquiry->group_name, $enquiry);
 

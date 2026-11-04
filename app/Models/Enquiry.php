@@ -153,7 +153,7 @@ class Enquiry extends Model
             'payment_due_date' => 'date',
             'cxl_due_date' => 'date',
             'cxl_date' => 'date',
-            'cancel_at' => 'date',
+            'cancel_at' => 'datetime',
             'invoice_sent_on' => 'date',
             'year' => 'integer',
             'payment_term_days' => 'integer',

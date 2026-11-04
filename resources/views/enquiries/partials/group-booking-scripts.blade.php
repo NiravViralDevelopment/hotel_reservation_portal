@@ -652,7 +652,6 @@
       totals.tripleRev += fig.tripleRev;
       totals.rooms += fig.singleRn + fig.doubleRn + fig.tripleRn;
     });
-    setSegmentText('gb-segment-nights', String(totals.nights));
     setSegmentText('gb-segment-single-rooms', String(Math.round(totals.singleRn)));
     setSegmentText('gb-segment-single-rate', money(weightedRate(totals.singleRn, totals.singleRev)));
     setSegmentText('gb-segment-double-rooms', String(Math.round(totals.doubleRn)));

@@ -52,6 +52,15 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard.index', compact('stats', 'upcomingArrivals', 'currentHotel', 'allocatedHotels'));
+        $upcomingDepartures = Enquiry::query()
+            ->accessibleBy()
+            ->with(['hotel', 'travelAgency'])
+            ->groupBookings()
+            ->whereDate('check_out', '>=', now()->toDateString())
+            ->orderBy('check_out')
+            ->limit(10)
+            ->get();
+
+        return view('dashboard.index', compact('stats', 'upcomingArrivals', 'upcomingDepartures', 'currentHotel', 'allocatedHotels'));
     }
 }

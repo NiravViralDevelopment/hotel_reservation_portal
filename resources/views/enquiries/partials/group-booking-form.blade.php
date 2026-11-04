@@ -148,7 +148,7 @@
           $selectedPaymentTerm = $termSubmitted ? old('payment_term') : ($enquiry->payment_term ?? null);
           $paymentTermDays = $termSubmitted ? old('payment_term_days') : ($enquiry->payment_term_days ?? '');
         @endphp
-        <div class="col-md-6 col-xl-4">
+        <div class="col-12 col-xl-3">
           <span class="form-label d-block">Payment Term</span>
           <div class="form-check">
             <input class="form-check-input js-payment-term" type="checkbox" name="payment_term" id="gb_payment_term_pre" value="Pre Arrival" @checked($selectedPaymentTerm === 'Pre Arrival')>
@@ -159,13 +159,13 @@
             <label class="form-check-label" for="gb_payment_term_post">Post Departure</label>
           </div>
           @error('payment_term')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          <div id="gb_payment_term_days_wrap" class="mt-2" @unless (in_array($selectedPaymentTerm, ['Pre Arrival', 'Post Departure'], true)) hidden @endunless>
-            <label for="gb_payment_term_days" class="form-label">Number of days</label>
-            <input type="text" name="payment_term_days" id="gb_payment_term_days" inputmode="numeric" class="form-control js-digits @error('payment_term_days') is-invalid @enderror" value="{{ $paymentTermDays }}" placeholder="Enter days" maxlength="3">
-            @error('payment_term_days')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
         </div>
-        <div class="col-md-6 col-xl-4">
+        <div class="col-md-4 col-xl-3" id="gb_payment_term_days_wrap" @unless (in_array($selectedPaymentTerm, ['Pre Arrival', 'Post Departure'], true)) hidden @endunless>
+          <label for="gb_payment_term_days" class="form-label">Number of days</label>
+          <input type="text" name="payment_term_days" id="gb_payment_term_days" inputmode="numeric" class="form-control js-digits @error('payment_term_days') is-invalid @enderror" value="{{ $paymentTermDays }}" placeholder="Enter days" maxlength="3">
+          @error('payment_term_days')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+        <div class="col-md-4 col-xl-3">
           <label for="gb_payment_due_date" class="form-label">Due Date <span class="field-auto-badge">Auto</span></label>
           <div class="date-placeholder-wrap">
             <input type="date" name="payment_due_date" id="gb_payment_due_date" class="form-control cxl-due-auto @error('payment_due_date') is-invalid @enderror" value="{{ $v('payment_due_date') }}" readonly tabindex="-1" aria-readonly="true">
@@ -174,7 +174,7 @@
           <div class="form-text" id="gb_payment_due_hint">Select a payment term and enter the number of days.</div>
           @error('payment_due_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-6 col-xl-4">
+        <div class="col-md-4 col-xl-3">
           <label for="gb_payment_status" class="form-label">Payment Status</label>
           <select name="payment_status" id="gb_payment_status" class="form-select @error('payment_status') is-invalid @enderror">
             <option value="">Select status</option>
@@ -272,12 +272,12 @@
                 <th>Departure</th>
                 <th>Day</th>
                 <th>Nights</th>
-                <th>Single</th>
-                <th>Rate</th>
-                <th>Double</th>
-                <th>Rate</th>
-                <th>Triple</th>
-                <th>Rate</th>
+                <th>Single Room</th>
+                <th>Single Rate</th>
+                <th>Double Room</th>
+                <th>Double Rate</th>
+                <th>Triple Room</th>
+                <th>Triple Rate</th>
                 <th class="stay-calc">Revenue</th>
                 <th class="stay-calc gb-seg-bb">BB</th>
                 <th class="stay-calc gb-seg-dinner">Dinner</th>
@@ -289,7 +289,7 @@
             <tfoot>
               <tr>
                 <th scope="row" colspan="3">Total</th>
-                <td id="gb-segment-nights">0</td>
+                <td id="gb-segment-nights"></td>
                 <td id="gb-segment-single-rooms">0</td>
                 <td id="gb-segment-single-rate">0.00</td>
                 <td id="gb-segment-double-rooms">0</td>
@@ -469,6 +469,19 @@
           </div>
           <div class="modal-body">
             <p class="text-secondary">Cancel this group booking? The status will be set to Cancelled and it will move to Cancelled Bookings.</p>
+            <label for="booking_cancel_at" class="form-label">Cancel on</label>
+            <input type="datetime-local" name="cancel_at" id="booking_cancel_at" class="form-control mb-3 @error('cancel_at') is-invalid @enderror" value="{{ old('cancel_scope') === 'group' ? old('cancel_at', now()->format('Y-m-d\TH:i')) : now()->format('Y-m-d\TH:i') }}" @if (old('cancel_scope') === 'group' && old('cancel_at')) data-keep="1" @endif readonly tabindex="-1" aria-readonly="true">
+            @if (old('cancel_scope') === 'group')
+              @error('cancel_at')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
+            @endif
+            <label for="booking_cxl_date" class="form-label">CXL Date</label>
+            <div class="date-placeholder-wrap mb-3">
+              <input type="date" name="cxl_date" id="booking_cxl_date" class="form-control @error('cxl_date') is-invalid @enderror" value="{{ old('cancel_scope') === 'group' ? old('cxl_date') : '' }}">
+              <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+            </div>
+            @if (old('cancel_scope') === 'group')
+              @error('cxl_date')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
+            @endif
             <label for="booking_cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
             <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancel_scope') === 'group' ? old('cancellation_reason') : '' }}</textarea>
             @if (old('cancel_scope') === 'group')
@@ -483,4 +496,21 @@
       </div>
     </div>
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var input = document.getElementById('booking_cancel_at');
+      var modal = document.getElementById('cancelGroupBookingModal');
+      if (!input || input.dataset.keep === '1') return;
+
+      function stampCancelOn() {
+        var now = new Date();
+        var pad = function (value) { return String(value).padStart(2, '0'); };
+        input.value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+          + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+      }
+
+      stampCancelOn();
+      if (modal) modal.addEventListener('show.bs.modal', stampCancelOn);
+    });
+  </script>
 @endif

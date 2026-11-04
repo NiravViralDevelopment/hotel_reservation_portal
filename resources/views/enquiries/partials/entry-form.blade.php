@@ -75,7 +75,19 @@
       </div>
       <div class="col-md-6 col-xl-3">
         <label for="rooms_per_night" class="form-label">Total Room per Night <span class="text-danger">*</span></label>
-        <input type="text" name="rooms_per_night" id="rooms_per_night" inputmode="numeric" class="form-control js-digits @error('rooms_per_night') is-invalid @enderror" value="{{ $v('rooms_per_night') }}" placeholder="Enter total rooms" required>
+        @php
+          $selectedRooms = $v('rooms_per_night');
+          $selectedRooms = ($selectedRooms === '' || $selectedRooms === null) ? null : (int) $selectedRooms;
+        @endphp
+        <select name="rooms_per_night" id="rooms_per_night" class="form-select @error('rooms_per_night') is-invalid @enderror" required>
+          <option value="" @selected($selectedRooms === null)>Select total rooms</option>
+          @for ($rooms = 1; $rooms <= 50; $rooms++)
+            <option value="{{ $rooms }}" @selected($selectedRooms === $rooms)>{{ $rooms }}</option>
+          @endfor
+          @if ($selectedRooms !== null && ($selectedRooms < 1 || $selectedRooms > 50))
+            <option value="{{ $selectedRooms }}" selected>{{ $selectedRooms }}</option>
+          @endif
+        </select>
         @error('rooms_per_night')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
     </div>
@@ -179,8 +191,27 @@
       </div>
       <div class="col-xl-6">
         <label for="cxl_policy" class="form-label">CXL Policy</label>
-        <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ $v('cxl_policy') }}" placeholder="e.g. 30 days" maxlength="255">
-        <div class="form-text">Enter the number of days before arrival.</div>
+        @php
+          $cxlPolicy = trim((string) $v('cxl_policy'));
+          $cxlDays = null;
+          if (preg_match('/^(\d+)\s*(days?)?$/i', $cxlPolicy, $cxlMatch)) {
+              $parsedCxlDays = (int) $cxlMatch[1];
+              if ($parsedCxlDays >= 1 && $parsedCxlDays <= 60) {
+                  $cxlDays = $parsedCxlDays;
+              }
+          }
+        @endphp
+        <select name="cxl_policy" id="cxl_policy" class="form-select @error('cxl_policy') is-invalid @enderror">
+          <option value="">Select days</option>
+          @for ($days = 1; $days <= 60; $days++)
+            @php $cxlLabel = $days === 1 ? '1 day' : $days.' days'; @endphp
+            <option value="{{ $cxlLabel }}" @selected($cxlDays === $days)>{{ $cxlLabel }}</option>
+          @endfor
+          @if ($cxlPolicy !== '' && $cxlDays === null)
+            <option value="{{ $cxlPolicy }}" selected>{{ $cxlPolicy }}</option>
+          @endif
+        </select>
+        <div class="form-text">Select the number of days before arrival.</div>
         @error('cxl_policy')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
       <div class="col-md-6 col-xl-3">
