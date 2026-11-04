@@ -414,6 +414,27 @@
     cxlPolicyEl.addEventListener('change', updateCxlDueDate);
   }
 
+  function updateNonRefundableFields() {
+    var checked = document.querySelector('.js-non-refundable:checked');
+    var hide = checked && checked.value === '1';
+    ['cxl_policy_field', 'cxl_due_date_field'].forEach(function (id) {
+      var field = document.getElementById(id);
+      if (field) field.hidden = hide;
+    });
+  }
+
+  document.querySelectorAll('.js-non-refundable').forEach(function (box) {
+    box.addEventListener('change', function () {
+      if (box.checked) {
+        document.querySelectorAll('.js-non-refundable').forEach(function (other) {
+          if (other !== box) other.checked = false;
+        });
+      }
+      updateNonRefundableFields();
+    });
+  });
+  updateNonRefundableFields();
+
   document.querySelectorAll('.room-period-date').forEach(function (el) {
     el.addEventListener('change', applyRoomChain);
     el.addEventListener('input', applyRoomChain);

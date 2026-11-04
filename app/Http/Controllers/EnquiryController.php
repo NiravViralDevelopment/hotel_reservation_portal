@@ -736,6 +736,19 @@ class EnquiryController extends Controller
      */
     private function applyCxlDueDate(array $data): array
     {
+        if (array_key_exists('non_refundable', $data) && $data['non_refundable'] !== null && $data['non_refundable'] !== '') {
+            $data['non_refundable'] = (string) $data['non_refundable'] === '1' || $data['non_refundable'] === true;
+        } else {
+            $data['non_refundable'] = null;
+        }
+
+        if ($data['non_refundable'] === true) {
+            $data['cxl_policy'] = null;
+            $data['cxl_due_date'] = null;
+
+            return $data;
+        }
+
         $policy = trim((string) ($data['cxl_policy'] ?? ''));
         if ($policy === '' || empty($data['check_in']) || ! preg_match('/\d+/', $policy, $matches)) {
             $data['cxl_due_date'] = null;

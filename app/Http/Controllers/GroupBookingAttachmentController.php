@@ -166,7 +166,13 @@ class GroupBookingAttachmentController extends Controller
      */
     private function storedFileAttributes(Enquiry $enquiry, UploadedFile $file): array
     {
-        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
+        $originalName = $file->getClientOriginalName();
+        $mimeType = $this->uploadedMimeType($file);
+        $size = $file->getSize() ?: 0;
+        $extension = strtolower($file->getClientOriginalExtension() ?: '');
+        if ($extension === '') {
+            $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION) ?: '');
+        }
         $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?: 'bin';
         $storedName = Str::uuid()->toString().'.'.$extension;
         $directory = public_path('group-booking-attachments/'.$enquiry->id);
@@ -176,10 +182,23 @@ class GroupBookingAttachmentController extends Controller
         return [
             'disk' => 'public',
             'path' => 'group-booking-attachments/'.$enquiry->id.'/'.$storedName,
-            'original_name' => $file->getClientOriginalName(),
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize() ?: 0,
+            'original_name' => $originalName,
+            'mime_type' => $mimeType,
+            'size' => $size,
         ];
+    }
+
+    private function uploadedMimeType(UploadedFile $file): ?string
+    {
+        try {
+            $mimeType = $file->getMimeType();
+        } catch (\Throwable) {
+            $mimeType = null;
+        }
+
+        $mimeType = $mimeType ?: $file->getClientMimeType();
+
+        return $mimeType !== '' ? $mimeType : null;
     }
 
     private function blankToNull(mixed $value): ?string
