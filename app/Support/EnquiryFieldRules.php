@@ -136,6 +136,7 @@ class EnquiryFieldRules
             'basis' => ['nullable', 'string', Rule::in(['BB', 'DBB', 'HB', 'FB', 'RO'])],
             'total_revenue' => ['nullable', 'numeric', 'min:0'],
             'cxl_policy' => ['nullable', 'string', 'max:255'],
+            'foc_rooms' => ['nullable', 'integer', Rule::in([1, 2, 3, 4, 5])],
             'option_date' => ['nullable', 'date'],
             'cxl_due_date' => ['nullable', 'date'],
             'email' => ['required', 'email', 'max:255'],

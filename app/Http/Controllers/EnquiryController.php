@@ -439,6 +439,7 @@ class EnquiryController extends Controller
         $data['is_confirm'] = true;
         $data['is_cancel'] = false;
         $data['cancellation_reason'] = null;
+        $data['cancellation_charges'] = null;
         $data['cancel_at'] = null;
 
         $enquiry->update($data);
@@ -502,10 +503,13 @@ class EnquiryController extends Controller
 
         $data = $request->validate([
             'cancellation_reason' => ['required', 'string', 'max:2000'],
+            'cancellation_charges' => ['required', 'in:0,1'],
             'cxl_date' => ['nullable', 'date'],
             'cancel_at' => ['required', 'date'],
         ], [
             'cancellation_reason.required' => 'Enter the cancellation reason.',
+            'cancellation_charges.required' => 'Select Yes or No for cancellation charges.',
+            'cancellation_charges.in' => 'Select Yes or No for cancellation charges.',
             'cxl_date.date' => 'Enter a valid CXL date.',
             'cancel_at.required' => 'Cancel on is required.',
             'cancel_at.date' => 'Enter a valid cancel on date and time.',
@@ -516,6 +520,7 @@ class EnquiryController extends Controller
             'is_cancel' => true,
             'is_confirm' => true,
             'cancellation_reason' => $data['cancellation_reason'],
+            'cancellation_charges' => (string) $data['cancellation_charges'] === '1',
             'cxl_date' => $data['cxl_date'] ?? null,
             'cancel_at' => $data['cancel_at'],
         ]);
@@ -539,7 +544,7 @@ class EnquiryController extends Controller
             $request->merge(['ref' => null]);
         }
 
-        foreach (['day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'] as $field) {
+        foreach (['day', 'basis', 'cxl_policy', 'foc_rooms', 'remarks', 'status', 'option_date', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'] as $field) {
             if ($request->input($field) === '') {
                 $request->merge([$field => null]);
             }
@@ -598,6 +603,7 @@ class EnquiryController extends Controller
             $data['is_cancel'] = false;
             $data['is_confirm'] = false;
             $data['cancellation_reason'] = null;
+            $data['cancellation_charges'] = null;
             $data['cxl_date'] = null;
             $data['cancel_at'] = null;
         } elseif ($cancelledInquiry) {
@@ -683,6 +689,7 @@ class EnquiryController extends Controller
             'is_confirm' => true,
             'is_cancel' => false,
             'cancellation_reason' => null,
+            'cancellation_charges' => null,
             'cancel_at' => null,
         ]);
         Audit::log('confirmed', 'enquiries', $enquiry->ref, $enquiry);

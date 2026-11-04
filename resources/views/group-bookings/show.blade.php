@@ -115,6 +115,8 @@
     <div class="cancel-banner">
       <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
       <div>
+        <div class="fw-semibold mb-1">Cancellation charges</div>
+        <div class="mb-2">{{ $enquiry->cancellation_charges === null ? '—' : ($enquiry->cancellation_charges ? 'Yes' : 'No') }}</div>
         <div class="fw-semibold mb-1">Cancellation reason</div>
         <div class="mb-0" style="white-space: pre-wrap;">{{ $enquiry->cancellation_reason ?: '—' }}</div>
       </div>
@@ -410,8 +412,21 @@
               </div>
               @error('cxl_date')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
               <label for="booking_cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
-              <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancellation_reason') }}</textarea>
-              @error('cancellation_reason')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+              <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control mb-3 @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancellation_reason') }}</textarea>
+              @error('cancellation_reason')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
+              @php $selectedCancellationCharges = old('cancellation_charges'); @endphp
+              <label class="form-label d-block">Cancellation charges <span class="text-danger">*</span></label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input js-cancellation-charges" type="checkbox" name="cancellation_charges" id="show_booking_cancellation_charges_yes" value="1" @checked((string) $selectedCancellationCharges === '1')>
+                  <label class="form-check-label" for="show_booking_cancellation_charges_yes">Yes</label>
+                </div>
+                <div class="form-check mb-0">
+                  <input class="form-check-input js-cancellation-charges" type="checkbox" name="cancellation_charges" id="show_booking_cancellation_charges_no" value="0" @checked((string) $selectedCancellationCharges === '0')>
+                  <label class="form-check-label" for="show_booking_cancellation_charges_no">No</label>
+                </div>
+              </div>
+              @error('cancellation_charges')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
@@ -426,6 +441,14 @@
     document.addEventListener('DOMContentLoaded', function () {
       var input = document.getElementById('show_booking_cancel_at');
       var modal = document.getElementById('cancelGroupBookingModal');
+      document.querySelectorAll('#cancelGroupBookingModal .js-cancellation-charges').forEach(function (box) {
+        box.addEventListener('change', function () {
+          if (!box.checked) return;
+          document.querySelectorAll('#cancelGroupBookingModal .js-cancellation-charges').forEach(function (other) {
+            if (other !== box) other.checked = false;
+          });
+        });
+      });
       if (!input || input.dataset.keep === '1') return;
 
       function stampCancelOn() {
@@ -442,7 +465,7 @@
 @endif
 @endsection
 
-@if ($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at'))
+@if ($errors->has('cancellation_reason') || $errors->has('cancellation_charges') || $errors->has('cxl_date') || $errors->has('cancel_at'))
   @push('scripts')
     <script>
       document.addEventListener('DOMContentLoaded', function () {

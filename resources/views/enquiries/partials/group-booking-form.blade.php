@@ -494,9 +494,24 @@
               @error('cxl_date')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
             @endif
             <label for="booking_cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
-            <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancel_scope') === 'group' ? old('cancellation_reason') : '' }}</textarea>
+            <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control mb-3 @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancel_scope') === 'group' ? old('cancellation_reason') : '' }}</textarea>
             @if (old('cancel_scope') === 'group')
-              @error('cancellation_reason')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+              @error('cancellation_reason')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
+            @endif
+            @php $selectedCancellationCharges = old('cancel_scope') === 'group' ? (string) old('cancellation_charges') : ''; @endphp
+            <label class="form-label d-block">Cancellation charges <span class="text-danger">*</span></label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input js-cancellation-charges" type="checkbox" name="cancellation_charges" id="booking_cancellation_charges_yes" value="1" @checked($selectedCancellationCharges === '1')>
+                <label class="form-check-label" for="booking_cancellation_charges_yes">Yes</label>
+              </div>
+              <div class="form-check mb-0">
+                <input class="form-check-input js-cancellation-charges" type="checkbox" name="cancellation_charges" id="booking_cancellation_charges_no" value="0" @checked($selectedCancellationCharges === '0')>
+                <label class="form-check-label" for="booking_cancellation_charges_no">No</label>
+              </div>
+            </div>
+            @if (old('cancel_scope') === 'group')
+              @error('cancellation_charges')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             @endif
           </div>
           <div class="modal-footer">
@@ -511,6 +526,14 @@
     document.addEventListener('DOMContentLoaded', function () {
       var input = document.getElementById('booking_cancel_at');
       var modal = document.getElementById('cancelGroupBookingModal');
+      document.querySelectorAll('#cancelGroupBookingModal .js-cancellation-charges').forEach(function (box) {
+        box.addEventListener('change', function () {
+          if (!box.checked) return;
+          document.querySelectorAll('#cancelGroupBookingModal .js-cancellation-charges').forEach(function (other) {
+            if (other !== box) other.checked = false;
+          });
+        });
+      });
       if (!input || input.dataset.keep === '1') return;
 
       function stampCancelOn() {

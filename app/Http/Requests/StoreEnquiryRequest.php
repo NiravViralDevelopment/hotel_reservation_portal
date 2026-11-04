@@ -18,7 +18,7 @@ class StoreEnquiryRequest extends FormRequest
             'group_name' => trim((string) $this->input('group_name', '')),
             'ref' => trim((string) $this->input('ref', '')),
         ];
-        foreach (['ref', 'day', 'basis', 'cxl_policy', 'remarks', 'status', 'option_date', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'] as $field) {
+        foreach (['ref', 'day', 'basis', 'cxl_policy', 'foc_rooms', 'remarks', 'status', 'option_date', 'single_from_date', 'single_to_date', 'double_from_date', 'double_to_date', 'triple_from_date', 'triple_to_date'] as $field) {
             if ($this->input($field) === '' || ($nullable[$field] ?? null) === '') {
                 $nullable[$field] = null;
             }

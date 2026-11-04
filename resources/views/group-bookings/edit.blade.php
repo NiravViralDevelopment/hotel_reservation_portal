@@ -30,7 +30,7 @@
 @push('scripts')
   @include('enquiries.partials.entry-form-scripts')
   @include('enquiries.partials.group-booking-scripts')
-  @if (($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at')) && old('cancel_scope') === 'group')
+  @if (($errors->has('cancellation_reason') || $errors->has('cancellation_charges') || $errors->has('cxl_date') || $errors->has('cancel_at')) && old('cancel_scope') === 'group')
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         var modalEl = document.getElementById('cancelGroupBookingModal');

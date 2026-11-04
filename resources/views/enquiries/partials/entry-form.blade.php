@@ -182,6 +182,16 @@
         @error('basis')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
       <div class="col-md-6 col-xl-3">
+        <label for="foc_rooms" class="form-label">FOC ROOMs</label>
+        <select name="foc_rooms" id="foc_rooms" class="form-select @error('foc_rooms') is-invalid @enderror">
+          <option value="">Select</option>
+          @for ($rooms = 1; $rooms <= 5; $rooms++)
+            <option value="{{ $rooms }}" @selected((string) $v('foc_rooms') === (string) $rooms)>{{ $rooms }}</option>
+          @endfor
+        </select>
+        @error('foc_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      </div>
+      <div class="col-md-6 col-xl-3">
         <label for="option_date" class="form-label">Option Date</label>
         <div class="date-placeholder-wrap">
           <input type="date" name="option_date" id="option_date" class="form-control @error('option_date') is-invalid @enderror" value="{{ $v('option_date') }}">
