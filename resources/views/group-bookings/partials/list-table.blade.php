@@ -9,7 +9,7 @@
   $showCreatedBy = $showCreatedBy ?? false;
   $showAttachments = $showAttachments ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
-  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0);
+  $bookingColspan = ($showCancellationReason ? 43 : 41) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -56,6 +56,8 @@
         <th>Single Gross Rate</th>
         <th>Double RNs</th>
         <th>Double Gross Rate</th>
+        <th>Twin RNs</th>
+        <th>Twin Gross Rate</th>
         <th>Triple RNs</th>
         <th>Triple Gross Rate</th>
         <x-sortable-th column="total_rns" label="Total RNs" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -112,6 +114,8 @@
           <td class="text-nowrap">{{ $money($enquiry->single_rate) }}</td>
           <td>{{ $enquiry->double_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->double_rate) }}</td>
+          <td>{{ $enquiry->twin_rooms ?? '—' }}</td>
+          <td class="text-nowrap">{{ $money($enquiry->twin_rate) }}</td>
           <td>{{ $enquiry->triple_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->triple_rate) }}</td>
           <td>{{ $enquiry->total_rns ?? '—' }}</td>

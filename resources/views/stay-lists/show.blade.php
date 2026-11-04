@@ -216,9 +216,12 @@
                 <th rowspan="2">Date</th>
                 <th colspan="2">Single Room &amp; Rate</th>
                 <th colspan="2">Double Room &amp; Rate</th>
+                <th colspan="2">Twin Room &amp; Rate</th>
                 <th colspan="2">Triple Room &amp; Rate</th>
               </tr>
               <tr>
+                <th>Rooms</th>
+                <th>Rate</th>
                 <th>Rooms</th>
                 <th>Rate</th>
                 <th>Rooms</th>
@@ -236,6 +239,8 @@
                   $singleRate = $dayRow['single_rate'] ?? $enquiry->single_rate;
                   $doubleRooms = $dayRow['double_rooms'] ?? $enquiry->double_rooms;
                   $doubleRate = $dayRow['double_rate'] ?? $enquiry->double_rate;
+                  $twinRooms = $dayRow['twin_rooms'] ?? $enquiry->twin_rooms;
+                  $twinRate = $dayRow['twin_rate'] ?? $enquiry->twin_rate;
                   $tripleRooms = $dayRow['triple_rooms'] ?? $enquiry->triple_rooms;
                   $tripleRate = $dayRow['triple_rate'] ?? $enquiry->triple_rate;
                 @endphp
@@ -245,6 +250,8 @@
                   <td>{{ $money($singleRate) }}</td>
                   <td>{{ $doubleRooms ?? '—' }}</td>
                   <td>{{ $money($doubleRate) }}</td>
+                  <td>{{ $twinRooms ?? '—' }}</td>
+                  <td>{{ $money($twinRate) }}</td>
                   <td>{{ $tripleRooms ?? '—' }}</td>
                   <td>{{ $money($tripleRate) }}</td>
                 </tr>

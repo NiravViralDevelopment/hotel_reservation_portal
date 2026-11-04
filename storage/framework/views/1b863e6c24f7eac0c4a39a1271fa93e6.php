@@ -9,7 +9,7 @@
   $showCreatedBy = $showCreatedBy ?? false;
   $showAttachments = $showAttachments ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
-  $bookingColspan = ($showCancellationReason ? 41 : 39) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0);
+  $bookingColspan = ($showCancellationReason ? 43 : 41) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -208,6 +208,8 @@
         <th>Single Gross Rate</th>
         <th>Double RNs</th>
         <th>Double Gross Rate</th>
+        <th>Twin RNs</th>
+        <th>Twin Gross Rate</th>
         <th>Triple RNs</th>
         <th>Triple Gross Rate</th>
         <?php if (isset($component)) { $__componentOriginal3c1df23c66879bbdd25946c6c08cdc07 = $component; } ?>
@@ -378,6 +380,8 @@
           <td class="text-nowrap"><?php echo e($money($enquiry->single_rate)); ?></td>
           <td><?php echo e($enquiry->double_rooms ?? '—'); ?></td>
           <td class="text-nowrap"><?php echo e($money($enquiry->double_rate)); ?></td>
+          <td><?php echo e($enquiry->twin_rooms ?? '—'); ?></td>
+          <td class="text-nowrap"><?php echo e($money($enquiry->twin_rate)); ?></td>
           <td><?php echo e($enquiry->triple_rooms ?? '—'); ?></td>
           <td class="text-nowrap"><?php echo e($money($enquiry->triple_rate)); ?></td>
           <td><?php echo e($enquiry->total_rns ?? '—'); ?></td>

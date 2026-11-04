@@ -316,6 +316,8 @@
                 <th class="text-end">Single Rate</th>
                 <th class="text-end">Double RNs</th>
                 <th class="text-end">Double Rate</th>
+                <th class="text-end">Twin RNs</th>
+                <th class="text-end">Twin Rate</th>
                 <th class="text-end">Triple RNs</th>
                 <th class="text-end">Triple Rate</th>
                 <th class="text-end">Total Room Nights</th>
@@ -334,10 +336,12 @@
                   $segmentSingleRate = (float) ($segment['single_rate'] ?? 0);
                   $segmentDouble = (int) ($segment['double_rooms'] ?? 0);
                   $segmentDoubleRate = (float) ($segment['double_rate'] ?? 0);
+                  $segmentTwin = (int) ($segment['twin_rooms'] ?? 0);
+                  $segmentTwinRate = (float) ($segment['twin_rate'] ?? 0);
                   $segmentTriple = (int) ($segment['triple_rooms'] ?? 0);
                   $segmentTripleRate = (float) ($segment['triple_rate'] ?? 0);
-                  $segmentRoomNights = $segmentNights * ($segmentSingle + $segmentDouble + $segmentTriple);
-                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTriple * $segmentTripleRate));
+                  $segmentRoomNights = $segmentNights * ($segmentSingle + $segmentDouble + $segmentTwin + $segmentTriple);
+                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTwin * $segmentTwinRate) + ($segmentTriple * $segmentTripleRate));
                   $segmentRevenueTotal += $segmentRevenue;
                   $segmentRoomNightsTotal += $segmentRoomNights;
                 @endphp
@@ -350,6 +354,8 @@
                   <td class="text-end">{{ $money($segmentSingleRate) }}</td>
                   <td class="text-end">{{ $segmentDouble }}</td>
                   <td class="text-end">{{ $money($segmentDoubleRate) }}</td>
+                  <td class="text-end">{{ $segmentTwin }}</td>
+                  <td class="text-end">{{ $money($segmentTwinRate) }}</td>
                   <td class="text-end">{{ $segmentTriple }}</td>
                   <td class="text-end">{{ $money($segmentTripleRate) }}</td>
                   <td class="text-end fw-semibold">{{ $segmentRoomNights }}</td>
@@ -359,7 +365,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <th scope="row" colspan="10">Total</th>
+                <th scope="row" colspan="12">Total</th>
                 <td class="text-end fw-semibold">{{ $segmentRoomNightsTotal }}</td>
                 <td class="text-end fw-semibold">{{ $money($segmentRevenueTotal) }}</td>
               </tr>
@@ -381,9 +387,10 @@
           $roomTotals = [
               'single_rooms' => 0,
               'double_rooms' => 0,
+              'twin_rooms' => 0,
               'triple_rooms' => 0,
           ];
-          $revenueTotals = ['single' => 0.0, 'double' => 0.0, 'triple' => 0.0];
+          $revenueTotals = ['single' => 0.0, 'double' => 0.0, 'twin' => 0.0, 'triple' => 0.0];
           $dayRoomsTotal = 0;
           $dayRevenueTotal = 0.0;
           $showBreakfast = in_array($enquiry->basis, ['BB', 'DBB'], true);
@@ -400,16 +407,20 @@
               $singleRate = (float) ($dayRow['single_rate'] ?? ($hasDailyRooms ? 0 : ($enquiry->single_rate ?? 0)));
               $doubleRooms = (int) ($dayRow['double_rooms'] ?? ($hasDailyRooms ? 0 : ($enquiry->double_rooms ?? 0)));
               $doubleRate = (float) ($dayRow['double_rate'] ?? ($hasDailyRooms ? 0 : ($enquiry->double_rate ?? 0)));
+              $twinRooms = (int) ($dayRow['twin_rooms'] ?? ($hasDailyRooms ? 0 : ($enquiry->twin_rooms ?? 0)));
+              $twinRate = (float) ($dayRow['twin_rate'] ?? ($hasDailyRooms ? 0 : ($enquiry->twin_rate ?? 0)));
               $tripleRooms = (int) ($dayRow['triple_rooms'] ?? ($hasDailyRooms ? 0 : ($enquiry->triple_rooms ?? 0)));
               $tripleRate = (float) ($dayRow['triple_rate'] ?? ($hasDailyRooms ? 0 : ($enquiry->triple_rate ?? 0)));
-              $dayRooms = $singleRooms + $doubleRooms + $tripleRooms;
-              $dayRevenue = ($singleRooms * $singleRate) + ($doubleRooms * $doubleRate) + ($tripleRooms * $tripleRate);
-              $covers = ($singleRooms * 1) + ($doubleRooms * 2) + ($tripleRooms * 3);
+              $dayRooms = $singleRooms + $doubleRooms + $twinRooms + $tripleRooms;
+              $dayRevenue = ($singleRooms * $singleRate) + ($doubleRooms * $doubleRate) + ($twinRooms * $twinRate) + ($tripleRooms * $tripleRate);
+              $covers = ($singleRooms * 1) + ($doubleRooms * 2) + ($twinRooms * 2) + ($tripleRooms * 3);
               $roomTotals['single_rooms'] += $singleRooms;
               $roomTotals['double_rooms'] += $doubleRooms;
+              $roomTotals['twin_rooms'] += $twinRooms;
               $roomTotals['triple_rooms'] += $tripleRooms;
               $revenueTotals['single'] += $singleRooms * $singleRate;
               $revenueTotals['double'] += $doubleRooms * $doubleRate;
+              $revenueTotals['twin'] += $twinRooms * $twinRate;
               $revenueTotals['triple'] += $tripleRooms * $tripleRate;
               $dayRoomsTotal += $dayRooms;
               $dayRevenueTotal += $dayRevenue;
@@ -421,6 +432,8 @@
                   'single_rate' => $singleRate,
                   'double_rooms' => $doubleRooms,
                   'double_rate' => $doubleRate,
+                  'twin_rooms' => $twinRooms,
+                  'twin_rate' => $twinRate,
                   'triple_rooms' => $tripleRooms,
                   'triple_rate' => $tripleRate,
                   'rooms' => $dayRooms,
@@ -443,6 +456,7 @@
                 <th rowspan="2">Date</th>
                 <th colspan="2">Single Room &amp; Rate</th>
                 <th colspan="2">Double Room &amp; Rate</th>
+                <th colspan="2">Twin Room &amp; Rate</th>
                 <th colspan="2">Triple Room &amp; Rate</th>
                 <th rowspan="2" class="text-end">Total rooms</th>
                 <th rowspan="2" class="text-end">Avg rate</th>
@@ -461,6 +475,8 @@
                 <th>Rate</th>
                 <th>Rooms</th>
                 <th>Rate</th>
+                <th>Rooms</th>
+                <th>Rate</th>
               </tr>
             </thead>
             <tbody>
@@ -471,6 +487,8 @@
                   <td>{{ $money($day['single_rate']) }}</td>
                   <td>{{ $day['double_rooms'] }}</td>
                   <td>{{ $money($day['double_rate']) }}</td>
+                  <td>{{ $day['twin_rooms'] }}</td>
+                  <td>{{ $money($day['twin_rate']) }}</td>
                   <td>{{ $day['triple_rooms'] }}</td>
                   <td>{{ $money($day['triple_rate']) }}</td>
                   <td class="text-end fw-semibold">{{ $day['rooms'] }}</td>
@@ -492,6 +510,8 @@
                 <td class="fw-semibold">{{ $money($weighted($roomTotals['single_rooms'], $revenueTotals['single'])) }}</td>
                 <td class="fw-semibold">{{ $roomTotals['double_rooms'] }}</td>
                 <td class="fw-semibold">{{ $money($weighted($roomTotals['double_rooms'], $revenueTotals['double'])) }}</td>
+                <td class="fw-semibold">{{ $roomTotals['twin_rooms'] }}</td>
+                <td class="fw-semibold">{{ $money($weighted($roomTotals['twin_rooms'], $revenueTotals['twin'])) }}</td>
                 <td class="fw-semibold">{{ $roomTotals['triple_rooms'] }}</td>
                 <td class="fw-semibold">{{ $money($weighted($roomTotals['triple_rooms'], $revenueTotals['triple'])) }}</td>
                 <td class="text-end fw-semibold">{{ $dayRoomsTotal }}</td>

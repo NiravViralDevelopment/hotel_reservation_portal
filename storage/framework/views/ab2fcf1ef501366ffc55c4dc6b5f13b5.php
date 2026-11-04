@@ -122,7 +122,7 @@
   }
 
   function rangeRoomsBlank(range) {
-    return ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'].every(function (key) {
+    return ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'twin_rooms', 'twin_rate', 'triple_rooms', 'triple_rate'].every(function (key) {
       return range[key] == null || String(range[key]) === '';
     });
   }
@@ -135,6 +135,8 @@
       single_rate: '',
       double_rooms: '',
       double_rate: '',
+      twin_rooms: '',
+      twin_rate: '',
       triple_rooms: '',
       triple_rate: ''
     };
@@ -144,7 +146,7 @@
     var start = parseDate(arrival);
     var end = parseDate(departure);
     if (!start || !end || end <= start) return [];
-    var fields = ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'];
+    var fields = ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'twin_rooms', 'twin_rate', 'triple_rooms', 'triple_rate'];
     var ranges = [];
     var current = null;
     var cursor = new Date(start.getTime());
@@ -235,6 +237,8 @@
         + '<td>' + rangeField(index, 'single_rate', range.single_rate, false, false) + '</td>'
         + '<td>' + rangeField(index, 'double_rooms', range.double_rooms, true, false) + '</td>'
         + '<td>' + rangeField(index, 'double_rate', range.double_rate, false, false) + '</td>'
+        + '<td>' + rangeField(index, 'twin_rooms', range.twin_rooms, true, false) + '</td>'
+        + '<td>' + rangeField(index, 'twin_rate', range.twin_rate, false, false) + '</td>'
         + '<td>' + rangeField(index, 'triple_rooms', range.triple_rooms, true, false) + '</td>'
         + '<td>' + rangeField(index, 'triple_rate', range.triple_rate, false, false) + '</td>'
         + '<td class="stay-calc" data-calc="room_nights">0</td>'
@@ -248,6 +252,7 @@
       + '<th>Arrival</th><th>Departure</th><th>Day</th><th>Nights</th>'
       + '<th>Single Room</th><th>Single Rate</th>'
       + '<th>Double Room</th><th>Double Rate</th>'
+      + '<th>Twin Room</th><th>Twin Rate</th>'
       + '<th>Triple Room</th><th>Triple Rate</th>'
       + '<th class="stay-calc">Total Room Nights</th>'
       + '<th class="stay-calc">Total Rev</th>'
@@ -258,6 +263,7 @@
       + '<td data-total="nights"></td>'
       + '<td data-total="single_rooms">0</td><td data-total="single_rate">0.00</td>'
       + '<td data-total="double_rooms">0</td><td data-total="double_rate">0.00</td>'
+      + '<td data-total="twin_rooms">0</td><td data-total="twin_rate">0.00</td>'
       + '<td data-total="triple_rooms">0</td><td data-total="triple_rate">0.00</td>'
       + '<td class="stay-calc" data-total="room_nights">0</td>'
       + '<td class="stay-calc" data-total="revenue">0.00</td>'
@@ -322,8 +328,8 @@
       if (displayEl) displayEl.value = '';
       return;
     }
-    var typeRooms = { single: 0, double: 0, triple: 0 };
-    var typeRevenue = { single: 0, double: 0, triple: 0 };
+    var typeRooms = { single: 0, double: 0, twin: 0, triple: 0 };
+    var typeRevenue = { single: 0, double: 0, twin: 0, triple: 0 };
     var roomNights = 0;
     var revenueTotal = 0;
     rows.forEach(function (row) {
@@ -332,17 +338,21 @@
       var singleRate = rowAmount(row, 'single_rate');
       var doubleRooms = rowAmount(row, 'double_rooms');
       var doubleRate = rowAmount(row, 'double_rate');
+      var twinRooms = rowAmount(row, 'twin_rooms');
+      var twinRate = rowAmount(row, 'twin_rate');
       var triple = rowAmount(row, 'triple_rooms');
       var tripleRate = rowAmount(row, 'triple_rate');
-      var nightlyRooms = single + doubleRooms + triple;
-      var nightlyRevenue = (single * singleRate) + (doubleRooms * doubleRate) + (triple * tripleRate);
+      var nightlyRooms = single + doubleRooms + twinRooms + triple;
+      var nightlyRevenue = (single * singleRate) + (doubleRooms * doubleRate) + (twinRooms * twinRate) + (triple * tripleRate);
       var rowRoomNights = nights * nightlyRooms;
       var rowRevenue = nights * nightlyRevenue;
       typeRooms.single += nights * single;
       typeRooms.double += nights * doubleRooms;
+      typeRooms.twin += nights * twinRooms;
       typeRooms.triple += nights * triple;
       typeRevenue.single += nights * single * singleRate;
       typeRevenue.double += nights * doubleRooms * doubleRate;
+      typeRevenue.twin += nights * twinRooms * twinRate;
       typeRevenue.triple += nights * triple * tripleRate;
       roomNights += rowRoomNights;
       revenueTotal += rowRevenue;
@@ -355,6 +365,8 @@
     setStayTotal('single_rate', typeRooms.single > 0 ? typeRevenue.single / typeRooms.single : 0, true);
     setStayTotal('double_rooms', typeRooms.double, false);
     setStayTotal('double_rate', typeRooms.double > 0 ? typeRevenue.double / typeRooms.double : 0, true);
+    setStayTotal('twin_rooms', typeRooms.twin, false);
+    setStayTotal('twin_rate', typeRooms.twin > 0 ? typeRevenue.twin / typeRooms.twin : 0, true);
     setStayTotal('triple_rooms', typeRooms.triple, false);
     setStayTotal('triple_rate', typeRooms.triple > 0 ? typeRevenue.triple / typeRooms.triple : 0, true);
     setStayTotal('room_nights', roomNights, false);

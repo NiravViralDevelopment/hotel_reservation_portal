@@ -11,7 +11,7 @@
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
-  $enquiryColspan = ($showCancellationReason ? 27 : 24) + ($showCreatedBy ? 1 : 0);
+  $enquiryColspan = ($showCancellationReason ? 29 : 26) + ($showCreatedBy ? 1 : 0);
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -255,6 +255,8 @@
         <th>Single Rate</th>
         <th>Double</th>
         <th>Double Rate</th>
+        <th>Twin</th>
+        <th>Twin Rate</th>
         <th>Triple</th>
         <th>Triple Rate</th>
         <th>Basis</th>
@@ -407,6 +409,8 @@
           <td class="text-nowrap"><?php echo e($money($enquiry->single_rate)); ?></td>
           <td><?php echo e($enquiry->double_rooms ?? '—'); ?></td>
           <td class="text-nowrap"><?php echo e($money($enquiry->double_rate)); ?></td>
+          <td><?php echo e($enquiry->twin_rooms ?? '—'); ?></td>
+          <td class="text-nowrap"><?php echo e($money($enquiry->twin_rate)); ?></td>
           <td><?php echo e($enquiry->triple_rooms ?? '—'); ?></td>
           <td class="text-nowrap"><?php echo e($money($enquiry->triple_rate)); ?></td>
           <td class="text-nowrap"><?php echo e($enquiry->basis ?: '—'); ?></td>
@@ -486,7 +490,7 @@
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-        <tr><td colspan="<?php echo e(24 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0)); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
+        <tr><td colspan="<?php echo e(26 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0)); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
         <tr><td colspan="<?php echo e($enquiryColspan); ?>" class="text-center text-secondary py-4"><?php echo e($emptyMessage); ?></td></tr>
       <?php endif; ?>
     </tbody>

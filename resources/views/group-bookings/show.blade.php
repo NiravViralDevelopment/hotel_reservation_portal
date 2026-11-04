@@ -234,6 +234,8 @@
         <div><div class="gb-label">Single Gross Rate</div><div class="gb-value">{{ $money($enquiry->single_rate) }}</div></div>
         <div><div class="gb-label">Double RNs</div><div class="gb-value">{{ $enquiry->double_rooms ?? '—' }}</div></div>
         <div><div class="gb-label">Double Gross Rate</div><div class="gb-value">{{ $money($enquiry->double_rate) }}</div></div>
+        <div><div class="gb-label">Twin RNs</div><div class="gb-value">{{ $enquiry->twin_rooms ?? '—' }}</div></div>
+        <div><div class="gb-label">Twin Gross Rate</div><div class="gb-value">{{ $money($enquiry->twin_rate) }}</div></div>
         <div><div class="gb-label">Triple RNs</div><div class="gb-value">{{ $enquiry->triple_rooms ?? '—' }}</div></div>
         <div><div class="gb-label">Triple Gross Rate</div><div class="gb-value">{{ $money($enquiry->triple_rate) }}</div></div>
         <div><div class="gb-label">Total RNs</div><div class="gb-value">{{ $enquiry->total_rns ?? '—' }}</div></div>
@@ -242,6 +244,19 @@
         <div><div class="gb-label">Dinner Revenue (Nett £)</div><div class="gb-value">{{ $money($enquiry->dinner_revenue) }}</div></div>
         <div><div class="gb-label">Nett Rev EX VAT &amp; BF</div><div class="gb-value">{{ $money($enquiry->nett_rev_ex_vat) }}</div></div>
         <div><div class="gb-label">City Tax</div><div class="gb-value">{{ $money($enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat)) }}</div></div>
+        @php
+          $shownCityTax = $enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat);
+          $shownCityTaxVat = $enquiry->city_tax_including_vat;
+          if ($shownCityTaxVat === null && $shownCityTax !== null) {
+              $shownCityTaxVat = round(((float) $shownCityTax) * 0.2, 2);
+          }
+          $shownTotalWithCityTax = $enquiry->total_rev_including_city_tax;
+          if ($shownTotalWithCityTax === null) {
+              $shownTotalWithCityTax = round((float) ($enquiry->total_revenue ?? 0) + (float) ($shownCityTaxVat ?? 0), 2);
+          }
+        @endphp
+        <div><div class="gb-label">City Tax Including VAT</div><div class="gb-value">{{ $money($shownCityTaxVat) }}</div></div>
+        <div><div class="gb-label">Total Rev Including City Tax</div><div class="gb-value">{{ $money($shownTotalWithCityTax) }}</div></div>
         <div><div class="gb-label">BB/DBB</div><div class="gb-value">{{ $text($enquiry->basis) }}</div></div>
       </div>
       @php
@@ -263,6 +278,8 @@
                 <th class="text-end">Single</th>
                 <th class="text-end">Rate</th>
                 <th class="text-end">Double</th>
+                <th class="text-end">Rate</th>
+                <th class="text-end">Twin</th>
                 <th class="text-end">Rate</th>
                 <th class="text-end">Triple</th>
                 <th class="text-end">Rate</th>
@@ -291,10 +308,12 @@
                   $segmentSingleRate = (float) ($segment['single_rate'] ?? 0);
                   $segmentDouble = (int) ($segment['double_rooms'] ?? 0);
                   $segmentDoubleRate = (float) ($segment['double_rate'] ?? 0);
+                  $segmentTwin = (int) ($segment['twin_rooms'] ?? 0);
+                  $segmentTwinRate = (float) ($segment['twin_rate'] ?? 0);
                   $segmentTriple = (int) ($segment['triple_rooms'] ?? 0);
                   $segmentTripleRate = (float) ($segment['triple_rate'] ?? 0);
-                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTriple * $segmentTripleRate));
-                  $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTriple * 3));
+                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTwin * $segmentTwinRate) + ($segmentTriple * $segmentTripleRate));
+                  $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTwin * 2) + ($segmentTriple * 3));
                   $segmentBb = $segmentCovers * $segmentBreakfast;
                   $segmentDinnerAmount = $segmentCovers * $segmentDinner;
                   $segmentNett = (($segmentRevenue * 100) / 120) - $segmentBb - ($enquiry->dinner_rate !== null ? $segmentDinnerAmount : 0);
@@ -313,6 +332,8 @@
                   <td class="text-end">{{ $money($segmentSingleRate) }}</td>
                   <td class="text-end">{{ $segmentDouble }}</td>
                   <td class="text-end">{{ $money($segmentDoubleRate) }}</td>
+                  <td class="text-end">{{ $segmentTwin }}</td>
+                  <td class="text-end">{{ $money($segmentTwinRate) }}</td>
                   <td class="text-end">{{ $segmentTriple }}</td>
                   <td class="text-end">{{ $money($segmentTripleRate) }}</td>
                   <td class="text-end fw-semibold">{{ $money($segmentRevenue) }}</td>
@@ -330,7 +351,7 @@
               <tr>
                 <th scope="row" colspan="3">Total</th>
                 <td class="text-end fw-semibold">{{ $segmentNightsTotal }}</td>
-                <td colspan="6"></td>
+                <td colspan="8"></td>
                 <td class="text-end fw-semibold">{{ $money($segmentRevenueTotal) }}</td>
                 @if ($showSegmentBreakfast)
                   <td class="text-end fw-semibold">{{ $money($segmentBbTotal) }}</td>

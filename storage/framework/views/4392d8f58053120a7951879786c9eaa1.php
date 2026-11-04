@@ -270,6 +270,8 @@
         <div><div class="gb-label">Single Gross Rate</div><div class="gb-value"><?php echo e($money($enquiry->single_rate)); ?></div></div>
         <div><div class="gb-label">Double RNs</div><div class="gb-value"><?php echo e($enquiry->double_rooms ?? '—'); ?></div></div>
         <div><div class="gb-label">Double Gross Rate</div><div class="gb-value"><?php echo e($money($enquiry->double_rate)); ?></div></div>
+        <div><div class="gb-label">Twin RNs</div><div class="gb-value"><?php echo e($enquiry->twin_rooms ?? '—'); ?></div></div>
+        <div><div class="gb-label">Twin Gross Rate</div><div class="gb-value"><?php echo e($money($enquiry->twin_rate)); ?></div></div>
         <div><div class="gb-label">Triple RNs</div><div class="gb-value"><?php echo e($enquiry->triple_rooms ?? '—'); ?></div></div>
         <div><div class="gb-label">Triple Gross Rate</div><div class="gb-value"><?php echo e($money($enquiry->triple_rate)); ?></div></div>
         <div><div class="gb-label">Total RNs</div><div class="gb-value"><?php echo e($enquiry->total_rns ?? '—'); ?></div></div>
@@ -278,6 +280,19 @@
         <div><div class="gb-label">Dinner Revenue (Nett £)</div><div class="gb-value"><?php echo e($money($enquiry->dinner_revenue)); ?></div></div>
         <div><div class="gb-label">Nett Rev EX VAT &amp; BF</div><div class="gb-value"><?php echo e($money($enquiry->nett_rev_ex_vat)); ?></div></div>
         <div><div class="gb-label">City Tax</div><div class="gb-value"><?php echo e($money($enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat))); ?></div></div>
+        <?php
+          $shownCityTax = $enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat);
+          $shownCityTaxVat = $enquiry->city_tax_including_vat;
+          if ($shownCityTaxVat === null && $shownCityTax !== null) {
+              $shownCityTaxVat = round(((float) $shownCityTax) * 0.2, 2);
+          }
+          $shownTotalWithCityTax = $enquiry->total_rev_including_city_tax;
+          if ($shownTotalWithCityTax === null) {
+              $shownTotalWithCityTax = round((float) ($enquiry->total_revenue ?? 0) + (float) ($shownCityTaxVat ?? 0), 2);
+          }
+        ?>
+        <div><div class="gb-label">City Tax Including VAT</div><div class="gb-value"><?php echo e($money($shownCityTaxVat)); ?></div></div>
+        <div><div class="gb-label">Total Rev Including City Tax</div><div class="gb-value"><?php echo e($money($shownTotalWithCityTax)); ?></div></div>
         <div><div class="gb-label">BB/DBB</div><div class="gb-value"><?php echo e($text($enquiry->basis)); ?></div></div>
       </div>
       <?php
@@ -299,6 +314,8 @@
                 <th class="text-end">Single</th>
                 <th class="text-end">Rate</th>
                 <th class="text-end">Double</th>
+                <th class="text-end">Rate</th>
+                <th class="text-end">Twin</th>
                 <th class="text-end">Rate</th>
                 <th class="text-end">Triple</th>
                 <th class="text-end">Rate</th>
@@ -327,10 +344,12 @@
                   $segmentSingleRate = (float) ($segment['single_rate'] ?? 0);
                   $segmentDouble = (int) ($segment['double_rooms'] ?? 0);
                   $segmentDoubleRate = (float) ($segment['double_rate'] ?? 0);
+                  $segmentTwin = (int) ($segment['twin_rooms'] ?? 0);
+                  $segmentTwinRate = (float) ($segment['twin_rate'] ?? 0);
                   $segmentTriple = (int) ($segment['triple_rooms'] ?? 0);
                   $segmentTripleRate = (float) ($segment['triple_rate'] ?? 0);
-                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTriple * $segmentTripleRate));
-                  $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTriple * 3));
+                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTwin * $segmentTwinRate) + ($segmentTriple * $segmentTripleRate));
+                  $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTwin * 2) + ($segmentTriple * 3));
                   $segmentBb = $segmentCovers * $segmentBreakfast;
                   $segmentDinnerAmount = $segmentCovers * $segmentDinner;
                   $segmentNett = (($segmentRevenue * 100) / 120) - $segmentBb - ($enquiry->dinner_rate !== null ? $segmentDinnerAmount : 0);
@@ -349,6 +368,8 @@
                   <td class="text-end"><?php echo e($money($segmentSingleRate)); ?></td>
                   <td class="text-end"><?php echo e($segmentDouble); ?></td>
                   <td class="text-end"><?php echo e($money($segmentDoubleRate)); ?></td>
+                  <td class="text-end"><?php echo e($segmentTwin); ?></td>
+                  <td class="text-end"><?php echo e($money($segmentTwinRate)); ?></td>
                   <td class="text-end"><?php echo e($segmentTriple); ?></td>
                   <td class="text-end"><?php echo e($money($segmentTripleRate)); ?></td>
                   <td class="text-end fw-semibold"><?php echo e($money($segmentRevenue)); ?></td>
@@ -366,7 +387,7 @@
               <tr>
                 <th scope="row" colspan="3">Total</th>
                 <td class="text-end fw-semibold"><?php echo e($segmentNightsTotal); ?></td>
-                <td colspan="6"></td>
+                <td colspan="8"></td>
                 <td class="text-end fw-semibold"><?php echo e($money($segmentRevenueTotal)); ?></td>
                 <?php if($showSegmentBreakfast): ?>
                   <td class="text-end fw-semibold"><?php echo e($money($segmentBbTotal)); ?></td>
@@ -415,6 +436,43 @@
             </div>
             <div class="modal-body">
               <p class="text-secondary">Cancel this group booking? The status will be set to Cancelled and it will move to Cancelled Bookings.</p>
+              <label for="show_booking_cancel_at" class="form-label">Cancel on</label>
+              <input type="datetime-local" name="cancel_at" id="show_booking_cancel_at" class="form-control mb-3 <?php $__errorArgs = ['cancel_at'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('cancel_at', now()->format('Y-m-d\TH:i'))); ?>" <?php if(old('cancel_at')): ?> data-keep="1" <?php endif; ?> readonly tabindex="-1" aria-readonly="true">
+              <?php $__errorArgs = ['cancel_at'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block mb-3"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+              <label for="show_booking_cxl_date" class="form-label">CXL Date</label>
+              <div class="date-placeholder-wrap mb-3">
+                <input type="date" name="cxl_date" id="show_booking_cxl_date" class="form-control <?php $__errorArgs = ['cxl_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('cxl_date')); ?>">
+                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+              </div>
+              <?php $__errorArgs = ['cxl_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block mb-3"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
               <label for="booking_cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
               <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control <?php $__errorArgs = ['cancellation_reason'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -442,10 +500,27 @@ unset($__errorArgs, $__bag); ?>
       </div>
     </div>
   <?php endif; ?>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var input = document.getElementById('show_booking_cancel_at');
+      var modal = document.getElementById('cancelGroupBookingModal');
+      if (!input || input.dataset.keep === '1') return;
+
+      function stampCancelOn() {
+        var now = new Date();
+        var pad = function (value) { return String(value).padStart(2, '0'); };
+        input.value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+          + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+      }
+
+      stampCancelOn();
+      if (modal) modal.addEventListener('show.bs.modal', stampCancelOn);
+    });
+  </script>
 <?php endif; ?>
 <?php $__env->stopSection(); ?>
 
-<?php if($errors->has('cancellation_reason')): ?>
+<?php if($errors->has('cancellation_reason') || $errors->has('cxl_date') || $errors->has('cancel_at')): ?>
   <?php $__env->startPush('scripts'); ?>
     <script>
       document.addEventListener('DOMContentLoaded', function () {

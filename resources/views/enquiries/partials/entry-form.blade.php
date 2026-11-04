@@ -134,7 +134,7 @@
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-    <span class="enquiry-section-hint">Each row is one date range. Enter the rooms per night. That row’s revenue is nights × ((Single × rate) + (Double × rate) + (Triple × rate)). The total adds every row.</span>
+    <span class="enquiry-section-hint">Each row is one date range. Enter the rooms per night. That row’s revenue is nights × ((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate)). The total adds every row.</span>
   </div>
   <div class="card-body">
     @php
@@ -228,7 +228,7 @@
           <label for="total_revenue_display" class="form-label">Total Revenue</label>
           <input type="text" id="total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
           <input type="hidden" name="total_revenue" id="total_revenue" value="{{ $v('total_revenue') }}">
-          <div class="form-text">Sum of each row: Nights × ((Single × rate) + (Double × rate) + (Triple × rate))</div>
+          <div class="form-text">Sum of each row: Nights × ((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate))</div>
           @error('total_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>

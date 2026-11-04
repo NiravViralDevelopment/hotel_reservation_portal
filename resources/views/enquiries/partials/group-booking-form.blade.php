@@ -242,7 +242,7 @@
       <span class="enquiry-section-hint" id="gb_rooms_hint">Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.</span>
     </div>
     <div class="card-body">
-      @foreach (['single', 'double', 'triple'] as $type)
+      @foreach (['single', 'double', 'twin', 'triple'] as $type)
         <input type="hidden" name="{{ $type }}_rooms" id="gb_{{ $type }}_rooms" value="{{ $v($type.'_rooms') }}">
         <input type="hidden" name="{{ $type }}_rate" id="gb_{{ $type }}_rate" value="{{ $v($type.'_rate') }}">
         @error($type.'_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -252,7 +252,7 @@
         <div class="gb-segment-toolbar">
           <div>
             <h3 class="stay-date-title">Date ranges</h3>
-            <p class="stay-date-hint mb-0">Each row is one arrival and departure for this booking. A row’s revenue is nights × ((Single × rate) + (Double × rate) + (Triple × rate)). Room totals are room nights: rooms × nights. The total row adds every range, including ranges that overlap or have a different length of stay.</p>
+            <p class="stay-date-hint mb-0">Each row is one arrival and departure for this booking. A row’s revenue is nights × ((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate)). Room totals are room nights: rooms × nights. The total row adds every range, including ranges that overlap or have a different length of stay.</p>
           </div>
           <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" id="gb-add-stay-segment">
             <i class="bi bi-plus-lg"></i> Add date range
@@ -276,6 +276,8 @@
                 <th>Single Rate</th>
                 <th>Double Room</th>
                 <th>Double Rate</th>
+                <th>Twin Room</th>
+                <th>Twin Rate</th>
                 <th>Triple Room</th>
                 <th>Triple Rate</th>
                 <th class="stay-calc">Revenue</th>
@@ -294,6 +296,8 @@
                 <td id="gb-segment-single-rate">0.00</td>
                 <td id="gb-segment-double-rooms">0</td>
                 <td id="gb-segment-double-rate">0.00</td>
+                <td id="gb-segment-twin-rooms">0</td>
+                <td id="gb-segment-twin-rate">0.00</td>
                 <td id="gb-segment-triple-rooms">0</td>
                 <td id="gb-segment-triple-rate">0.00</td>
                 <td class="stay-calc" id="gb-segment-revenue">0.00</td>
@@ -336,40 +340,7 @@
           <input type="text" name="dinner_rate" id="gb_dinner_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('dinner_rate') is-invalid @enderror" value="{{ $v('dinner_rate') }}">
           @error('dinner_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="revenue-panel">
-            <label for="gb_total_rns_display" class="form-label">Total RNs</label>
-            <input type="text" id="gb_total_rns_display" class="form-control" value="" readonly>
-            <input type="hidden" name="total_rns" id="gb_total_rns" value="{{ $v('total_rns') }}">
-            <div class="form-text" id="gb_total_rns_hint">(Single + Double + Triple) × nights</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="revenue-panel">
-            <label for="gb_total_revenue_display" class="form-label">Total Rev</label>
-            <input type="text" id="gb_total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
-            <input type="hidden" name="total_revenue" id="gb_total_revenue" value="{{ $v('total_revenue') }}">
-            <div class="form-text" id="gb_total_revenue_hint">((Single × rate) + (Double × rate) + (Triple × rate)) × nights</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="revenue-panel">
-            <label for="gb_bb_revenue_display" class="form-label">BB Revenue (Nett £)</label>
-            <input type="text" id="gb_bb_revenue_display" class="form-control @error('bb_revenue') is-invalid @enderror" value="" readonly>
-            <input type="hidden" name="bb_revenue" id="gb_bb_revenue" value="{{ $v('bb_revenue') }}">
-            <div class="form-text" id="gb_bb_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate</div>
-            @error('bb_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3" id="gb_dinner_revenue_wrap" @unless ($showDinnerRate) hidden @endunless>
-          <div class="revenue-panel">
-            <label for="gb_dinner_revenue_display" class="form-label">Dinner Revenue (Nett £)</label>
-            <input type="text" id="gb_dinner_revenue_display" class="form-control @error('dinner_revenue') is-invalid @enderror" value="" readonly>
-            <input type="hidden" name="dinner_revenue" id="gb_dinner_revenue" value="{{ $v('dinner_revenue') }}">
-            <div class="form-text" id="gb_dinner_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × dinner rate</div>
-            @error('dinner_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-        </div>
+        <input type="hidden" name="total_rns" id="gb_total_rns" value="{{ $v('total_rns') }}">
         <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_nett_rev_ex_vat_display" class="form-label">Nett Rev EX VAT &amp; BF</label>
@@ -381,10 +352,50 @@
         </div>
         <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
+            <label for="gb_bb_revenue_display" class="form-label">BB Revenue (Nett £)</label>
+            <input type="text" id="gb_bb_revenue_display" class="form-control @error('bb_revenue') is-invalid @enderror" value="" readonly>
+            <input type="hidden" name="bb_revenue" id="gb_bb_revenue" value="{{ $v('bb_revenue') }}">
+            <div class="form-text" id="gb_bb_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Twin RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate</div>
+            @error('bb_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3" id="gb_dinner_revenue_wrap" @unless ($showDinnerRate) hidden @endunless>
+          <div class="revenue-panel">
+            <label for="gb_dinner_revenue_display" class="form-label">Dinner Revenue (Nett £)</label>
+            <input type="text" id="gb_dinner_revenue_display" class="form-control @error('dinner_revenue') is-invalid @enderror" value="" readonly>
+            <input type="hidden" name="dinner_revenue" id="gb_dinner_revenue" value="{{ $v('dinner_revenue') }}">
+            <div class="form-text" id="gb_dinner_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Twin RNs × 2) + (Nights × Triple RNs × 3)) × dinner rate</div>
+            @error('dinner_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
             <label for="gb_city_tax_display" class="form-label">City Tax</label>
             <input type="text" id="gb_city_tax_display" class="form-control" value="" readonly>
             <input type="hidden" name="city_tax" id="gb_city_tax" value="{{ $v('city_tax') }}">
             <div class="form-text" id="gb_city_tax_hint"></div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
+            <label for="gb_city_tax_vat_display" class="form-label">City Tax Including VAT</label>
+            <input type="text" id="gb_city_tax_vat_display" class="form-control" value="" readonly>
+            <input type="hidden" name="city_tax_including_vat" id="gb_city_tax_including_vat" value="{{ $v('city_tax_including_vat') }}">
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
+            <label for="gb_total_revenue_display" class="form-label">Total Rev</label>
+            <input type="text" id="gb_total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
+            <input type="hidden" name="total_revenue" id="gb_total_revenue" value="{{ $v('total_revenue') }}">
+            <div class="form-text" id="gb_total_revenue_hint">((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate)) × nights</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="revenue-panel">
+            <label for="gb_total_rev_including_city_tax_display" class="form-label">Total Rev Including City Tax</label>
+            <input type="text" id="gb_total_rev_including_city_tax_display" class="form-control" value="" readonly>
+            <input type="hidden" name="total_rev_including_city_tax" id="gb_total_rev_including_city_tax" value="{{ $v('total_rev_including_city_tax') }}">
           </div>
         </div>
       </div>

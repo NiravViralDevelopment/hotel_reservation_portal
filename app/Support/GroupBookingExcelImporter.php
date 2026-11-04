@@ -72,8 +72,9 @@ class GroupBookingExcelImporter
             $agency = $this->resolveAgency($client);
             $singleRooms = (int) ($get('single_rooms') ?? 0);
             $doubleRooms = (int) ($get('double_rooms') ?? 0);
+            $twinRooms = (int) ($get('twin_rooms') ?? 0);
             $tripleRooms = (int) ($get('triple_rooms') ?? 0);
-            $roomsPerNight = (int) ($get('rooms_per_night') ?? ($singleRooms + $doubleRooms + $tripleRooms));
+            $roomsPerNight = (int) ($get('rooms_per_night') ?? ($singleRooms + $doubleRooms + $twinRooms + $tripleRooms));
             $totalRevenue = $this->toDecimal($get('total_revenue'));
             $commission = $this->toCommissionPercent($get('commission'));
 
@@ -100,6 +101,8 @@ class GroupBookingExcelImporter
                 'single_rate' => $this->toDecimal($get('single_rate')),
                 'double_rooms' => $doubleRooms,
                 'double_rate' => $this->toDecimal($get('double_rate')),
+                'twin_rooms' => $twinRooms,
+                'twin_rate' => $this->toDecimal($get('twin_rate')),
                 'triple_rooms' => $tripleRooms,
                 'triple_rate' => $this->toDecimal($get('triple_rate')),
                 'rooms_per_night' => $roomsPerNight,
@@ -177,6 +180,8 @@ class GroupBookingExcelImporter
             'single_rate' => ['single gross rate', 'single rate', 'single_rate'],
             'double_rooms' => ['double rns', 'double rooms', 'double_rooms'],
             'double_rate' => ['double rate', 'double_rate'],
+            'twin_rooms' => ['twin rns', 'twin rooms', 'twin_rooms'],
+            'twin_rate' => ['twin rate', 'twin_rate'],
             'triple_rooms' => ['triple rns', 'triple rooms', 'triple_rooms'],
             'triple_rate' => ['triple rate', 'triple_rate'],
             'rooms_per_night' => ['total rns', 'rooms per night', 'rooms_per_night', 'rooms'],

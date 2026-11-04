@@ -11,7 +11,7 @@
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
-  $enquiryColspan = ($showCancellationReason ? 27 : 24) + ($showCreatedBy ? 1 : 0);
+  $enquiryColspan = ($showCancellationReason ? 29 : 26) + ($showCreatedBy ? 1 : 0);
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -46,6 +46,8 @@
         <th>Single Rate</th>
         <th>Double</th>
         <th>Double Rate</th>
+        <th>Twin</th>
+        <th>Twin Rate</th>
         <th>Triple</th>
         <th>Triple Rate</th>
         <th>Basis</th>
@@ -84,6 +86,8 @@
           <td class="text-nowrap">{{ $money($enquiry->single_rate) }}</td>
           <td>{{ $enquiry->double_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->double_rate) }}</td>
+          <td>{{ $enquiry->twin_rooms ?? '—' }}</td>
+          <td class="text-nowrap">{{ $money($enquiry->twin_rate) }}</td>
           <td>{{ $enquiry->triple_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->triple_rate) }}</td>
           <td class="text-nowrap">{{ $enquiry->basis ?: '—' }}</td>
@@ -125,7 +129,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ 24 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ 26 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
         <tr><td colspan="{{ $enquiryColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
