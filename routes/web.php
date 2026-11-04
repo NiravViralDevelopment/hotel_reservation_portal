@@ -105,6 +105,8 @@ Route::middleware('auth')->group(function () {
     Route::get('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'index'])->name('group-bookings.attachments.index');
     Route::get('group-bookings/{enquiry}/attachments/create', [GroupBookingAttachmentController::class, 'create'])->name('group-bookings.attachments.create');
     Route::post('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'store'])->name('group-bookings.attachments.store');
+    Route::get('group-bookings/{enquiry}/attachments/{attachment}/edit', [GroupBookingAttachmentController::class, 'edit'])->name('group-bookings.attachments.edit');
+    Route::put('group-bookings/{enquiry}/attachments/{attachment}', [GroupBookingAttachmentController::class, 'update'])->name('group-bookings.attachments.update');
     Route::get('group-bookings/{enquiry}/attachments/{attachment}/download', [GroupBookingAttachmentController::class, 'download'])->name('group-bookings.attachments.download');
     Route::delete('group-bookings/{enquiry}/attachments/{attachment}', [GroupBookingAttachmentController::class, 'destroy'])->name('group-bookings.attachments.destroy');
     Route::get('group-bookings/{enquiry}', [GroupBookingController::class, 'show'])->name('group-bookings.show');

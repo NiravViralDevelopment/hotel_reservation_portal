@@ -55,13 +55,9 @@
                 @endif
               </td>
               <td class="text-end text-nowrap">
-                <form method="POST" action="{{ route('group-bookings.attachments.destroy', [$enquiry, $attachment]) }}" class="d-inline" data-confirm-title="Delete attachment" data-confirm="{{ 'Are you sure you want to delete this attachment?'."\n\n".'This will permanently remove it and cannot be undone.' }}" data-confirm-button="Delete">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </form>
+                <a href="{{ route('group-bookings.attachments.edit', [$enquiry, $attachment]) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </a>
               </td>
             </tr>
           @empty

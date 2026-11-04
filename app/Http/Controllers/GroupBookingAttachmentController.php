@@ -60,21 +60,7 @@ class GroupBookingAttachmentController extends Controller
 
         $file = $request->file('attachment');
         if ($file instanceof UploadedFile) {
-            $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
-            $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?: 'bin';
-            $originalName = $file->getClientOriginalName();
-            $mimeType = $file->getMimeType();
-            $size = $file->getSize() ?: 0;
-            $storedName = Str::uuid()->toString().'.'.$extension;
-            $directory = public_path('group-booking-attachments/'.$enquiry->id);
-            File::ensureDirectoryExists($directory);
-            $file->move($directory, $storedName);
-
-            $attributes['disk'] = 'public';
-            $attributes['path'] = 'group-booking-attachments/'.$enquiry->id.'/'.$storedName;
-            $attributes['original_name'] = $originalName;
-            $attributes['mime_type'] = $mimeType;
-            $attributes['size'] = $size;
+            $attributes = array_merge($attributes, $this->storedFileAttributes($enquiry, $file));
         }
 
         $attachment = $enquiry->attachments()->create($attributes);
@@ -84,6 +70,50 @@ class GroupBookingAttachmentController extends Controller
         return redirect()
             ->route('group-bookings.attachments.index', $enquiry)
             ->with('success', 'Attachment saved.');
+    }
+
+    public function edit(Enquiry $enquiry, GroupBookingAttachment $attachment): View
+    {
+        $this->ensureBooking($enquiry);
+        $this->ensureAttachment($enquiry, $attachment);
+
+        $enquiry->load('hotel');
+
+        return view('group-bookings.attachments.edit', compact('enquiry', 'attachment'));
+    }
+
+    public function update(Request $request, Enquiry $enquiry, GroupBookingAttachment $attachment): RedirectResponse
+    {
+        $this->ensureBooking($enquiry);
+        $this->ensureAttachment($enquiry, $attachment);
+
+        $validated = $request->validate([
+            'title' => ['nullable', 'string', 'max:255'],
+            'feedback' => ['nullable', 'string', 'max:5000'],
+            'date' => ['nullable', 'date'],
+            'attachment' => ['nullable', 'file', 'max:10240'],
+        ]);
+
+        $attributes = [
+            'title' => $this->blankToNull($validated['title'] ?? null),
+            'feedback' => $this->blankToNull($validated['feedback'] ?? null),
+            'attachment_date' => $validated['date'] ?? null,
+        ];
+
+        $file = $request->file('attachment');
+        if ($file instanceof UploadedFile) {
+            $stored = $this->storedFileAttributes($enquiry, $file);
+            $attachment->deleteStoredFile();
+            $attributes = array_merge($attributes, $stored);
+        }
+
+        $attachment->update($attributes);
+
+        Audit::log('updated', 'group-booking-attachments', $attachment->title ?: $enquiry->block_id, $attachment);
+
+        return redirect()
+            ->route('group-bookings.attachments.index', $enquiry)
+            ->with('success', 'Attachment updated.');
     }
 
     public function download(Enquiry $enquiry, GroupBookingAttachment $attachment): StreamedResponse
@@ -129,6 +159,27 @@ class GroupBookingAttachmentController extends Controller
     private function ensureAttachment(Enquiry $enquiry, GroupBookingAttachment $attachment): void
     {
         abort_unless((int) $attachment->enquiry_id === (int) $enquiry->id, 404);
+    }
+
+    /**
+     * @return array{disk: string, path: string, original_name: string, mime_type: ?string, size: int}
+     */
+    private function storedFileAttributes(Enquiry $enquiry, UploadedFile $file): array
+    {
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
+        $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?: 'bin';
+        $storedName = Str::uuid()->toString().'.'.$extension;
+        $directory = public_path('group-booking-attachments/'.$enquiry->id);
+        File::ensureDirectoryExists($directory);
+        $file->move($directory, $storedName);
+
+        return [
+            'disk' => 'public',
+            'path' => 'group-booking-attachments/'.$enquiry->id.'/'.$storedName,
+            'original_name' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'size' => $file->getSize() ?: 0,
+        ];
     }
 
     private function blankToNull(mixed $value): ?string

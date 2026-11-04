@@ -27,29 +27,7 @@
     @csrf
     <div class="card">
       <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="title" class="form-label">Title</label>
-            <input type="text" name="title" id="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title') }}" maxlength="255">
-            @error('title')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-6">
-            <label for="date" class="form-label">Date</label>
-            <input type="date" name="date" id="date" class="form-control @error('date') is-invalid @enderror" value="{{ old('date') }}">
-            @error('date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-12">
-            <label for="feedback" class="form-label">Feedback</label>
-            <textarea name="feedback" id="feedback" rows="4" class="form-control @error('feedback') is-invalid @enderror" maxlength="5000">{{ old('feedback') }}</textarea>
-            @error('feedback')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-12">
-            <label for="attachment" class="form-label">Attachment</label>
-            <input type="file" name="attachment" id="attachment" class="form-control @error('attachment') is-invalid @enderror">
-            <div class="form-text">Any file, up to 10 MB.</div>
-            @error('attachment')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-          </div>
-        </div>
+        @include('group-bookings.attachments._form')
       </div>
     </div>
     <div class="d-flex gap-2 mt-4">

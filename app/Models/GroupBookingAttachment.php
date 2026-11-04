@@ -62,6 +62,40 @@ class GroupBookingAttachment extends Model
         return $path !== '' && ! str_contains($path, '..');
     }
 
+    public function previewKind(): ?string
+    {
+        $mime = strtolower((string) $this->mime_type);
+        $name = strtolower((string) ($this->original_name ?: $this->path));
+
+        if (str_starts_with($mime, 'image/') || preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/', $name) === 1) {
+            return 'image';
+        }
+
+        if ($mime === 'application/pdf' || str_ends_with($name, '.pdf')) {
+            return 'pdf';
+        }
+
+        return null;
+    }
+
+    public function canPreview(): bool
+    {
+        if ($this->previewKind() === null || ! $this->hasFile()) {
+            return false;
+        }
+
+        if ($this->isPublicFile()) {
+            return true;
+        }
+
+        $disk = $this->disk ?: 'local';
+        if ($disk === 'public') {
+            return false;
+        }
+
+        return Storage::disk($disk)->exists((string) $this->path);
+    }
+
     public function isPublicFile(): bool
     {
         return $this->absolutePublicPath() !== null;
