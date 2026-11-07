@@ -127,6 +127,7 @@
       'defaultDir' => 'asc',
       'emptyMessage' => 'No confirmed bookings found.',
       'showAttachments' => true,
+      'trackerOrder' => true,
     ])
 
     @include('partials.pagination-footer', ['paginator' => $bookings])

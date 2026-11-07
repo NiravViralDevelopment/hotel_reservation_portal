@@ -561,7 +561,7 @@ class GroupBookingController extends Controller
     {
         $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['travelAgency', 'hotel', 'assignedTo'])
+            ->with(['travelAgency', 'hotel', 'assignedTo', 'contact'])
             ->groupBookings();
 
         if ($request->filled('q')) {

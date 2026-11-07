@@ -151,7 +151,7 @@ class CancelledBookingController extends Controller
     {
         $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['hotel', 'travelAgency'])
+            ->with(['hotel', 'travelAgency', 'contact'])
             ->cancelledBookings();
 
         if ($request->filled('q')) {

@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Enquiry;
 use App\Models\Hotel;
+use App\Models\User;
 use App\Support\Audit;
+use App\Support\EnquiryIndexFilters;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use App\Support\SimpleXlsxWriter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -24,8 +27,8 @@ class ReportController extends Controller
 
         $hotels = Hotel::optionsForSelect();
 
-        $defaultFrom = now()->subMonth()->toDateString();
-        $defaultTo = now()->toDateString();
+        $defaultFrom = now()->startOfMonth()->toDateString();
+        $defaultTo = now()->endOfMonth()->toDateString();
 
         return view('reports.index', compact('hotels', 'defaultFrom', 'defaultTo'));
     }
@@ -42,23 +45,16 @@ class ReportController extends Controller
 
         abort_unless(isset($map[$report]), 404);
 
-        $validated = $request->validate([
-            'date_from' => ['nullable', 'date'],
-            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
-        ]);
-
+        $validated = $this->validatedReportFilters($request);
         $validated['report'] = $map[$report];
-        $validated['date_from'] = $validated['date_from'] ?? now()->subMonth()->toDateString();
-        $validated['date_to'] = $validated['date_to'] ?? now()->toDateString();
-
-        if (Carbon::parse($validated['date_to'])->lt(Carbon::parse($validated['date_from']))) {
-            $validated['date_to'] = $validated['date_from'];
-        }
+        [$validated['date_from'], $validated['date_to']] = $this->reportDateRange($request);
 
         $results = $this->datedReport($validated, $request);
-        $hotels = collect();
+        $hotels = Hotel::optionsForSelect($request->input('hotel_id'));
+        $creators = User::query()->orderBy('name')->get(['id', 'name']);
+        $dateMonth = EnquiryIndexFilters::monthValue($request, $validated['date_from'], $validated['date_to'], 'date_month');
 
-        return view('reports.run', compact('results', 'validated', 'hotels'));
+        return view('reports.run', compact('results', 'validated', 'hotels', 'creators', 'dateMonth'));
     }
 
     public function export(Request $request, string $report): StreamedResponse
@@ -73,18 +69,9 @@ class ReportController extends Controller
 
         abort_unless(isset($map[$report]), 404);
 
-        $validated = $request->validate([
-            'date_from' => ['nullable', 'date'],
-            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
-        ]);
-
+        $validated = $this->validatedReportFilters($request);
         $validated['report'] = $map[$report];
-        $validated['date_from'] = $validated['date_from'] ?? now()->subMonth()->toDateString();
-        $validated['date_to'] = $validated['date_to'] ?? now()->toDateString();
-
-        if (Carbon::parse($validated['date_to'])->lt(Carbon::parse($validated['date_from']))) {
-            $validated['date_to'] = $validated['date_from'];
-        }
+        [$validated['date_from'], $validated['date_to']] = $this->reportDateRange($request);
 
         $results = $this->datedReport($validated, $request);
 
@@ -176,7 +163,7 @@ class ReportController extends Controller
     }
 
     /**
-     * @param  array{report: string, date_from: string, date_to: string}  $validated
+     * @param  array{report: string, date_from: ?string, date_to: ?string}  $validated
      */
     private function datedReport(array $validated, ?Request $request = null): mixed
     {
@@ -190,14 +177,21 @@ class ReportController extends Controller
         };
     }
 
-    private function enquiriesReportQuery(string $from, string $to, ?Request $request = null)
+    private function enquiriesReportQuery(?string $from, ?string $to, ?Request $request = null)
     {
         $query = Enquiry::query()
             ->accessibleBy()
             ->with(['hotel', 'travelAgency', 'assignedTo'])
-            ->openPipeline()
-            ->whereDate('enquiry_date', '>=', $from)
-            ->whereDate('enquiry_date', '<=', $to);
+            ->openPipeline();
+
+        if ($from) {
+            $query->whereDate('enquiry_date', '>=', $from);
+        }
+        if ($to) {
+            $query->whereDate('enquiry_date', '<=', $to);
+        }
+
+        $this->applyReportFilters($query, $request ?? request(), 'enquiries');
 
         QuerySort::apply($query, $request ?? request(), [
             'ref' => 'ref',
@@ -219,14 +213,21 @@ class ReportController extends Controller
         return $query;
     }
 
-    private function groupBookingsReportQuery(string $from, string $to, ?Request $request = null)
+    private function groupBookingsReportQuery(?string $from, ?string $to, ?Request $request = null)
     {
         $query = Enquiry::query()
             ->accessibleBy()
             ->with(['hotel', 'travelAgency', 'assignedTo'])
-            ->groupBookings()
-            ->whereDate('check_in', '>=', $from)
-            ->whereDate('check_in', '<=', $to);
+            ->groupBookings();
+
+        if ($from) {
+            $query->whereDate('check_in', '>=', $from);
+        }
+        if ($to) {
+            $query->whereDate('check_in', '<=', $to);
+        }
+
+        $this->applyReportFilters($query, $request ?? request(), 'group_bookings');
 
         QuerySort::apply($query, $request ?? request(), [
             'check_in' => 'check_in',
@@ -244,14 +245,21 @@ class ReportController extends Controller
         return $query;
     }
 
-    private function cancelledBookingsReportQuery(string $from, string $to, ?Request $request = null)
+    private function cancelledBookingsReportQuery(?string $from, ?string $to, ?Request $request = null)
     {
         $query = Enquiry::query()
             ->accessibleBy()
             ->with(['hotel', 'travelAgency', 'assignedTo'])
-            ->cancelledBookings()
-            ->whereDate('updated_at', '>=', $from)
-            ->whereDate('updated_at', '<=', $to);
+            ->cancelledBookings();
+
+        if ($from) {
+            $query->whereDate('updated_at', '>=', $from);
+        }
+        if ($to) {
+            $query->whereDate('updated_at', '<=', $to);
+        }
+
+        $this->applyReportFilters($query, $request ?? request(), 'cancelled_bookings');
 
         QuerySort::apply($query, $request ?? request(), [
             'check_in' => 'check_in',
@@ -458,6 +466,64 @@ class ReportController extends Controller
         $filename = ($cancelled ? 'cancelled-bookings' : 'group-bookings').'-report-'.now()->format('Y-m-d').'.xlsx';
 
         return [$headers, $rows, $filename];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validatedReportFilters(Request $request): array
+    {
+        return $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+        ]);
+    }
+
+    /**
+     * Same rules as the enquiry list: the current month is selected until a month or dates are chosen.
+     *
+     * @return array{0: ?string, 1: ?string}
+     */
+    private function reportDateRange(Request $request): array
+    {
+        return EnquiryIndexFilters::dateBounds($request, 'date_from', 'date_to', 'date_month');
+    }
+
+    /**
+     * @param  Builder<Enquiry>  $query
+     */
+    private function applyReportFilters(Builder $query, Request $request, string $report): void
+    {
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $query->where(function ($builder) use ($search, $report) {
+                $builder->where('ref', 'like', "%{$search}%")
+                    ->orWhere('group_name', 'like', "%{$search}%")
+                    ->orWhere('client', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%")
+                    ->orWhere('source', 'like', "%{$search}%")
+                    ->orWhere('service_person', 'like', "%{$search}%");
+
+                if ($report !== 'enquiries') {
+                    $builder->orWhere('block_id', 'like', "%{$search}%");
+                }
+
+                if ($report === 'cancelled_bookings') {
+                    $builder->orWhere('cancellation_reason', 'like', "%{$search}%");
+                }
+            });
+        }
+
+        if ($request->filled('hotel_id')) {
+            HotelAccess::ensure(null, $request->integer('hotel_id'));
+            $query->where('hotel_id', $request->integer('hotel_id'));
+        }
+
+        if ($request->filled('created_by')) {
+            $query->where('created_by', $request->integer('created_by'));
+        }
     }
 
     private function exportMoney(mixed $value): ?float
