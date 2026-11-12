@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArrivalController;
+use App\Http\Controllers\BobController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
@@ -125,6 +126,10 @@ Route::middleware('auth')->group(function () {
     Route::any('documents/{any?}', fn () => redirect()->route('dashboard'))
         ->where('any', '.*')
         ->name('documents.hidden');
+
+    Route::get('bob/export', [BobController::class, 'export'])->name('bob.export');
+    Route::get('bob', [BobController::class, 'index'])->name('bob.index');
+    Route::post('bob', [BobController::class, 'update'])->name('bob.update');
 
     Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

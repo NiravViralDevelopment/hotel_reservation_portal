@@ -25,6 +25,7 @@ class RoleController extends Controller
         'bookings' => 'Group bookings',
         'enquiries' => 'Enquiries',
         'documents' => 'Documents',
+        'bob' => 'BOB',
         'revenue' => 'Revenue',
         'reports' => 'Reports',
         'users' => 'Users',

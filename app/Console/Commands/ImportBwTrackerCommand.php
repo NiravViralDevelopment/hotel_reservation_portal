@@ -56,7 +56,23 @@ class ImportBwTrackerCommand extends Command
             GroupBooking::query()->truncate();
             Contact::query()->truncate();
             TravelAgency::query()->truncate();
-            BobMonthlySnapshot::query()->where('year', 2025)->delete();
+            $bobYears = collect($payload['bob'] ?? [])
+                ->pluck('year')
+                ->map(fn ($year) => (int) $year)
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($bobYears->isEmpty()) {
+                $bobYears = collect([(int) now()->year]);
+            }
+
+            $bobYears = $bobYears
+                ->merge($bobYears->map(fn (int $year) => $year - 1))
+                ->unique()
+                ->values();
+
+            BobMonthlySnapshot::query()->whereIn('year', $bobYears->all())->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
 
@@ -300,26 +316,55 @@ class ImportBwTrackerCommand extends Command
 
         $this->info('Importing BOB snapshots...');
         foreach ($payload['bob'] ?? [] as $row) {
+            $year = (int) ($row['year'] ?? now()->year);
+            $month = (int) $row['month'];
+
             BobMonthlySnapshot::query()->updateOrCreate(
                 [
-                    'year' => (int) ($row['year'] ?? 2025),
-                    'month' => (int) $row['month'],
+                    'year' => $year,
+                    'month' => $month,
                 ],
                 [
                     'label' => $row['label'] ?? null,
-                    'bob_current' => (float) ($row['bobCurrent'] ?? 0),
-                    'bob_previous' => (float) ($row['bobPrevious'] ?? 0),
-                    'bob_variance' => (float) ($row['bobVariance'] ?? 0),
-                    'adr_current' => (float) ($row['adrCurrent'] ?? 0),
-                    'adr_previous' => (float) ($row['adrPrevious'] ?? 0),
-                    'adr_variance' => (float) ($row['adrVariance'] ?? 0),
-                    'room_nights_current' => (int) ($row['roomNightsCurrent'] ?? 0),
-                    'room_nights_previous' => (int) ($row['roomNightsPrevious'] ?? 0),
+                    'bob_nett' => (float) ($row['bobCurrent'] ?? $row['bob_nett'] ?? 0),
+                    'adr_nett' => (float) ($row['adrCurrent'] ?? $row['adr_nett'] ?? 0),
+                    'room_nights' => (int) ($row['roomNightsCurrent'] ?? $row['room_nights'] ?? 0),
                     'breakfast_revenue' => (float) ($row['breakfastRevenue'] ?? 0),
                     'dinner_revenue' => (float) ($row['dinnerRevenue'] ?? 0),
                     'dinner_covers' => (int) ($row['dinnerCovers'] ?? 0),
                 ]
             );
+
+            $previous = [];
+            if (array_key_exists('bobPrevious', $row)) {
+                $previous['bob_nett'] = (float) $row['bobPrevious'];
+            }
+            if (array_key_exists('adrPrevious', $row)) {
+                $previous['adr_nett'] = (float) $row['adrPrevious'];
+            }
+            if (array_key_exists('roomNightsPrevious', $row)) {
+                $previous['room_nights'] = (int) $row['roomNightsPrevious'];
+            }
+            if (array_key_exists('stlyBob', $row)) {
+                $previous['stly_bob_nett'] = (float) $row['stlyBob'];
+            }
+            if (array_key_exists('adrStly', $row)) {
+                $previous['stly_adr_nett'] = (float) $row['adrStly'];
+            }
+            if (array_key_exists('stlyRoomNights', $row)) {
+                $previous['stly_room_nights'] = (int) $row['stlyRoomNights'];
+            }
+
+            if ($previous !== []) {
+                $previous['label'] = $row['label'] ?? null;
+                BobMonthlySnapshot::query()->updateOrCreate(
+                    [
+                        'year' => $year - 1,
+                        'month' => $month,
+                    ],
+                    $previous
+                );
+            }
         }
 
         $this->newLine();
@@ -331,7 +376,7 @@ class ImportBwTrackerCommand extends Command
                 ['Group bookings', GroupBooking::query()->count()],
                 ['Daily rows', GroupBookingDailyRow::query()->count()],
                 ['Enquiries', Enquiry::query()->count()],
-                ['BOB 2025 months', BobMonthlySnapshot::query()->where('year', 2025)->count()],
+                ['BOB months', BobMonthlySnapshot::query()->count()],
                 ['Active bookings', GroupBooking::query()->active()->count()],
                 ['Cancelled bookings', GroupBooking::query()->cancelled()->count()],
             ]
