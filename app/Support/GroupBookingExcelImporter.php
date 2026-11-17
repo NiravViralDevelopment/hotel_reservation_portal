@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
+use App\Models\Contact;
 use App\Models\Enquiry;
 use App\Models\Hotel;
 use App\Models\TravelAgency;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -314,5 +316,426 @@ class GroupBookingExcelImporter
             'country' => 'United Kingdom',
             'status' => 'active',
         ]);
+    }
+
+    /**
+     * Columns shown on the group bookings index, excluding Hotel, Attachment, and Actions.
+     * Hotel is always the user's currently selected hotel.
+     *
+     * @return list<string>
+     */
+    public function templateHeaders(): array
+    {
+        return [
+            'Date of Arrival',
+            'Date of Departure',
+            'Arrival Day',
+            'No. of Nights',
+            'Block ID',
+            'Client',
+            'Agency Ref',
+            'Contact Name',
+            'Contact Phone/Mail',
+            'Contract Sent On',
+            "Contract Rec'd On",
+            'Saved to Doc',
+            'Payment Term',
+            'Payment Due Date',
+            'Payment Status',
+            'CXL Policy',
+            'CXL Due Date',
+            'CXL Date',
+            'Single RNs',
+            'Single Rate',
+            'Double RNs',
+            'Double Rate',
+            'Triple RNs',
+            'Triple Rate',
+            'Total Room Nights',
+            'Total Rev',
+            'BB Revenue Nett',
+            'Dinner Revenue',
+            'Nett Revenue excl BB / Dinner & VAT',
+            'BB/DBB',
+            'Comments',
+            'Rooming List',
+            'Invoice Status',
+            'Invoice Sent On',
+            'Invoice Amount',
+            'Status',
+            'Commission',
+            'Twin RNs',
+            'Twin Gross Rate',
+            'Invoice Number',
+            'Commission Payable Status',
+        ];
+    }
+
+    /**
+     * Two example rows in the same order as templateHeaders().
+     *
+     * @return list<list<string|int|null>>
+     */
+    public function templateExampleRows(): array
+    {
+        return [
+            [
+                '2026-12-01', '2026-12-03', 'Tuesday', 2, 'SAMPLE-001', 'Example Travel Ltd', 'AG-1001',
+                'Jane Smith', '07700900111 / jane.smith@example.com', '2026-11-01', '2026-11-05', 'Yes',
+                '14 days', '2026-11-20', 'Pending', '14 days', '2026-11-17', null,
+                2, '95.00', 4, '120.00', 0, null, 6, '670.00', '540.00', '80.00', '50.00',
+                'BB', 'Sample booking', 'Pending', 'Not sent', null, null, 'Confirmed', 'Yes',
+                0, null, null, 'Pending',
+            ],
+            [
+                '2026-12-10', '2026-12-12', 'Thursday', 2, 'SAMPLE-002', 'Sample Agency', 'AG-1002',
+                'John Brown', '07700900222 / john.brown@example.com', '2026-11-08', '2026-11-10', 'Yes',
+                '7 days', '2026-12-03', 'Paid', '7 days', '2026-12-03', null,
+                1, '89.00', 2, '110.00', 1, '140.00', 5, '554.00', '360.00', '60.00', '29.00',
+                'DBB', 'Second sample booking', 'Received', 'Sent', '2026-11-15', '554.00', 'Confirmed', 'No',
+                1, '105.00', 'INV-1002', 'Not payable',
+            ],
+        ];
+    }
+
+    /**
+     * @return array{headers: list<string>, rows: list<array<string, string|null>>}
+     */
+    public function readSheet(string $path): array
+    {
+        $rows = SimpleXlsxReader::rows($path);
+        if ($rows === []) {
+            return ['headers' => [], 'rows' => []];
+        }
+
+        $headers = [];
+        foreach ($rows[0] as $index => $header) {
+            $header = trim((string) $header);
+            if ($header !== '') {
+                $headers[$index] = $header;
+            }
+        }
+
+        $data = [];
+        for ($i = 1, $count = count($rows); $i < $count; $i++) {
+            $assoc = [];
+            $blank = true;
+            foreach ($headers as $index => $header) {
+                $value = $rows[$i][$index] ?? null;
+                $value = $value === null ? null : trim((string) $value);
+                if ($value === '') {
+                    $value = null;
+                }
+                if ($value !== null) {
+                    $blank = false;
+                }
+                $assoc[$header] = $value;
+            }
+            if (! $blank) {
+                $data[] = $assoc;
+            }
+        }
+
+        return ['headers' => array_values($headers), 'rows' => $data];
+    }
+
+    /**
+     * @param  list<array<string, string|null>>  $rows
+     * @return array{saved: int, errors: list<string>}
+     */
+    public function saveRows(array $rows, int $hotelId, ?int $userId): array
+    {
+        $saved = 0;
+        $errors = [];
+
+        DB::transaction(function () use ($rows, $hotelId, $userId, &$saved, &$errors): void {
+            foreach ($rows as $index => $row) {
+                try {
+                    $this->saveImportedRow($row, $hotelId, $userId);
+                    $saved++;
+                } catch (\Throwable $exception) {
+                    $errors[] = 'Row '.($index + 1).': '.$exception->getMessage();
+                }
+            }
+        });
+
+        return ['saved' => $saved, 'errors' => $errors];
+    }
+
+    /**
+     * @param  array<string, string|null>  $row
+     */
+    private function saveImportedRow(array $row, int $hotelId, ?int $userId): void
+    {
+        $values = $this->mappedImportValues($row);
+        $blockId = $values['block_id'] ?? null;
+        $client = $values['client'] ?? null;
+        $ref = $values['ref'] ?? null;
+
+        if ($blockId === null && $client === null && $ref === null) {
+            throw new \RuntimeException('A row needs a Block ID, Client, or Agency Ref.');
+        }
+
+        $existing = null;
+        if ($blockId !== null) {
+            $existing = Enquiry::query()->where('block_id', $blockId)->first();
+            if ($existing && (int) $existing->hotel_id !== $hotelId) {
+                throw new \RuntimeException('Block ID '.$blockId.' belongs to another hotel.');
+            }
+        }
+
+        [$phone, $email] = $this->splitPhoneMail($values['contact_phone_mail'] ?? null);
+        $checkIn = $this->toDate($values['check_in'] ?? null);
+        $checkOut = $this->toDate($values['check_out'] ?? null);
+        $nights = isset($values['nights']) && $values['nights'] !== null && $values['nights'] !== ''
+            ? max(0, (int) $values['nights'])
+            : null;
+        if (($nights === null || $nights === 0) && $checkIn && $checkOut) {
+            $diff = Carbon::parse($checkIn)->diffInDays(Carbon::parse($checkOut));
+            $nights = $diff > 0 ? $diff : 1;
+        }
+        $nights = $nights ?: 1;
+        $day = $values['day'] ?? null;
+        if (($day === null || $day === '') && $checkIn) {
+            $day = Carbon::parse($checkIn)->format('l');
+        }
+
+        $single = (int) ($values['single_rooms'] ?? 0);
+        $double = (int) ($values['double_rooms'] ?? 0);
+        $twin = (int) ($values['twin_rooms'] ?? 0);
+        $triple = (int) ($values['triple_rooms'] ?? 0);
+        $totalRns = isset($values['total_rns']) && $values['total_rns'] !== null && $values['total_rns'] !== ''
+            ? (int) $values['total_rns']
+            : $single + $double + $twin + $triple;
+
+        [$hasCommission, $commissionPercentage] = $this->commissionFromCell($values['commission'] ?? null);
+        $totalRevenue = $this->toDecimal($values['total_revenue'] ?? null);
+
+        $attrs = [
+            'year' => $checkIn ? (int) Carbon::parse($checkIn)->format('Y') : (int) now()->format('Y'),
+            'enquiry_date' => $checkIn ?: now()->toDateString(),
+            'day' => $day,
+            'check_in' => $checkIn,
+            'check_in_day' => $day,
+            'check_out' => $checkOut,
+            'nights' => $nights,
+            'days' => $nights,
+            'client' => $client,
+            'ref' => $ref,
+            'block_id' => $blockId,
+            'hotel_id' => $hotelId,
+            'contact_id' => $this->resolveContact($values['contact_name'] ?? null, $email, $phone),
+            'email' => $email,
+            'contact_number' => $phone,
+            'service_person' => $values['contact_name'] ?? null,
+            'contract_sent_on' => $this->toDate($values['contract_sent_on'] ?? null),
+            'contract_received_on' => $this->toDate($values['contract_received_on'] ?? null),
+            'saved_to_doc' => $values['saved_to_doc'] ?? null,
+            'payment_term' => $values['payment_term'] ?? null,
+            'payment_due_date' => $this->toDate($values['payment_due_date'] ?? null),
+            'payment_status' => $values['payment_status'] ?? null,
+            'cxl_policy' => $values['cxl_policy'] ?? null,
+            'cxl_due_date' => $this->toDate($values['cxl_due_date'] ?? null),
+            'cxl_date' => $this->toDate($values['cxl_date'] ?? null),
+            'single_rooms' => $single,
+            'single_rate' => $this->toDecimal($values['single_rate'] ?? null),
+            'double_rooms' => $double,
+            'double_rate' => $this->toDecimal($values['double_rate'] ?? null),
+            'triple_rooms' => $triple,
+            'triple_rate' => $this->toDecimal($values['triple_rate'] ?? null),
+            'twin_rooms' => $twin,
+            'twin_rate' => $this->toDecimal($values['twin_rate'] ?? null),
+            'rooms_per_night' => $single + $double + $twin + $triple,
+            'total_rns' => $totalRns,
+            'total_revenue' => $totalRevenue,
+            'bb_revenue' => $this->toDecimal($values['bb_revenue'] ?? null),
+            'dinner_revenue' => $this->toDecimal($values['dinner_revenue'] ?? null),
+            'nett_rev_ex_vat' => $this->toDecimal($values['nett_rev_ex_vat'] ?? null),
+            'basis' => $values['basis'] ?? null,
+            'booking_update' => $values['booking_update'] ?? null,
+            'rooming' => $values['rooming'] ?? null,
+            'invoice_status' => $values['invoice_status'] ?? null,
+            'invoice_sent_on' => $this->toDate($values['invoice_sent_on'] ?? null),
+            'invoice_amount' => $this->toDecimal($values['invoice_amount'] ?? null),
+            'invoice_number' => $values['invoice_number'] ?? null,
+            'commission_payable_status' => $values['commission_payable_status'] ?? null,
+            'has_commission' => $hasCommission,
+            'commission_percentage' => $commissionPercentage,
+            'status' => filled($values['status'] ?? null) ? $values['status'] : 'Confirmed',
+            'is_confirm' => true,
+            'is_cancel' => false,
+            'cancellation_reason' => null,
+        ];
+
+        if ($existing) {
+            $existing->update($attrs);
+
+            return;
+        }
+
+        $attrs['group_name'] = $this->uniqueGroupName($client ?: ($blockId ?: ($ref ?: 'Imported booking')), $ref);
+        $attrs['created_by'] = $userId;
+        Enquiry::query()->create($attrs);
+    }
+
+    /**
+     * @param  array<string, string|null>  $row
+     * @return array<string, string|null>
+     */
+    private function mappedImportValues(array $row): array
+    {
+        $fields = $this->importHeaderFields();
+        $values = [];
+        foreach ($row as $header => $value) {
+            $key = $this->normalizeHeader((string) $header);
+            if (! isset($fields[$key])) {
+                continue;
+            }
+            $text = $value === null ? null : trim((string) $value);
+            $values[$fields[$key]] = $text === '' ? null : $text;
+        }
+
+        return $values;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function importHeaderFields(): array
+    {
+        return [
+            'date of arrival' => 'check_in',
+            'date of departure' => 'check_out',
+            'arrival day' => 'day',
+            'day' => 'day',
+            'no. of nights' => 'nights',
+            'no of nights' => 'nights',
+            'nights' => 'nights',
+            'block id' => 'block_id',
+            'client' => 'client',
+            'agency ref' => 'ref',
+            'contact name' => 'contact_name',
+            'contact phone/mail' => 'contact_phone_mail',
+            'contract sent on' => 'contract_sent_on',
+            "contract rec'd on" => 'contract_received_on',
+            'contract recd on' => 'contract_received_on',
+            'saved to doc' => 'saved_to_doc',
+            'payment term' => 'payment_term',
+            'payment due date' => 'payment_due_date',
+            'due date' => 'payment_due_date',
+            'payment status' => 'payment_status',
+            'cxl policy' => 'cxl_policy',
+            'cxl due date' => 'cxl_due_date',
+            'cxl date' => 'cxl_date',
+            'single rns' => 'single_rooms',
+            'single rate' => 'single_rate',
+            'single gross rate' => 'single_rate',
+            'double rns' => 'double_rooms',
+            'double rate' => 'double_rate',
+            'double gross rate' => 'double_rate',
+            'triple rns' => 'triple_rooms',
+            'triple rate' => 'triple_rate',
+            'triple gross rate' => 'triple_rate',
+            'total room nights' => 'total_rns',
+            'total rns' => 'total_rns',
+            'total rev' => 'total_revenue',
+            'bb revenue nett' => 'bb_revenue',
+            'dinner revenue' => 'dinner_revenue',
+            'nett revenue excl bb / dinner & vat' => 'nett_rev_ex_vat',
+            'bb/dbb' => 'basis',
+            'comments' => 'booking_update',
+            'rooming list' => 'rooming',
+            'invoice status' => 'invoice_status',
+            'invoice sent on' => 'invoice_sent_on',
+            'invoice amount' => 'invoice_amount',
+            'status' => 'status',
+            'commission' => 'commission',
+            'twin rns' => 'twin_rooms',
+            'twin gross rate' => 'twin_rate',
+            'twin rate' => 'twin_rate',
+            'invoice number' => 'invoice_number',
+            'commission payable status' => 'commission_payable_status',
+        ];
+    }
+
+    /**
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function splitPhoneMail(?string $value): array
+    {
+        if ($value === null || trim($value) === '') {
+            return [null, null];
+        }
+
+        $phone = null;
+        $email = null;
+        foreach (preg_split('/\s*\/\s*/', $value) ?: [] as $part) {
+            $part = trim($part);
+            if ($part === '') {
+                continue;
+            }
+            if (filter_var($part, FILTER_VALIDATE_EMAIL)) {
+                $email = $part;
+            } else {
+                $phone = $phone === null ? $part : $phone.' / '.$part;
+            }
+        }
+
+        return [$phone, $email];
+    }
+
+    /**
+     * @return array{0: bool|null, 1: float|null}
+     */
+    private function commissionFromCell(?string $value): array
+    {
+        if ($value === null || trim($value) === '') {
+            return [null, null];
+        }
+
+        $lower = Str::lower(trim($value));
+        if (in_array($lower, ['yes', 'y'], true)) {
+            return [true, null];
+        }
+        if (in_array($lower, ['no', 'n'], true)) {
+            return [false, null];
+        }
+
+        return [true, $this->toDecimal($value)];
+    }
+
+    private function resolveContact(?string $name, ?string $email, ?string $phone): ?int
+    {
+        $name = trim((string) $name);
+        if ($name === '') {
+            return null;
+        }
+
+        $query = Contact::query()->where('name', $name);
+        if ($email !== null) {
+            $query->where('email', $email);
+        }
+        $contact = $query->first();
+        if ($contact) {
+            return (int) $contact->id;
+        }
+
+        return (int) Contact::query()->create([
+            'name' => $name,
+            'email' => $email,
+            'phone' => $phone,
+        ])->id;
+    }
+
+    private function uniqueGroupName(string $name, ?string $ref): string
+    {
+        $base = $name;
+        $suffix = 1;
+        while (Enquiry::query()->where('group_name', $name)->where('ref', $ref)->exists()) {
+            $name = $base.' #'.$suffix;
+            $suffix++;
+        }
+
+        return $name;
     }
 }

@@ -48,8 +48,10 @@ class GroupBookingController extends Controller
             ]);
         [$dateFrom, $dateTo] = EnquiryIndexFilters::dateBounds($request, 'date_from', 'date_to', 'date_month');
         $reminders = $this->reminders();
+        $importPreview = session('group_booking_import');
+        $importHotel = HotelAccess::currentHotel();
 
-        return view('group-bookings.index', compact('bookings', 'hotels', 'dateFrom', 'dateTo', 'reminders'));
+        return view('group-bookings.index', compact('bookings', 'hotels', 'dateFrom', 'dateTo', 'reminders', 'importPreview', 'importHotel'));
     }
 
     public function show(Enquiry $enquiry): View
@@ -168,37 +170,76 @@ class GroupBookingController extends Controller
         );
     }
 
+    public function importTemplate(GroupBookingExcelImporter $importer): StreamedResponse
+    {
+        abort_unless(auth()->user()?->can('bookings.view') || auth()->user()?->can('bookings.create'), 403);
+
+        return SimpleXlsxWriter::download(
+            'group-bookings-template.xlsx',
+            $importer->templateHeaders(),
+            $importer->templateExampleRows(),
+        );
+    }
+
     public function import(Request $request, GroupBookingExcelImporter $importer): RedirectResponse
     {
         abort_unless(auth()->user()?->can('bookings.view') || auth()->user()?->can('bookings.create'), 403);
 
-        $validated = $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/zip,application/octet-stream,text/csv,text/plain', 'max:10240'],
-            'hotel_id' => ['nullable', 'integer'],
-        ]);
-
-        $hotelId = isset($validated['hotel_id']) ? (int) $validated['hotel_id'] : null;
-        if ($hotelId) {
-            HotelAccess::ensure(null, $hotelId);
-        } else {
-            $hotelId = HotelAccess::currentHotel()?->id;
+        if (HotelAccess::currentHotel() === null) {
+            return redirect()
+                ->route('group-bookings.index')
+                ->with('error', 'Select a hotel before importing group bookings.');
         }
 
-        $path = $request->file('file')->getRealPath();
-        $result = $importer->import($path, $hotelId, auth()->id());
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/zip,application/octet-stream,text/csv,text/plain', 'max:10240'],
+        ]);
 
-        Audit::log(
-            'imported',
-            'group_bookings',
-            sprintf('imported=%d updated=%d skipped=%d', $result['imported'], $result['updated'], $result['skipped'])
-        );
+        $parsed = $importer->readSheet($request->file('file')->getRealPath());
+        if ($parsed['rows'] === []) {
+            return redirect()
+                ->route('group-bookings.index')
+                ->withErrors(['file' => 'The Excel file has no booking rows.'])
+                ->withInput();
+        }
+
+        session(['group_booking_import' => $parsed]);
 
         return redirect()
             ->route('group-bookings.index')
-            ->with(
-                'success',
-                "Import complete: {$result['imported']} created, {$result['updated']} updated, {$result['skipped']} skipped. All rows set is_confirm = 1."
-            );
+            ->with('success', count($parsed['rows']).' uploaded row'.(count($parsed['rows']) === 1 ? '' : 's').' ready to review. Click Confirm Group Booking to save them.');
+    }
+
+    public function confirmImport(GroupBookingExcelImporter $importer): RedirectResponse
+    {
+        abort_unless(auth()->user()?->can('bookings.view') || auth()->user()?->can('bookings.create'), 403);
+
+        $preview = session('group_booking_import');
+        $rows = is_array($preview['rows'] ?? null) ? $preview['rows'] : [];
+        if ($rows === []) {
+            return redirect()
+                ->route('group-bookings.index')
+                ->with('error', 'Upload an Excel file before confirming group bookings.');
+        }
+
+        $hotel = HotelAccess::currentHotel();
+        if ($hotel === null) {
+            return redirect()
+                ->route('group-bookings.index')
+                ->with('error', 'Select a hotel before confirming group bookings.');
+        }
+
+        $result = $importer->saveRows($rows, (int) $hotel->id, auth()->id());
+        session()->forget('group_booking_import');
+
+        $message = $result['saved'].' group booking'.($result['saved'] === 1 ? '' : 's').' saved for '.$hotel->name.'.';
+        if ($result['errors'] !== []) {
+            $message .= ' '.implode(' ', $result['errors']);
+        }
+
+        return redirect()
+            ->route('group-bookings.index')
+            ->with($result['saved'] > 0 ? 'success' : 'error', $message);
     }
 
     public function create(): RedirectResponse
