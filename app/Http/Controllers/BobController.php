@@ -25,6 +25,7 @@ class BobController extends Controller
         $previousYear = $selectedYear - 1;
         $columns = BobColumns::forYear($selectedYear);
         $months = $this->months($selectedYear);
+        $totals = $this->columnTotals($months);
 
         $groups = collect($columns)
             ->groupBy('group')
@@ -39,6 +40,7 @@ class BobController extends Controller
 
         return view('bob.index', compact(
             'months',
+            'totals',
             'columns',
             'groups',
             'selectedYear',
@@ -95,7 +97,8 @@ class BobController extends Controller
         $selectedYear = $this->selectedYear($request);
         $columns = BobColumns::forYear($selectedYear);
         $headers = array_merge(['Month'], array_column($columns, 'label'));
-        $rows = $this->months($selectedYear)->map(function (array $month) {
+        $months = $this->months($selectedYear);
+        $rows = $months->map(function (array $month) {
             $values = [$month['label']];
             foreach ($month['cells'] as $cell) {
                 $values[] = $this->exportCell($cell);
@@ -103,6 +106,12 @@ class BobController extends Controller
 
             return $values;
         })->all();
+
+        $total = ['Total'];
+        foreach ($this->columnTotals($months) as $cell) {
+            $total[] = $this->exportCell($cell);
+        }
+        $rows[] = $total;
 
         Audit::log('exported', 'bob', 'year='.$selectedYear.' rows='.count($rows));
 
@@ -146,6 +155,38 @@ class BobController extends Controller
     }
 
     /**
+     * @param  Collection<int, array{cells: list<array<string, mixed>>}>  $months
+     * @return list<array{key: string, label: string, group: string, format: string, value: int|float}>
+     */
+    private function columnTotals(Collection $months): array
+    {
+        $cells = $months->first()['cells'] ?? [];
+        $totals = [];
+
+        foreach ($cells as $index => $cell) {
+            $sum = 0.0;
+            foreach ($months as $month) {
+                $value = $month['cells'][$index]['value'] ?? null;
+                if ($value === null || $value === '') {
+                    continue;
+                }
+                $sum += (float) $value;
+            }
+
+            $format = (string) ($cell['format'] ?? 'money');
+            $totals[] = [
+                'key' => (string) $cell['key'],
+                'label' => (string) ($cell['label'] ?? ''),
+                'group' => (string) ($cell['group'] ?? ''),
+                'format' => $format,
+                'value' => $format === 'number' ? (int) round($sum) : round($sum, 2),
+            ];
+        }
+
+        return $totals;
+    }
+
+    /**
      * @param  array<string, mixed>  $cell
      */
     private function exportCell(array $cell): string|int|float|null
@@ -183,6 +224,7 @@ class BobController extends Controller
             ->selectRaw('COALESCE(SUM(total_rns), 0) as room_nights')
             ->selectRaw('COALESCE(SUM(bb_revenue), 0) as breakfast_revenue')
             ->selectRaw('COALESCE(SUM(dinner_revenue), 0) as dinner_revenue')
+            ->selectRaw('COALESCE(SUM(total_dinner_covers), 0) as dinner_covers')
             ->groupBy(DB::raw('MONTH(check_in)'))
             ->get()
             ->keyBy(fn ($row) => (int) $row->month);

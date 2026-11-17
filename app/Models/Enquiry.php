@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasPublicUuid;
 use App\Support\HotelAccess;
+use App\Support\TotalDinnerCovers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -114,6 +115,7 @@ class Enquiry extends Model
         'total_rns',
         'bb_revenue',
         'dinner_revenue',
+        'total_dinner_covers',
         'nett_rev_ex_vat',
         'city_tax',
         'city_tax_including_vat',
@@ -209,6 +211,7 @@ class Enquiry extends Model
             'dinner_rate' => 'decimal:2',
             'bb_revenue' => 'decimal:2',
             'dinner_revenue' => 'decimal:2',
+            'total_dinner_covers' => 'integer',
             'nett_rev_ex_vat' => 'decimal:2',
             'city_tax' => 'decimal:2',
             'city_tax_including_vat' => 'decimal:2',
@@ -222,6 +225,17 @@ class Enquiry extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Enquiry $enquiry): void {
+            $enquiry->total_dinner_covers = TotalDinnerCovers::calculate(
+                is_array($enquiry->stay_segments) ? $enquiry->stay_segments : [],
+                is_array($enquiry->daily_room_rates) ? $enquiry->daily_room_rates : [],
+                (int) ($enquiry->single_rooms ?? 0),
+                (int) ($enquiry->double_rooms ?? 0),
+                (int) ($enquiry->triple_rooms ?? 0),
+                (int) ($enquiry->nights ?? 0),
+            );
+        });
+
         static::deleting(function (Enquiry $enquiry): void {
             $enquiry->deleteBookingContractFile();
             $enquiry->contractPhotos()->get()->each->delete();

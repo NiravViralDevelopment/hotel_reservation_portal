@@ -95,12 +95,18 @@
                 <th class="bob-sticky fw-semibold" scope="row">{{ $month['label'] }}</th>
                 @foreach ($month['cells'] as $cell)
                   @if ($cell['editable'])
+                    @php
+                      $manualValue = old('months.'.$month['month'].'.'.$cell['input'], $cell['raw']);
+                      if ($cell['format'] === 'money' && $manualValue !== null && $manualValue !== '') {
+                          $manualValue = '£'.ltrim((string) $manualValue, '£');
+                      }
+                    @endphp
                     <td class="bob-col-{{ $cell['group'] }} bob-editable">
                       <input
                         type="text"
                         inputmode="{{ $cell['format'] === 'number' ? 'numeric' : 'decimal' }}"
                         name="months[{{ $month['month'] }}][{{ $cell['input'] }}]"
-                        value="{{ old('months.'.$month['month'].'.'.$cell['input'], $cell['raw']) }}"
+                        value="{{ $manualValue }}"
                         placeholder="-"
                         class="form-control form-control-sm bob-manual"
                         data-manual="{{ $cell['input'] }}"
@@ -121,6 +127,18 @@
               </tr>
             @endforeach
           </tbody>
+          <tfoot>
+            <tr>
+              <th class="bob-sticky fw-semibold" scope="row">Total</th>
+              @foreach ($totals as $total)
+                <td
+                  class="text-end fw-semibold bob-col-{{ $total['group'] }}"
+                  data-total="{{ $total['key'] }}"
+                  data-format="{{ $total['format'] }}"
+                >{{ $formatCell($total['value'], $total['format']) }}</td>
+              @endforeach
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
@@ -134,8 +152,10 @@
       if (!table) return;
 
       function num(value) {
-        if (value === null || value === undefined || String(value).trim() === '') return null;
-        var parsed = Number(value);
+        if (value === null || value === undefined) return null;
+        var text = plain(value);
+        if (text === '' || text === '-' || text === '.' || text === '-.') return null;
+        var parsed = Number(text);
         return Number.isFinite(parsed) ? parsed : null;
       }
 
@@ -176,6 +196,31 @@
             if (cell) paint(cell, values[key]);
           });
         });
+
+        refreshTotals();
+      }
+
+      function cellNumber(cell) {
+        var input = cell.querySelector('input');
+        var text = input ? input.value : cell.textContent;
+        if (text === null || String(text).trim() === '' || text.trim() === '—' || text.trim() === '-') return 0;
+        var parsed = Number(plain(text));
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function refreshTotals() {
+        var rows = table.querySelectorAll('tbody tr');
+        table.querySelectorAll('tfoot [data-total]').forEach(function (footer, index) {
+          var sum = 0;
+          rows.forEach(function (row) {
+            var cell = row.querySelectorAll('td')[index];
+            if (cell) sum += cellNumber(cell);
+          });
+          var format = footer.getAttribute('data-format');
+          footer.textContent = format === 'number'
+            ? Math.round(sum).toLocaleString('en-GB')
+            : money(Math.round(sum * 100) / 100);
+        });
       }
 
       function plain(value) {
@@ -186,13 +231,29 @@
         return /^-?0+(?:\.0+)?$/.test(plain(value));
       }
 
+      function keepNumeric(input) {
+        var integer = input.getAttribute('data-format') === 'number';
+        var moneyField = input.getAttribute('data-format') === 'money';
+        var value = input.value;
+        var cleaned = value.replace(integer ? /\D/g : /[^\d.]/g, '');
+        if (!integer) {
+          var dot = cleaned.indexOf('.');
+          if (dot !== -1) {
+            cleaned = cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, '');
+          }
+        }
+        if (moneyField && cleaned !== '') cleaned = '£' + cleaned;
+        if (cleaned === value) return;
+        var start = input.selectionStart || 0;
+        input.value = cleaned;
+        var next = Math.max(0, start - (value.length - cleaned.length));
+        try { input.setSelectionRange(next, next); } catch (e) {}
+      }
+
       function tidy(input) {
         var integer = input.getAttribute('data-format') === 'number';
-        var raw = plain(input.value).replace(integer ? /[^\d-]/g : /[^\d.-]/g, '');
-        if (integer) {
-          raw = raw.replace(/(?!^)-/g, '');
-        } else {
-          raw = raw.replace(/(?!^)-/g, '');
+        var raw = plain(input.value).replace(integer ? /\D/g : /[^\d.]/g, '');
+        if (!integer) {
           var pieces = raw.split('.');
           if (pieces.length > 2) {
             raw = pieces[0] + '.' + pieces.slice(1).join('');
@@ -217,7 +278,7 @@
         }
 
         var rounded = Math.round(parsed * 100) / 100;
-        input.value = rounded === 0 ? '' : String(rounded);
+        input.value = rounded === 0 ? '' : '£' + String(rounded);
       }
 
       table.querySelectorAll('.bob-manual').forEach(function (input) {
@@ -251,11 +312,21 @@
       var form = document.getElementById('bob-manual-form');
       if (form) {
         form.addEventListener('submit', function () {
-          table.querySelectorAll('.bob-manual').forEach(tidy);
+          table.querySelectorAll('.bob-manual').forEach(function (input) {
+            tidy(input);
+            if (input.getAttribute('data-format') === 'money') {
+              input.value = input.value.replace(/^£/, '');
+            }
+          });
         });
       }
 
-      table.addEventListener('input', refresh);
+      table.addEventListener('input', function (event) {
+        if (event.target && event.target.classList.contains('bob-manual')) {
+          keepNumeric(event.target);
+        }
+        refresh();
+      });
       refresh();
     })();
   </script>

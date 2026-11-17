@@ -260,6 +260,7 @@
         <div><div class="gb-label">City Tax Including VAT</div><div class="gb-value">{{ $money($shownCityTaxVat) }}</div></div>
         <div><div class="gb-label">Total Rev Including City Tax</div><div class="gb-value">{{ $money($shownTotalWithCityTax) }}</div></div>
         <div><div class="gb-label">BB/DBB</div><div class="gb-value">{{ $text($enquiry->basis) }}</div></div>
+        <div><div class="gb-label">Total Dinner Covers</div><div class="gb-value">{{ $enquiry->total_dinner_covers === null ? '—' : $enquiry->total_dinner_covers }}</div></div>
       </div>
       @php
         $staySegments = is_array($enquiry->stay_segments) ? array_values($enquiry->stay_segments) : [];

@@ -147,8 +147,8 @@ class BobColumns
                 'label' => 'Total Dinner Covers',
                 'group' => 'fb',
                 'group_label' => "Food & beverage {$year}",
-                'format' => 'dash',
-                'kind' => 'blank',
+                'format' => 'number',
+                'kind' => 'bookings_dinner_covers',
             ],
         ];
     }
@@ -164,18 +164,20 @@ class BobColumns
         $adr = self::divide($bob, $nights);
         $breakfast = self::bookingAmount($booking, 'breakfast_revenue');
         $dinner = self::bookingAmount($booking, 'dinner_revenue');
+        $dinnerCovers = self::bookingCount($booking, 'dinner_covers');
         $actual = self::manual($previous, 'bob_nett_actual');
         $stly = self::manual($previous, 'stly_bob_nett') ?? 0.0;
         $stlyNights = self::manual($previous, 'stly_room_nights');
         $adrPrevious = self::manual($previous, 'adr_nett');
         $stlyAdr = self::divide($stly, $stlyNights);
 
-        return array_map(function (array $column) use ($bob, $nights, $adr, $breakfast, $dinner, $actual, $stly, $stlyAdr, $adrPrevious, $current, $previous) {
+        return array_map(function (array $column) use ($bob, $nights, $adr, $breakfast, $dinner, $dinnerCovers, $actual, $stly, $stlyAdr, $adrPrevious, $current, $previous) {
             $value = match ($column['kind']) {
                 'bookings_bob' => $bob,
                 'bookings_nights' => $nights,
                 'bookings_breakfast' => $breakfast,
                 'bookings_dinner' => $dinner,
+                'bookings_dinner_covers' => $dinnerCovers,
                 'adr_current' => $adr,
                 'stly_adr' => $stlyAdr,
                 'variance_bob' => self::subtract($bob, $actual),
@@ -216,6 +218,15 @@ class BobColumns
         }
 
         return (int) $booking->room_nights;
+    }
+
+    public static function bookingCount(?object $booking, string $attribute): int
+    {
+        if ($booking === null || $booking->{$attribute} === null || $booking->{$attribute} === '') {
+            return 0;
+        }
+
+        return (int) $booking->{$attribute};
     }
 
     public static function bookingAmount(?object $booking, string $attribute): float
