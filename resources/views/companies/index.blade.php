@@ -70,6 +70,8 @@
         <thead>
           <tr>
             <x-sortable-th column="name" label="Company" />
+            <x-sortable-th column="reg_number" label="Registration number" />
+            <x-sortable-th column="vat_number" label="VAT number" />
             <x-sortable-th column="city" label="Location" />
             <x-sortable-th column="hotels" label="Hotels" class="text-center" />
             <x-sortable-th column="status" label="Status" />
@@ -79,12 +81,9 @@
         <tbody>
           @forelse ($companies as $company)
             <tr>
-              <td>
-                <div class="fw-semibold">{{ $company->name }}</div>
-                @if ($company->reg_number)
-                  <div class="small text-secondary">Reg. {{ $company->reg_number }}</div>
-                @endif
-              </td>
+              <td class="fw-semibold">{{ $company->name }}</td>
+              <td>{{ $company->reg_number ?: '—' }}</td>
+              <td>{{ $company->vat_number ?: '—' }}</td>
               <td>
                 @if ($company->city || $company->country)
                   {{ collect([$company->city, $company->country])->filter()->implode(', ') }}
@@ -120,7 +119,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="5" class="text-center text-secondary py-5">
+              <td colspan="7" class="text-center text-secondary py-5">
                 <div class="mb-2"><i class="bi bi-building fs-3"></i></div>
                 <div>No companies match your filters.</div>
                 @if (request()->hasAny(['q', 'status', 'country']))

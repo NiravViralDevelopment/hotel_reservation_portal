@@ -25,7 +25,9 @@
       || form.dataset.companyValidationInit === '1'
       || form.dataset.userValidationInit === '1'
       || form.dataset.travelAgencyValidationInit === '1'
-      || form.dataset.enquiryValidationInit === '1';
+      || form.dataset.enquiryValidationInit === '1'
+      || form.dataset.profileValidationInit === '1'
+      || form.classList.contains('profile-form');
   }
 
   function associatedLabel(el) {

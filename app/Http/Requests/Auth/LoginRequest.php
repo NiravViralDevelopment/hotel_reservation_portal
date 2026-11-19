@@ -45,7 +45,7 @@ class LoginRequest extends FormRequest
             throw ValidationException::withMessages([
                 'email' => $inactive
                     ? __('Your account is inactive. Please contact an administrator.')
-                    : __('These credentials do not match our records.'),
+                    : __('Credentials invalid.'),
             ]);
         }
 

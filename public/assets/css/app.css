@@ -201,6 +201,11 @@ a:hover {
   padding-right: 2.75rem;
 }
 
+.password-field > .form-control.is-invalid {
+  background-image: none;
+  padding-right: 2.75rem;
+}
+
 .password-toggle {
   position: absolute;
   top: 50%;

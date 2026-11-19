@@ -40,6 +40,7 @@ class CompanyController extends Controller
         QuerySort::apply($query, $request, [
             'name' => 'name',
             'reg_number' => 'reg_number',
+            'vat_number' => 'vat_number',
             'city' => 'city',
             'country' => 'country',
             'hotels' => 'hotels_count',

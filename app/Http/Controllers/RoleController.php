@@ -55,13 +55,10 @@ class RoleController extends Controller
     {
         $this->authorize('roles.view');
 
-        $query = Role::query()
-            ->withCount('users')
-            ->with('permissions');
+        $query = Role::query()->with('permissions');
 
         QuerySort::apply($query, $request, [
             'name' => 'name',
-            'users' => 'users_count',
         ], 'name');
 
         $roles = $query->paginate(10)->withQueryString();
