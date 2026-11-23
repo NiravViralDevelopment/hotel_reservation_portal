@@ -41,6 +41,7 @@ class ReportController extends Controller
             'group-bookings' => 'group_bookings',
             'enquiries' => 'enquiries',
             'cancelled-bookings' => 'cancelled_bookings',
+            'cancellation-chargeable' => 'cancellation_chargeable',
         ];
 
         abort_unless(isset($map[$report]), 404);
@@ -65,6 +66,7 @@ class ReportController extends Controller
             'group-bookings' => 'group_bookings',
             'enquiries' => 'enquiries',
             'cancelled-bookings' => 'cancelled_bookings',
+            'cancellation-chargeable' => 'cancellation_chargeable',
         ];
 
         abort_unless(isset($map[$report]), 404);
@@ -79,8 +81,8 @@ class ReportController extends Controller
             'enquiries' => $this->enquiriesExport($results),
             'group_bookings' => $this->bookingsExport($results, false),
             'cancelled_bookings' => $this->bookingsExport($results, true),
+            'cancellation_chargeable' => $this->bookingsExport($results, true, true),
         };
-
         Audit::log('exported', 'reports-'.$validated['report'], 'rows='.count($rows));
 
         return SimpleXlsxWriter::download($filename, $headers, $rows);
@@ -90,10 +92,10 @@ class ReportController extends Controller
     {
         $this->authorize('reports.generate');
 
-        $datedReports = ['group_bookings', 'enquiries', 'cancelled_bookings'];
+        $datedReports = ['group_bookings', 'enquiries', 'cancelled_bookings', 'cancellation_chargeable'];
 
         $validated = $request->validate([
-            'report' => ['required', 'in:group_bookings,enquiries,cancelled_bookings,bookings_by_hotel,arrivals_summary,revenue_by_agency'],
+            'report' => ['required', 'in:group_bookings,enquiries,cancelled_bookings,cancellation_chargeable,bookings_by_hotel,arrivals_summary,revenue_by_agency'],
             'date_from' => [
                 'nullable',
                 'date',
@@ -116,8 +118,8 @@ class ReportController extends Controller
             'enquiries' => 'enquiries',
             'group_bookings' => 'group-bookings',
             'cancelled_bookings' => 'cancelled-bookings',
+            'cancellation_chargeable' => 'cancellation-chargeable',
         ];
-
         if (isset($moduleMap[$validated['report']])) {
             return redirect()->route('reports.module', [
                 'report' => $moduleMap[$validated['report']],
@@ -174,6 +176,7 @@ class ReportController extends Controller
             'group_bookings' => $this->groupBookingsReportQuery($from, $to, $request)->get(),
             'enquiries' => $this->enquiriesReportQuery($from, $to, $request)->get(),
             'cancelled_bookings' => $this->cancelledBookingsReportQuery($from, $to, $request)->get(),
+            'cancellation_chargeable' => $this->cancellationChargeableReportQuery($from, $to, $request)->get(),
         };
     }
 
@@ -278,6 +281,40 @@ class ReportController extends Controller
         return $query;
     }
 
+    private function cancellationChargeableReportQuery(?string $from, ?string $to, ?Request $request = null)
+    {
+        $query = Enquiry::query()
+            ->accessibleBy()
+            ->with(['hotel', 'travelAgency', 'assignedTo'])
+            ->cancelledBookings()
+            ->where('cancellation_charges', true);
+
+        if ($from) {
+            $query->whereDate('updated_at', '>=', $from);
+        }
+        if ($to) {
+            $query->whereDate('updated_at', '<=', $to);
+        }
+
+        $this->applyReportFilters($query, $request ?? request(), 'cancellation_chargeable');
+
+        QuerySort::apply($query, $request ?? request(), [
+            'check_in' => 'check_in',
+            'check_out' => 'check_out',
+            'day' => 'day',
+            'nights' => 'nights',
+            'block_id' => 'block_id',
+            'client' => 'client',
+            'email' => 'email',
+            'status' => 'status',
+            'total_rns' => 'total_rns',
+            'total_revenue' => 'total_revenue',
+            'updated_at' => 'updated_at',
+        ], 'updated_at', 'desc');
+
+        return $query;
+    }
+
     /**
      * @return array{0: list<string>, 1: list<list<mixed>>, 2: string}
      */
@@ -353,7 +390,7 @@ class ReportController extends Controller
     /**
      * @return array{0: list<string>, 1: list<list<mixed>>, 2: string}
      */
-    private function bookingsExport($results, bool $cancelled): array
+    private function bookingsExport($results, bool $cancelled, bool $chargeable = false): array
     {
         $headers = [
             'Hotel',
@@ -404,9 +441,13 @@ class ReportController extends Controller
             $headers[] = 'Cancellation Reason';
         }
 
+        if ($chargeable) {
+            $headers[] = 'Cancellation Charges';
+        }
+
         $headers[] = 'Created by';
 
-        $rows = $results->map(function (Enquiry $enquiry) use ($cancelled) {
+        $rows = $results->map(function (Enquiry $enquiry) use ($cancelled, $chargeable) {
             $status = str_replace(['_', '-'], ' ', (string) $enquiry->status);
 
             $row = [
@@ -458,12 +499,20 @@ class ReportController extends Controller
                 $row[] = $enquiry->cancellation_reason;
             }
 
+            if ($chargeable) {
+                $row[] = $enquiry->cancellation_charges === null ? null : ($enquiry->cancellation_charges ? 'Yes' : 'No');
+            }
+
             $row[] = $enquiry->assignedTo?->name;
 
             return $row;
         })->all();
 
-        $filename = ($cancelled ? 'cancelled-bookings' : 'group-bookings').'-report-'.now()->format('Y-m-d').'.xlsx';
+        $filename = match (true) {
+            $chargeable => 'cancellation-chargeable',
+            $cancelled => 'cancelled-bookings',
+            default => 'group-bookings',
+        }.'-report-'.now()->format('Y-m-d').'.xlsx';
 
         return [$headers, $rows, $filename];
     }
@@ -510,7 +559,7 @@ class ReportController extends Controller
                     $builder->orWhere('block_id', 'like', "%{$search}%");
                 }
 
-                if ($report === 'cancelled_bookings') {
+                if (in_array($report, ['cancelled_bookings', 'cancellation_chargeable'], true)) {
                     $builder->orWhere('cancellation_reason', 'like', "%{$search}%");
                 }
             });

@@ -137,10 +137,10 @@ Route::middleware('auth')->group(function () {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::post('reports/run', [ReportController::class, 'run'])->name('reports.run');
     Route::get('reports/{report}/export', [ReportController::class, 'export'])
-        ->whereIn('report', ['group-bookings', 'enquiries', 'cancelled-bookings'])
+        ->whereIn('report', ['group-bookings', 'enquiries', 'cancelled-bookings', 'cancellation-chargeable'])
         ->name('reports.export');
     Route::get('reports/{report}', [ReportController::class, 'module'])
-        ->whereIn('report', ['group-bookings', 'enquiries', 'cancelled-bookings'])
+        ->whereIn('report', ['group-bookings', 'enquiries', 'cancelled-bookings', 'cancellation-chargeable'])
         ->name('reports.module');
 
     Route::resource('status-masters', StatusMasterController::class)->except(['show']);

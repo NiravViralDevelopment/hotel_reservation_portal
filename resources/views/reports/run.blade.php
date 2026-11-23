@@ -9,12 +9,14 @@
     $moduleSlug = match ($reportKey) {
       'group_bookings' => 'group-bookings',
       'cancelled_bookings' => 'cancelled-bookings',
+      'cancellation_chargeable' => 'cancellation-chargeable',
       default => 'enquiries',
     };
     $titles = [
       'enquiries' => 'Enquiries',
       'group_bookings' => 'Group bookings',
       'cancelled_bookings' => 'Cancelled bookings',
+      'cancellation_chargeable' => 'Cancellation chargeable',
     ];
     $pageTitle = $titles[$reportKey] ?? 'Report results';
     $creators = $creators ?? collect();
@@ -149,6 +151,17 @@
         'defaultSort' => 'check_in',
         'defaultDir' => 'asc',
         'emptyMessage' => 'No group bookings in this date range.',
+        'viewOnlyActions' => true,
+        'showCreatedBy' => true,
+      ])
+    @elseif ($reportKey === 'cancellation_chargeable')
+      @include('group-bookings.partials.list-table', [
+        'rows' => $results,
+        'defaultSort' => 'updated_at',
+        'defaultDir' => 'desc',
+        'emptyMessage' => 'No cancellation chargeable bookings in this date range.',
+        'showCancellationReason' => true,
+        'showCancellationCharges' => true,
         'viewOnlyActions' => true,
         'showCreatedBy' => true,
       ])

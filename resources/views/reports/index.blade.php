@@ -105,5 +105,35 @@
         </div>
       </div>
     </div>
+
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-cash-coin me-2"></i>Cancellation chargeable</div>
+        <div class="card-body">
+          <p class="text-secondary small">Cancelled group bookings with cancellation charges set to Yes.</p>
+          <form method="POST" action="{{ route('reports.run') }}" class="row g-3">
+            @csrf
+            <input type="hidden" name="report" value="cancellation_chargeable">
+            <div class="col-12">
+              <label for="chargeable_from" class="form-label">Start date <span class="text-danger">*</span></label>
+              <div class="date-placeholder-wrap">
+                <input type="date" name="date_from" id="chargeable_from" class="form-control" value="{{ old('date_from', $defaultFrom) }}" placeholder="DD/MM/YYYY" required>
+                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="chargeable_to" class="form-label">End date <span class="text-danger">*</span></label>
+              <div class="date-placeholder-wrap">
+                <input type="date" name="date_to" id="chargeable_to" class="form-control" value="{{ old('date_to', $defaultTo) }}" placeholder="DD/MM/YYYY" required>
+                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+              </div>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-accent btn-sm">Run report</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 @endsection

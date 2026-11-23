@@ -27,6 +27,7 @@
   <table class="table table-hover table-sm mb-0" style="font-size:0.78rem">
     <thead>
       <tr>
+        <th>Actions</th>
         <th>Hotel</th>
         <x-sortable-th column="enquiry_date" label="Enquiry Date" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="response_date" label="Response Date" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -61,12 +62,37 @@
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         @endif
-        <th class="text-end">Actions</th>
       </tr>
     </thead>
     <tbody>
       @forelse ($rows as $enquiry)
         <tr>
+          <td class="text-nowrap">
+            @can('view', $enquiry)
+              <a href="{{ route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery)) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                <i class="bi bi-eye"></i>
+              </a>
+            @endcan
+            @unless ($readOnly || $viewOnlyActions)
+              @can('update', $enquiry)
+                <a href="{{ route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery)) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
+                  <i class="bi bi-chat-left-text"></i>
+                </a>
+                <a href="{{ route($editRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </a>
+              @endcan
+              @can('delete', $enquiry)
+                <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="{{ sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Delete">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              @endcan
+            @endunless
+          </td>
           <td class="text-nowrap fw-semibold">{{ $enquiry->hotel?->name ?: '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->enquiry_date?->format('d M Y') ?? '—' }}</td>
           <td class="text-nowrap">{{ $enquiry->response_date?->format('d M Y') ?? '—' }}</td>
@@ -101,35 +127,8 @@
             <td class="text-nowrap">{{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $enquiry->cancellation_reason ?: '—' }}</td>
           @endif
-          <td class="text-end text-nowrap">
-            @can('view', $enquiry)
-              <a href="{{ route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery)) }}" class="btn btn-sm btn-outline-secondary" title="View">
-                <i class="bi bi-eye"></i>
-              </a>
-            @endcan
-            @unless ($readOnly || $viewOnlyActions)
-              @can('update', $enquiry)
-                <a href="{{ route($recordRoute, array_merge(['enquiry' => $enquiry], $recordQuery)) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
-                  <i class="bi bi-chat-left-text"></i>
-                </a>
-                <a href="{{ route($editRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                  <i class="bi bi-pencil"></i>
-                </a>
-              @endcan
-              @can('delete', $enquiry)
-                <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="{{ sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Delete">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </form>
-              @endcan
-            @endunless
-          </td>
         </tr>
       @empty
-        <tr><td colspan="{{ 26 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
         <tr><td colspan="{{ $enquiryColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>
@@ -138,6 +137,7 @@
   <table class="table table-hover table-sm mb-0" style="font-size:0.78rem">
     <thead>
       <tr>
+        <th>Actions</th>
         <x-sortable-th column="ref" label="Ref" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="group_name" label="Group" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_in" label="Arrival date" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -172,12 +172,35 @@
         <th>Total tax</th>
         <x-sortable-th column="grand_total" label="Grand total" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="status" label="Status" :default="$defaultSort" :default-dir="$defaultDir" />
-        <th class="text-end">Actions</th>
       </tr>
     </thead>
     <tbody>
       @forelse ($rows as $enquiry)
         <tr>
+          <td class="text-nowrap">
+            @can('view', $enquiry)
+              <a href="{{ route('enquiries.show', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                <i class="bi bi-eye"></i>
+              </a>
+            @endcan
+            @can('update', $enquiry)
+              <a href="{{ route('enquiries.show', $enquiry) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
+                <i class="bi bi-chat-left-text"></i>
+              </a>
+              <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </a>
+            @endcan
+            @can('delete', $enquiry)
+              <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="{{ sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Delete">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            @endcan
+          </td>
           <td class="fw-semibold text-nowrap"><a href="{{ route('enquiries.show', $enquiry) }}">{{ $enquiry->ref ?: '—' }}</a></td>
           <td class="text-nowrap">{{ $enquiry->group_name }}</td>
           <td class="text-nowrap">{{ $enquiry->check_in?->format('d M Y') ?? '—' }}</td>
@@ -212,30 +235,6 @@
           <td class="text-nowrap">£{{ number_format((float) ($enquiry->total_tax ?? 0), 2) }}</td>
           <td class="text-nowrap fw-semibold">£{{ number_format((float) ($enquiry->grand_total ?? 0), 2) }}</td>
           <td><x-badge-status :status="$enquiry->status" /></td>
-          <td class="text-end text-nowrap">
-            @can('view', $enquiry)
-              <a href="{{ route('enquiries.show', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
-                <i class="bi bi-eye"></i>
-              </a>
-            @endcan
-            @can('update', $enquiry)
-              <a href="{{ route('enquiries.show', $enquiry) }}#client-response" class="btn btn-sm btn-outline-secondary" title="Client response for {{ $enquiry->group_name }}">
-                <i class="bi bi-chat-left-text"></i>
-              </a>
-              <a href="{{ route('enquiries.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                <i class="bi bi-pencil"></i>
-              </a>
-            @endcan
-            @can('delete', $enquiry)
-              <form method="POST" action="{{ route('enquiries.destroy', $enquiry) }}" class="d-inline" data-confirm-title="Delete enquiry" data-confirm="{{ sprintf("Are you sure you want to delete enquiry \"%s\"?\n\nThis will permanently remove it and cannot be undone.", $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Delete">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
-            @endcan
-          </td>
         </tr>
       @empty
         <tr><td colspan="36" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>

@@ -4,6 +4,7 @@
   $defaultDir = $defaultDir ?? 'asc';
   $emptyMessage = $emptyMessage ?? 'No confirmed bookings found.';
   $showCancellationReason = $showCancellationReason ?? false;
+  $showCancellationCharges = $showCancellationCharges ?? false;
   $highlightDates = $highlightDates ?? false;
   $viewOnlyActions = $viewOnlyActions ?? false;
   $showCreatedBy = $showCreatedBy ?? false;
@@ -11,8 +12,8 @@
   $trackerOrder = $trackerOrder ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
   $bookingColspan = $trackerOrder
-      ? 43 + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0) + ($showCancellationReason ? 1 : 0)
-      : ($showCancellationReason ? 43 : 41) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0);
+      ? 43 + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0) + ($showCancellationReason ? 1 : 0) + ($showCancellationCharges ? 1 : 0)
+      : ($showCancellationReason ? 43 : 41) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0) + ($showCancellationCharges ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -34,6 +35,7 @@
     @if ($trackerOrder)
     <thead>
       <tr>
+        <th>Actions</th>
         <x-sortable-th column="check_in" label="Date of Arrival" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_out" label="Date of Departure" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="day" label="Arrival Day" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -79,13 +81,15 @@
         @if ($showCancellationReason)
           <th>Cancellation Reason</th>
         @endif
+        @if ($showCancellationCharges)
+          <th>Cancellation Charges</th>
+        @endif
         @if ($showCreatedBy)
           <th>Created by</th>
         @endif
         @if ($showAttachments)
           <th class="text-nowrap">Attachment</th>
         @endif
-        <th class="text-end">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -94,6 +98,21 @@
           $phoneMail = collect([$enquiry->contact_number, $enquiry->email])->filter(fn ($value) => filled($value))->implode(' / ');
         @endphp
         <tr>
+          <td class="text-nowrap">
+            <a href="{{ route($recordRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
+              <i class="bi bi-eye"></i>
+            </a>
+            @unless ($showCancellationReason || $viewOnlyActions)
+              <a href="{{ route('group-bookings.contract', $enquiry) }}" class="btn btn-sm btn-outline-primary" title="Hotel contract">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
+              @can('update', $enquiry)
+                <a href="{{ route('group-bookings.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </a>
+              @endcan
+            @endunless
+          </td>
           <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->check_in" />@else{{ $date($enquiry->check_in) }}@endif</td>
           <td class="text-nowrap">{{ $date($enquiry->check_out) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->day) }}</td>
@@ -139,6 +158,9 @@
           @if ($showCancellationReason)
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $text($enquiry->cancellation_reason) }}</td>
           @endif
+          @if ($showCancellationCharges)
+            <td class="text-nowrap">{{ $enquiry->cancellation_charges === null ? '—' : ($enquiry->cancellation_charges ? 'Yes' : 'No') }}</td>
+          @endif
           @if ($showCreatedBy)
             <td class="text-nowrap">{{ $enquiry->assignedTo?->name ?: '—' }}</td>
           @endif
@@ -149,21 +171,6 @@
               </a>
             </td>
           @endif
-          <td class="text-end text-nowrap">
-            <a href="{{ route($recordRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
-              <i class="bi bi-eye"></i>
-            </a>
-            @unless ($showCancellationReason || $viewOnlyActions)
-              <a href="{{ route('group-bookings.contract', $enquiry) }}" class="btn btn-sm btn-outline-primary" title="Hotel contract">
-                <i class="bi bi-file-earmark-pdf"></i>
-              </a>
-              @can('update', $enquiry)
-                <a href="{{ route('group-bookings.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                  <i class="bi bi-pencil"></i>
-                </a>
-              @endcan
-            @endunless
-          </td>
         </tr>
       @empty
         <tr><td colspan="{{ $bookingColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
@@ -172,6 +179,7 @@
     @else
     <thead>
       <tr>
+        <th>Actions</th>
         <th>Hotel</th>
         <x-sortable-th column="check_in" label="Date of Arrival" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_out" label="Date of Departure" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -218,18 +226,35 @@
         @if ($showCancellationReason)
           <th>Cancellation Reason</th>
         @endif
+        @if ($showCancellationCharges)
+          <th>Cancellation Charges</th>
+        @endif
         @if ($showCreatedBy)
           <th>Created by</th>
         @endif
         @if ($showAttachments)
           <th class="text-nowrap">Attachment</th>
         @endif
-        <th class="text-end">Actions</th>
       </tr>
     </thead>
     <tbody>
       @forelse ($rows as $enquiry)
         <tr>
+          <td class="text-nowrap">
+            <a href="{{ route($recordRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
+              <i class="bi bi-eye"></i>
+            </a>
+            @unless ($showCancellationReason || $viewOnlyActions)
+              <a href="{{ route('group-bookings.contract', $enquiry) }}" class="btn btn-sm btn-outline-primary" title="Hotel contract">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
+              @can('update', $enquiry)
+                <a href="{{ route('group-bookings.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </a>
+              @endcan
+            @endunless
+          </td>
           <td class="text-nowrap fw-semibold">{{ $enquiry->hotel?->name ?: '—' }}</td>
           <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->check_in" />@else{{ $date($enquiry->check_in) }}@endif</td>
           <td class="text-nowrap">{{ $date($enquiry->check_out) }}</td>
@@ -276,6 +301,9 @@
           @if ($showCancellationReason)
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $text($enquiry->cancellation_reason) }}</td>
           @endif
+          @if ($showCancellationCharges)
+            <td class="text-nowrap">{{ $enquiry->cancellation_charges === null ? '—' : ($enquiry->cancellation_charges ? 'Yes' : 'No') }}</td>
+          @endif
           @if ($showCreatedBy)
             <td class="text-nowrap">{{ $enquiry->assignedTo?->name ?: '—' }}</td>
           @endif
@@ -286,21 +314,6 @@
               </a>
             </td>
           @endif
-          <td class="text-end text-nowrap">
-            <a href="{{ route($recordRoute, $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="View">
-              <i class="bi bi-eye"></i>
-            </a>
-            @unless ($showCancellationReason || $viewOnlyActions)
-              <a href="{{ route('group-bookings.contract', $enquiry) }}" class="btn btn-sm btn-outline-primary" title="Hotel contract">
-                <i class="bi bi-file-earmark-pdf"></i>
-              </a>
-              @can('update', $enquiry)
-                <a href="{{ route('group-bookings.edit', $enquiry) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                  <i class="bi bi-pencil"></i>
-                </a>
-              @endcan
-            @endunless
-          </td>
         </tr>
       @empty
         <tr><td colspan="{{ $bookingColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>

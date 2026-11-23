@@ -35,6 +35,7 @@
         ['route' => 'reports.module', 'params' => ['report' => 'group-bookings'], 'icon' => 'journal-check', 'label' => 'Group bookings report', 'permission' => 'reports.view'],
         ['route' => 'reports.module', 'params' => ['report' => 'enquiries'], 'icon' => 'inbox', 'label' => 'Enquiries report', 'permission' => 'reports.view'],
         ['route' => 'reports.module', 'params' => ['report' => 'cancelled-bookings'], 'icon' => 'x-circle', 'label' => 'Cancelled bookings report', 'permission' => 'reports.view'],
+        ['route' => 'reports.module', 'params' => ['report' => 'cancellation-chargeable'], 'icon' => 'cash-coin', 'label' => 'Cancellation chargeable report', 'permission' => 'reports.view'],
       ],
     ],
   ];
