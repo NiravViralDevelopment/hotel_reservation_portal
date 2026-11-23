@@ -569,13 +569,16 @@ class GroupBookingExcelImporter
 
         if ($existing) {
             $existing->update($attrs);
+            $existing->refresh();
+            GroupQuotePdf::generate($existing);
 
             return;
         }
 
         $attrs['group_name'] = $this->uniqueGroupName($client ?: ($blockId ?: ($ref ?: 'Imported booking')), $ref);
         $attrs['created_by'] = $userId;
-        Enquiry::query()->create($attrs);
+        $created = Enquiry::query()->create($attrs);
+        GroupQuotePdf::generate($created);
     }
 
     /**

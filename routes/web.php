@@ -105,6 +105,7 @@ Route::middleware('auth')->group(function () {
     Route::get('group-bookings/{enquiry}/contract/pdf', [GroupBookingController::class, 'previewContractPdf'])->name('group-bookings.contract.pdf');
     Route::get('group-bookings/{enquiry}/contract/hotel-preview', [GroupBookingController::class, 'previewHotelContract'])->name('group-bookings.contract.hotel-preview');
     Route::get('group-bookings/{enquiry}/contract/download', [GroupBookingController::class, 'downloadBookingContract'])->name('group-bookings.contract.download');
+    Route::get('group-bookings/{enquiry}/quote-pdf', [GroupBookingController::class, 'viewQuotePdf'])->name('group-bookings.quote-pdf');
     Route::get('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'index'])->name('group-bookings.attachments.index');
     Route::get('group-bookings/{enquiry}/attachments/create', [GroupBookingAttachmentController::class, 'create'])->name('group-bookings.attachments.create');
     Route::post('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'store'])->name('group-bookings.attachments.store');

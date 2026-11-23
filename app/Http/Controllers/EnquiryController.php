@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\Audit;
 use App\Support\EnquiryFieldRules;
 use App\Support\EnquiryIndexFilters;
+use App\Support\GroupQuotePdf;
 use App\Support\QuerySort;
 use App\Support\SimpleXlsxWriter;
 use Illuminate\Database\Eloquent\Builder;
@@ -443,6 +444,8 @@ class EnquiryController extends Controller
         $data['cancel_at'] = null;
 
         $enquiry->update($data);
+        $enquiry->refresh();
+        GroupQuotePdf::generate($enquiry);
         Audit::log('confirmed', 'group_bookings', $enquiry->block_id ?: $enquiry->ref, $enquiry);
 
         return redirect()
@@ -685,13 +688,15 @@ class EnquiryController extends Controller
         $this->authorize('convert', $enquiry);
 
         $enquiry->update([
-            'status' => 'confirmed',
+            'status' => 'Confirmed',
             'is_confirm' => true,
             'is_cancel' => false,
             'cancellation_reason' => null,
             'cancellation_charges' => null,
             'cancel_at' => null,
         ]);
+        $enquiry->refresh();
+        GroupQuotePdf::generate($enquiry);
         Audit::log('confirmed', 'enquiries', $enquiry->ref, $enquiry);
 
         return redirect()

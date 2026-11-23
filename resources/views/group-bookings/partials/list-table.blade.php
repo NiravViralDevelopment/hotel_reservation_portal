@@ -5,6 +5,7 @@
   $emptyMessage = $emptyMessage ?? 'No confirmed bookings found.';
   $showCancellationReason = $showCancellationReason ?? false;
   $showCancellationCharges = $showCancellationCharges ?? false;
+  $showQuotePdf = $showQuotePdf ?? (! $showCancellationReason);
   $highlightDates = $highlightDates ?? false;
   $viewOnlyActions = $viewOnlyActions ?? false;
   $showCreatedBy = $showCreatedBy ?? false;
@@ -12,8 +13,8 @@
   $trackerOrder = $trackerOrder ?? false;
   $recordRoute = $showCancellationReason ? 'cancelled-bookings.show' : 'group-bookings.show';
   $bookingColspan = $trackerOrder
-      ? 43 + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0) + ($showCancellationReason ? 1 : 0) + ($showCancellationCharges ? 1 : 0)
-      : ($showCancellationReason ? 43 : 41) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0) + ($showCancellationCharges ? 1 : 0);
+      ? 43 + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0) + ($showCancellationReason ? 1 : 0) + ($showCancellationCharges ? 1 : 0) + ($showQuotePdf ? 1 : 0)
+      : ($showCancellationReason ? 43 : 41) + ($showCreatedBy ? 1 : 0) + ($showAttachments ? 1 : 0) + ($showCancellationCharges ? 1 : 0) + ($showQuotePdf ? 1 : 0);
   $text = function ($value) {
       return filled($value) ? $value : '—';
   };
@@ -36,6 +37,9 @@
     <thead>
       <tr>
         <th>Actions</th>
+        @if ($showQuotePdf)
+          <th>PDF</th>
+        @endif
         <x-sortable-th column="check_in" label="Date of Arrival" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_out" label="Date of Departure" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="day" label="Arrival Day" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -113,6 +117,17 @@
               @endcan
             @endunless
           </td>
+          @if ($showQuotePdf)
+            <td class="text-nowrap">
+              @if ($enquiry->is_confirm && ! $enquiry->is_cancel && \App\Support\GroupQuotePdf::shouldGenerate($enquiry))
+                <a href="{{ route('group-bookings.quote-pdf', $enquiry) }}" class="btn btn-sm btn-outline-danger" title="Open quote PDF" target="_blank" rel="noopener">
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </a>
+              @else
+                —
+              @endif
+            </td>
+          @endif
           <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->check_in" />@else{{ $date($enquiry->check_in) }}@endif</td>
           <td class="text-nowrap">{{ $date($enquiry->check_out) }}</td>
           <td class="text-nowrap">{{ $text($enquiry->day) }}</td>
@@ -180,6 +195,9 @@
     <thead>
       <tr>
         <th>Actions</th>
+        @if ($showQuotePdf)
+          <th>PDF</th>
+        @endif
         <th>Hotel</th>
         <x-sortable-th column="check_in" label="Date of Arrival" :default="$defaultSort" :default-dir="$defaultDir" />
         <x-sortable-th column="check_out" label="Date of Departure" :default="$defaultSort" :default-dir="$defaultDir" />
@@ -255,6 +273,17 @@
               @endcan
             @endunless
           </td>
+          @if ($showQuotePdf)
+            <td class="text-nowrap">
+              @if ($enquiry->is_confirm && ! $enquiry->is_cancel && \App\Support\GroupQuotePdf::shouldGenerate($enquiry))
+                <a href="{{ route('group-bookings.quote-pdf', $enquiry) }}" class="btn btn-sm btn-outline-danger" title="Open quote PDF" target="_blank" rel="noopener">
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </a>
+              @else
+                —
+              @endif
+            </td>
+          @endif
           <td class="text-nowrap fw-semibold">{{ $enquiry->hotel?->name ?: '—' }}</td>
           <td class="text-nowrap">@if ($highlightDates)<x-date-alert :date="$enquiry->check_in" />@else{{ $date($enquiry->check_in) }}@endif</td>
           <td class="text-nowrap">{{ $date($enquiry->check_out) }}</td>

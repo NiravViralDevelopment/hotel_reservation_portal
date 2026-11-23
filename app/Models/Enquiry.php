@@ -136,6 +136,12 @@ class Enquiry extends Model
         'booking_contract_saved_at',
         'booking_contract_notes',
         'booking_contract_html',
+        'group_quote_pdf_disk',
+        'group_quote_pdf_path',
+        'group_quote_pdf_original_name',
+        'group_quote_pdf_mime_type',
+        'group_quote_pdf_size',
+        'group_quote_pdf_generated_at',
     ];
 
     /**
@@ -220,6 +226,8 @@ class Enquiry extends Model
             'total_rns' => 'integer',
             'booking_contract_size' => 'integer',
             'booking_contract_saved_at' => 'datetime',
+            'group_quote_pdf_size' => 'integer',
+            'group_quote_pdf_generated_at' => 'datetime',
         ];
     }
 
@@ -238,6 +246,7 @@ class Enquiry extends Model
 
         static::deleting(function (Enquiry $enquiry): void {
             $enquiry->deleteBookingContractFile();
+            $enquiry->deleteGroupQuotePdfFile();
             $enquiry->contractPhotos()->get()->each->delete();
             $enquiry->attachments()->get()->each->delete();
         });
@@ -273,6 +282,37 @@ class Enquiry extends Model
         $this->booking_contract_size = 0;
         $this->booking_contract_hotel_id = null;
         $this->booking_contract_saved_at = null;
+    }
+
+    public function hasGroupQuotePdf(): bool
+    {
+        $path = (string) $this->group_quote_pdf_path;
+
+        return $path !== '' && ! str_contains($path, '..');
+    }
+
+    public function deleteGroupQuotePdfFile(): void
+    {
+        if (! $this->hasGroupQuotePdf()) {
+            return;
+        }
+
+        $disk = $this->group_quote_pdf_disk ?: 'local';
+        $path = (string) $this->group_quote_pdf_path;
+
+        if (Storage::disk($disk)->exists($path)) {
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
+    public function clearGroupQuotePdfAttributes(): void
+    {
+        $this->group_quote_pdf_disk = null;
+        $this->group_quote_pdf_path = null;
+        $this->group_quote_pdf_original_name = null;
+        $this->group_quote_pdf_mime_type = null;
+        $this->group_quote_pdf_size = 0;
+        $this->group_quote_pdf_generated_at = null;
     }
 
     public function travelAgency(): BelongsTo

@@ -9,6 +9,7 @@ use App\Support\Audit;
 use App\Support\EnquiryIndexFilters;
 use App\Support\BookingContractHtml;
 use App\Support\GroupBookingExcelImporter;
+use App\Support\GroupQuotePdf;
 use App\Support\HotelAccess;
 use App\Support\QuerySort;
 use App\Support\SimpleXlsxWriter;
@@ -400,6 +401,29 @@ class GroupBookingController extends Controller
         return Storage::disk($disk)->response($path, $photo->original_name ?: 'photo', [
             'Content-Type' => $photo->mime_type ?: 'image/jpeg',
             'Content-Disposition' => 'inline',
+        ]);
+    }
+
+    public function viewQuotePdf(Enquiry $enquiry): StreamedResponse|Response
+    {
+        abort_unless(auth()->user()?->can('bookings.view'), 403);
+        abort_unless($enquiry->is_confirm && ! $enquiry->is_cancel, 404);
+        HotelAccess::ensure(null, $enquiry->hotel_id);
+        abort_unless(GroupQuotePdf::shouldGenerate($enquiry), 404);
+
+        GroupQuotePdf::generateIfNeeded($enquiry);
+        $enquiry->refresh();
+        abort_unless($enquiry->hasGroupQuotePdf(), 404);
+
+        $disk = $enquiry->group_quote_pdf_disk ?: 'local';
+        $path = (string) $enquiry->group_quote_pdf_path;
+        abort_unless(Storage::disk($disk)->exists($path), 404);
+
+        $filename = $enquiry->group_quote_pdf_original_name ?: GroupQuotePdf::filename($enquiry);
+
+        return Storage::disk($disk)->response($path, $filename, [
+            'Content-Type' => $enquiry->group_quote_pdf_mime_type ?: 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
         ]);
     }
 
