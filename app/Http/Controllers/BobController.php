@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\BobMonthlySnapshot;
 use App\Models\Enquiry;
+use App\Models\Hotel;
 use App\Support\Audit;
 use App\Support\BobColumns;
+use App\Support\HotelAccess;
 use App\Support\SimpleXlsxWriter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -21,11 +24,19 @@ class BobController extends Controller
     {
         $this->authorize('bob.view');
 
+        $hotels = Hotel::optionsForSelect($request->input('hotel_id'));
+        $selectedHotel = $this->resolveHotel($request, $hotels);
         $selectedYear = $this->selectedYear($request);
         $previousYear = $selectedYear - 1;
         $columns = BobColumns::forYear($selectedYear);
-        $months = $this->months($selectedYear);
-        $totals = $this->columnTotals($months);
+        $showHotelFilter = HotelAccess::canAccessAllHotels() || $hotels->count() > 1;
+
+        $months = collect();
+        $totals = [];
+        if ($selectedHotel !== null) {
+            $months = $this->months($selectedYear, $selectedHotel->id);
+            $totals = $this->columnTotals($months);
+        }
 
         $groups = collect($columns)
             ->groupBy('group')
@@ -36,7 +47,7 @@ class BobController extends Controller
             ])
             ->values();
 
-        $yearOptions = $this->yearOptions($selectedYear);
+        $yearOptions = $this->yearOptions($selectedYear, $selectedHotel?->id);
 
         return view('bob.index', compact(
             'months',
@@ -46,6 +57,9 @@ class BobController extends Controller
             'selectedYear',
             'previousYear',
             'yearOptions',
+            'hotels',
+            'selectedHotel',
+            'showHotelFilter',
         ));
     }
 
@@ -55,6 +69,7 @@ class BobController extends Controller
 
         $validated = $request->validate([
             'year' => ['required', 'integer', 'min:1', 'max:9999'],
+            'hotel_id' => ['required', 'integer', Rule::in(HotelAccess::selectableHotelIds())],
             'months' => ['required', 'array'],
             'months.*' => ['array'],
             'months.*.bob_nett_actual' => ['nullable', 'numeric'],
@@ -64,6 +79,9 @@ class BobController extends Controller
             'months.*.adr_nett' => ['nullable', 'numeric'],
         ]);
 
+        $hotelId = (int) $validated['hotel_id'];
+        HotelAccess::ensure(null, $hotelId);
+
         $selectedYear = (int) $validated['year'];
         $previousYear = $selectedYear - 1;
 
@@ -71,7 +89,11 @@ class BobController extends Controller
             $row = $validated['months'][$month] ?? $validated['months'][(string) $month] ?? [];
 
             BobMonthlySnapshot::query()->updateOrCreate(
-                ['year' => $previousYear, 'month' => $month],
+                [
+                    'hotel_id' => $hotelId,
+                    'year' => $previousYear,
+                    'month' => $month,
+                ],
                 [
                     'label' => Carbon::create($previousYear, $month, 1)->format('M'),
                     'bob_nett_actual' => $this->nullableDecimal($row['bob_nett_actual'] ?? null),
@@ -83,10 +105,10 @@ class BobController extends Controller
             );
         }
 
-        Audit::log('updated', 'bob', 'Manual figures for '.$previousYear);
+        Audit::log('updated', 'bob', 'hotel='.$hotelId.' Manual figures for '.$previousYear);
 
         return redirect()
-            ->route('bob.index', ['year' => $selectedYear])
+            ->route('bob.index', ['year' => $selectedYear, 'hotel_id' => $hotelId])
             ->with('success', 'Manual BOB figures for '.$previousYear.' saved.');
     }
 
@@ -94,10 +116,14 @@ class BobController extends Controller
     {
         $this->authorize('bob.view');
 
+        $hotels = Hotel::optionsForSelect($request->input('hotel_id'));
+        $selectedHotel = $this->resolveHotel($request, $hotels);
+        abort_unless($selectedHotel !== null, 422, 'Select a hotel before exporting BOB data.');
+
         $selectedYear = $this->selectedYear($request);
         $columns = BobColumns::forYear($selectedYear);
         $headers = array_merge(['Month'], array_column($columns, 'label'));
-        $months = $this->months($selectedYear);
+        $months = $this->months($selectedYear, $selectedHotel->id);
         $rows = $months->map(function (array $month) {
             $values = [$month['label']];
             foreach ($month['cells'] as $cell) {
@@ -113,10 +139,12 @@ class BobController extends Controller
         }
         $rows[] = $total;
 
-        Audit::log('exported', 'bob', 'year='.$selectedYear.' rows='.count($rows));
+        Audit::log('exported', 'bob', 'hotel='.$selectedHotel->id.' year='.$selectedYear.' rows='.count($rows));
+
+        $hotelSlug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $selectedHotel->code ?: $selectedHotel->name) ?: 'hotel');
 
         return SimpleXlsxWriter::download(
-            'bob-'.$selectedYear.'-'.now()->format('Y-m-d').'.xlsx',
+            'bob-'.$hotelSlug.'-'.$selectedYear.'-'.now()->format('Y-m-d').'.xlsx',
             $headers,
             $rows,
             'BOB '.$selectedYear,
@@ -124,15 +152,41 @@ class BobController extends Controller
     }
 
     /**
+     * @param  Collection<int, Hotel>  $hotels
+     */
+    private function resolveHotel(Request $request, Collection $hotels): ?Hotel
+    {
+        if ($request->filled('hotel_id')) {
+            $hotelId = $request->integer('hotel_id');
+            HotelAccess::ensure(null, $hotelId);
+
+            return $hotels->firstWhere('id', $hotelId)
+                ?? Hotel::query()->find($hotelId);
+        }
+
+        $current = HotelAccess::currentHotel();
+        if ($current !== null && $hotels->contains('id', $current->id)) {
+            return $current;
+        }
+
+        if (! HotelAccess::canAccessAllHotels() && $hotels->count() === 1) {
+            return $hotels->first();
+        }
+
+        return null;
+    }
+
+    /**
      * @return Collection<int, array{month: int, label: string, bob: float, nights: int, cells: list<array<string, mixed>>}>
      */
-    private function months(int $selectedYear): Collection
+    private function months(int $selectedYear, int $hotelId): Collection
     {
         $previousYear = $selectedYear - 1;
         $columns = BobColumns::forYear($selectedYear);
-        $bookings = $this->bookingTotals($selectedYear);
+        $bookings = $this->bookingTotals($selectedYear, $hotelId);
 
         $figures = BobMonthlySnapshot::query()
+            ->where('hotel_id', $hotelId)
             ->whereIn('year', [$selectedYear, $previousYear])
             ->get()
             ->groupBy('year')
@@ -208,15 +262,18 @@ class BobController extends Controller
     }
 
     /**
-     * Confirmed group bookings for the selected year, summed by arrival month.
+     * Confirmed group bookings for the selected year and hotel, summed by arrival month.
      *
      * @return Collection<int, object>
      */
-    private function bookingTotals(int $year): Collection
+    private function bookingTotals(int $year, int $hotelId): Collection
     {
+        HotelAccess::ensure(null, $hotelId);
+
         return Enquiry::query()
             ->accessibleBy()
             ->groupBookings()
+            ->where('hotel_id', $hotelId)
             ->whereNotNull('check_in')
             ->whereYear('check_in', $year)
             ->selectRaw('MONTH(check_in) as month')
@@ -245,11 +302,15 @@ class BobController extends Controller
     /**
      * @return list<int>
      */
-    private function yearOptions(int $selectedYear): array
+    private function yearOptions(int $selectedYear, ?int $hotelId): array
     {
         $calendarYear = (int) now()->year;
-        $storedYears = BobMonthlySnapshot::query()
-            ->distinct()
+        $query = BobMonthlySnapshot::query()->distinct();
+        if ($hotelId !== null) {
+            $query->where('hotel_id', $hotelId);
+        }
+
+        $storedYears = $query
             ->pluck('year')
             ->map(fn ($year) => (int) $year);
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BobMonthlySnapshot;
 use App\Models\Enquiry;
+use App\Support\HotelAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -32,11 +33,19 @@ class RevenueController extends Controller
             ->get()
             ->keyBy('month');
 
-        $snapshots = BobMonthlySnapshot::query()
-            ->where('year', $year)
+        $snapshotsQuery = BobMonthlySnapshot::query()->where('year', $year);
+        $currentHotelId = HotelAccess::currentHotelId();
+        if ($currentHotelId !== null) {
+            $snapshotsQuery->where('hotel_id', $currentHotelId);
+        } else {
+            $snapshotsQuery->whereIn('hotel_id', HotelAccess::hotelIds());
+        }
+
+        $snapshots = $snapshotsQuery
             ->orderBy('month')
             ->get()
-            ->keyBy('month');
+            ->groupBy(fn ($row) => (int) $row->month)
+            ->map(fn ($rows) => $rows->first());
 
         $yearTotal = Enquiry::query()
             ->accessibleBy()

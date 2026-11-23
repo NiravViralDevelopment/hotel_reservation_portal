@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'BOB — '.$selectedYear)
+@section('title', 'BOB — '.($selectedHotel?->name ? $selectedHotel->name.' — ' : '').$selectedYear)
 @section('page', 'bob')
 
 @php
@@ -23,6 +23,8 @@
 
       return ($negative ? '-' : '').$formatted;
   };
+  $filterDirty = ($selectedYear !== (int) now()->year)
+      || ($showHotelFilter && request()->filled('hotel_id'));
 @endphp
 
 @section('content')
@@ -35,10 +37,28 @@
         </ol>
       </nav>
       <h1 class="page-title">BOB</h1>
-      <p class="page-subtitle mb-0">Confirmed group bookings for {{ $selectedYear }}, grouped by arrival date. Manual cells are saved against {{ $previousYear }}.</p>
+      <p class="page-subtitle mb-0">
+        @if ($selectedHotel)
+          Confirmed group bookings for <strong>{{ $selectedHotel->name }}</strong> in {{ $selectedYear }}, grouped by arrival date. Manual cells are saved against {{ $previousYear }}.
+        @else
+          Select a hotel to view hotel-specific BOB figures for {{ $selectedYear }}.
+        @endif
+      </p>
     </div>
 
     <form method="GET" action="{{ route('bob.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
+      @if ($showHotelFilter)
+        <label for="bob-hotel" class="form-label mb-0 small text-secondary">Hotel</label>
+        <select id="bob-hotel" name="hotel_id" class="form-select form-select-sm select2" style="width: auto; min-width: 14rem;" required>
+          <option value="">Select hotel</option>
+          @foreach ($hotels as $hotel)
+            <option value="{{ $hotel->id }}" @selected((string) ($selectedHotel?->id) === (string) $hotel->id)>{{ $hotel->name }}</option>
+          @endforeach
+        </select>
+      @elseif ($selectedHotel)
+        <input type="hidden" name="hotel_id" value="{{ $selectedHotel->id }}">
+        <span class="small text-secondary">{{ $selectedHotel->name }}</span>
+      @endif
       <label for="bob-year" class="form-label mb-0 small text-secondary">Year</label>
       <select id="bob-year" name="year" class="form-select form-select-sm select2" style="width: auto; min-width: 7rem;">
         @foreach ($yearOptions as $year)
@@ -46,7 +66,7 @@
         @endforeach
       </select>
       <button type="submit" class="btn btn-outline-secondary btn-sm">Apply</button>
-      @if ($selectedYear !== (int) now()->year)
+      @if ($filterDirty)
         <a href="{{ route('bob.index') }}" class="btn btn-outline-danger btn-sm">
           <i class="bi bi-x-circle"></i> Clear
         </a>
@@ -54,95 +74,104 @@
     </form>
   </div>
 
-  <form method="POST" action="{{ route('bob.update') }}" id="bob-manual-form">
-    @csrf
-    <input type="hidden" name="year" value="{{ $selectedYear }}">
-
+  @if (! $selectedHotel)
     <div class="card">
-      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <span>Monthly figures</span>
-        <span class="d-flex flex-wrap align-items-center gap-2">
-          <span class="small text-secondary">{{ $selectedYear }} and {{ $previousYear }}</span>
-          <a
-            href="{{ route('bob.export', ['year' => $selectedYear]) }}"
-            class="btn btn-outline-secondary btn-sm"
-            title="Download these monthly figures as Excel"
-          >
-            <i class="bi bi-download"></i> Export Excel
-          </a>
-          <button type="submit" class="btn btn-accent btn-sm">Save manual figures</button>
-        </span>
-      </div>
-      <div class="table-scroll-hint"><i class="bi bi-arrows-expand"></i> Scroll horizontally to see all columns</div>
-      <div class="table-wrapper table-scroll-wide bob-table-scroll">
-        <table class="table table-hover table-sm mb-0 bob-table">
-          <thead>
-            <tr>
-              <th rowspan="2" class="bob-sticky" scope="col">Month</th>
-              @foreach ($groups as $group)
-                <th colspan="{{ $group['span'] }}" class="text-center bob-group bob-group-{{ $group['key'] }}" scope="colgroup">{{ $group['label'] }}</th>
-              @endforeach
-            </tr>
-            <tr>
-              @foreach ($columns as $column)
-                <th class="text-end bob-col-{{ $column['group'] }}" scope="col">{{ $column['label'] }}</th>
-              @endforeach
-            </tr>
-          </thead>
-          <tbody>
-            @foreach ($months as $month)
-              <tr data-bob="{{ $month['bob'] }}" data-nights="{{ $month['nights'] }}">
-                <th class="bob-sticky fw-semibold" scope="row">{{ $month['label'] }}</th>
-                @foreach ($month['cells'] as $cell)
-                  @if ($cell['editable'])
-                    @php
-                      $manualValue = old('months.'.$month['month'].'.'.$cell['input'], $cell['raw']);
-                      if ($cell['format'] === 'money' && $manualValue !== null && $manualValue !== '') {
-                          $manualValue = '£'.ltrim((string) $manualValue, '£');
-                      }
-                    @endphp
-                    <td class="bob-col-{{ $cell['group'] }} bob-editable">
-                      <input
-                        type="text"
-                        inputmode="{{ $cell['format'] === 'number' ? 'numeric' : 'decimal' }}"
-                        name="months[{{ $month['month'] }}][{{ $cell['input'] }}]"
-                        value="{{ $manualValue }}"
-                        placeholder="-"
-                        class="form-control form-control-sm bob-manual"
-                        data-manual="{{ $cell['input'] }}"
-                        data-format="{{ $cell['format'] }}"
-                        aria-label="{{ $cell['label'] }} for {{ $month['label'] }}"
-                        autocomplete="off"
-                      >
-                    </td>
-                  @else
-                    <td
-                      class="text-end bob-col-{{ $cell['group'] }}{{ $cell['value'] === null ? ' text-secondary' : '' }}"
-                      @if ($cell['formula']) data-formula="{{ $cell['key'] }}" @endif
-                    >
-                      {{ $formatCell($cell['value'], $cell['format']) }}
-                    </td>
-                  @endif
-                @endforeach
-              </tr>
-            @endforeach
-          </tbody>
-          <tfoot>
-            <tr>
-              <th class="bob-sticky fw-semibold" scope="row">Total</th>
-              @foreach ($totals as $total)
-                <td
-                  class="text-end fw-semibold bob-col-{{ $total['group'] }}"
-                  data-total="{{ $total['key'] }}"
-                  data-format="{{ $total['format'] }}"
-                >{{ $formatCell($total['value'], $total['format']) }}</td>
-              @endforeach
-            </tr>
-          </tfoot>
-        </table>
+      <div class="card-body text-secondary">
+        Choose a hotel above to load its BOB data. Figures are always shown for one hotel at a time.
       </div>
     </div>
-  </form>
+  @else
+    <form method="POST" action="{{ route('bob.update') }}" id="bob-manual-form">
+      @csrf
+      <input type="hidden" name="year" value="{{ $selectedYear }}">
+      <input type="hidden" name="hotel_id" value="{{ $selectedHotel->id }}">
+
+      <div class="card">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <span>Monthly figures — {{ $selectedHotel->name }}</span>
+          <span class="d-flex flex-wrap align-items-center gap-2">
+            <span class="small text-secondary">{{ $selectedYear }} and {{ $previousYear }}</span>
+            <a
+              href="{{ route('bob.export', ['year' => $selectedYear, 'hotel_id' => $selectedHotel->id]) }}"
+              class="btn btn-outline-secondary btn-sm"
+              title="Download these monthly figures as Excel"
+            >
+              <i class="bi bi-download"></i> Export Excel
+            </a>
+            <button type="submit" class="btn btn-accent btn-sm">Save manual figures</button>
+          </span>
+        </div>
+        <div class="table-scroll-hint"><i class="bi bi-arrows-expand"></i> Scroll horizontally to see all columns</div>
+        <div class="table-wrapper table-scroll-wide bob-table-scroll">
+          <table class="table table-hover table-sm mb-0 bob-table">
+            <thead>
+              <tr>
+                <th rowspan="2" class="bob-sticky" scope="col">Month</th>
+                @foreach ($groups as $group)
+                  <th colspan="{{ $group['span'] }}" class="text-center bob-group bob-group-{{ $group['key'] }}" scope="colgroup">{{ $group['label'] }}</th>
+                @endforeach
+              </tr>
+              <tr>
+                @foreach ($columns as $column)
+                  <th class="text-end bob-col-{{ $column['group'] }}" scope="col">{{ $column['label'] }}</th>
+                @endforeach
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($months as $month)
+                <tr data-bob="{{ $month['bob'] }}" data-nights="{{ $month['nights'] }}">
+                  <th class="bob-sticky fw-semibold" scope="row">{{ $month['label'] }}</th>
+                  @foreach ($month['cells'] as $cell)
+                    @if ($cell['editable'])
+                      @php
+                        $manualValue = old('months.'.$month['month'].'.'.$cell['input'], $cell['raw']);
+                        if ($cell['format'] === 'money' && $manualValue !== null && $manualValue !== '') {
+                            $manualValue = '£'.ltrim((string) $manualValue, '£');
+                        }
+                      @endphp
+                      <td class="bob-col-{{ $cell['group'] }} bob-editable">
+                        <input
+                          type="text"
+                          inputmode="{{ $cell['format'] === 'number' ? 'numeric' : 'decimal' }}"
+                          name="months[{{ $month['month'] }}][{{ $cell['input'] }}]"
+                          value="{{ $manualValue }}"
+                          placeholder="-"
+                          class="form-control form-control-sm bob-manual"
+                          data-manual="{{ $cell['input'] }}"
+                          data-format="{{ $cell['format'] }}"
+                          aria-label="{{ $cell['label'] }} for {{ $month['label'] }}"
+                          autocomplete="off"
+                        >
+                      </td>
+                    @else
+                      <td
+                        class="text-end bob-col-{{ $cell['group'] }}{{ $cell['value'] === null ? ' text-secondary' : '' }}"
+                        @if ($cell['formula']) data-formula="{{ $cell['key'] }}" @endif
+                      >
+                        {{ $formatCell($cell['value'], $cell['format']) }}
+                      </td>
+                    @endif
+                  @endforeach
+                </tr>
+              @endforeach
+            </tbody>
+            <tfoot>
+              <tr>
+                <th class="bob-sticky fw-semibold" scope="row">Total</th>
+                @foreach ($totals as $total)
+                  <td
+                    class="text-end fw-semibold bob-col-{{ $total['group'] }}"
+                    data-total="{{ $total['key'] }}"
+                    data-format="{{ $total['format'] }}"
+                  >{{ $formatCell($total['value'], $total['format']) }}</td>
+                @endforeach
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </form>
+  @endif
 @endsection
 
 @push('scripts')

@@ -255,32 +255,34 @@ class DemoDataSeeder extends Seeder
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $values = [198400, 215600, 248900, 312400, 389200, 425800, 478200, 512600, 398400, 356200, 278900, 232050];
         $year = (int) now()->year;
-        foreach ($months as $i => $label) {
-            BobMonthlySnapshot::query()->updateOrCreate(
-                ['year' => $year, 'month' => $i + 1],
-                [
-                    'label' => $label,
-                    'bob_nett' => $values[$i],
-                    'adr_nett' => null,
-                    'room_nights' => null,
-                    'breakfast_revenue' => (int) ($values[$i] * 0.12),
-                    'dinner_revenue' => (int) ($values[$i] * 0.18),
-                    'dinner_covers' => (int) ($values[$i] / 45),
-                ]
-            );
+        foreach ($hotels as $hotel) {
+            foreach ($months as $i => $label) {
+                BobMonthlySnapshot::query()->updateOrCreate(
+                    ['hotel_id' => $hotel->id, 'year' => $year, 'month' => $i + 1],
+                    [
+                        'label' => $label,
+                        'bob_nett' => $values[$i],
+                        'adr_nett' => null,
+                        'room_nights' => null,
+                        'breakfast_revenue' => (int) ($values[$i] * 0.12),
+                        'dinner_revenue' => (int) ($values[$i] * 0.18),
+                        'dinner_covers' => (int) ($values[$i] / 45),
+                    ]
+                );
 
-            BobMonthlySnapshot::query()->updateOrCreate(
-                ['year' => $year - 1, 'month' => $i + 1],
-                [
-                    'label' => $label,
-                    'bob_nett' => (int) ($values[$i] * 0.92),
-                    'stly_bob_nett' => null,
-                    'adr_nett' => null,
-                    'stly_adr_nett' => null,
-                    'room_nights' => null,
-                    'stly_room_nights' => null,
-                ]
-            );
+                BobMonthlySnapshot::query()->updateOrCreate(
+                    ['hotel_id' => $hotel->id, 'year' => $year - 1, 'month' => $i + 1],
+                    [
+                        'label' => $label,
+                        'bob_nett' => (int) ($values[$i] * 0.92),
+                        'stly_bob_nett' => null,
+                        'adr_nett' => null,
+                        'stly_adr_nett' => null,
+                        'room_nights' => null,
+                        'stly_room_nights' => null,
+                    ]
+                );
+            }
         }
     }
 

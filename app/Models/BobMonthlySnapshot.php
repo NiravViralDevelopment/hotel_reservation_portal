@@ -3,16 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BobMonthlySnapshot extends Model
 {
     /**
-     * Figures for a single calendar year and month.
+     * Figures for a single hotel, calendar year, and month.
      * The selected year on the BOB index reads this row; the previous year is the prior row.
      *
      * @var list<string>
      */
     protected $fillable = [
+        'hotel_id',
         'year',
         'month',
         'label',
@@ -34,6 +36,7 @@ class BobMonthlySnapshot extends Model
     protected function casts(): array
     {
         return [
+            'hotel_id' => 'integer',
             'year' => 'integer',
             'month' => 'integer',
             'bob_nett' => 'decimal:2',
@@ -47,5 +50,13 @@ class BobMonthlySnapshot extends Model
             'dinner_revenue' => 'decimal:2',
             'dinner_covers' => 'integer',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Hotel, $this>
+     */
+    public function hotel(): BelongsTo
+    {
+        return $this->belongsTo(Hotel::class);
     }
 }

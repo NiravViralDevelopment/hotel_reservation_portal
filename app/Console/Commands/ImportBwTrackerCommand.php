@@ -48,6 +48,22 @@ class ImportBwTrackerCommand extends Command
         $admin = User::query()->where('email', 'admin@hotelgroup.co.uk')->first()
             ?? User::query()->orderBy('id')->first();
 
+        $bobYears = collect($payload['bob'] ?? [])
+            ->pluck('year')
+            ->map(fn ($year) => (int) $year)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($bobYears->isEmpty()) {
+            $bobYears = collect([(int) now()->year]);
+        }
+
+        $bobYears = $bobYears
+            ->merge($bobYears->map(fn (int $year) => $year - 1))
+            ->unique()
+            ->values();
+
         if ($this->option('fresh')) {
             $this->warn('Clearing existing tracker data...');
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
@@ -56,23 +72,6 @@ class ImportBwTrackerCommand extends Command
             GroupBooking::query()->truncate();
             Contact::query()->truncate();
             TravelAgency::query()->truncate();
-            $bobYears = collect($payload['bob'] ?? [])
-                ->pluck('year')
-                ->map(fn ($year) => (int) $year)
-                ->filter()
-                ->unique()
-                ->values();
-
-            if ($bobYears->isEmpty()) {
-                $bobYears = collect([(int) now()->year]);
-            }
-
-            $bobYears = $bobYears
-                ->merge($bobYears->map(fn (int $year) => $year - 1))
-                ->unique()
-                ->values();
-
-            BobMonthlySnapshot::query()->whereIn('year', $bobYears->all())->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
 
@@ -103,6 +102,13 @@ class ImportBwTrackerCommand extends Command
                 'notes' => 'Primary hotel for BW Group Tracker imports',
             ]
         );
+
+        if ($this->option('fresh')) {
+            BobMonthlySnapshot::query()
+                ->where('hotel_id', $hotel->id)
+                ->whereIn('year', $bobYears->all())
+                ->delete();
+        }
 
         $agencyCache = [];
         $resolveAgency = function (?string $clientName) use (&$agencyCache): ?TravelAgency {
@@ -321,6 +327,7 @@ class ImportBwTrackerCommand extends Command
 
             BobMonthlySnapshot::query()->updateOrCreate(
                 [
+                    'hotel_id' => $hotel->id,
                     'year' => $year,
                     'month' => $month,
                 ],
@@ -359,6 +366,7 @@ class ImportBwTrackerCommand extends Command
                 $previous['label'] = $row['label'] ?? null;
                 BobMonthlySnapshot::query()->updateOrCreate(
                     [
+                        'hotel_id' => $hotel->id,
                         'year' => $year - 1,
                         'month' => $month,
                     ],
