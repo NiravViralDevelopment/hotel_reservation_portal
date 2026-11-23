@@ -57,32 +57,36 @@
   <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
       <div class="stat-card">
-        <div class="stat-card-label">Active Hotels</div>
+        <div class="stat-card-label">Total Hotels</div>
         <div class="stat-card-value">{{ number_format($stats['hotels']) }}</div>
         <div class="stat-card-meta"><a href="{{ route('hotels.index') }}">View hotels</a></div>
       </div>
     </div>
     <div class="col-6 col-lg-3">
       <div class="stat-card">
-        <div class="stat-card-label">Companies</div>
+        <div class="stat-card-label">Total Companies</div>
         <div class="stat-card-value">{{ number_format($stats['companies']) }}</div>
         <div class="stat-card-meta"><a href="{{ route('companies.index') }}">View companies</a></div>
       </div>
     </div>
-    {{--
     <div class="col-6 col-lg-3">
       <div class="stat-card">
-        <div class="stat-card-label">Travel Agencies</div>
-        <div class="stat-card-value">{{ number_format($stats['travelAgencies']) }}</div>
-        <div class="stat-card-meta"><a href="{{ route('travel-agencies.index') }}">View agencies</a></div>
+        <div class="stat-card-label">Confirm Group Bookings</div>
+        <div class="stat-card-value">{{ number_format($stats['activeGroups']) }}</div>
+        <div class="stat-card-meta"><a href="{{ route('group-bookings.index', ['date_from' => '', 'date_to' => '']) }}">View bookings</a></div>
       </div>
     </div>
-    --}}
     <div class="col-6 col-lg-3">
       <div class="stat-card">
-        <div class="stat-card-label">Active Groups</div>
-        <div class="stat-card-value">{{ number_format($stats['activeGroups']) }}</div>
-        <div class="stat-card-meta"><a href="{{ route('group-bookings.index') }}">View bookings</a></div>
+        <div class="stat-card-label">Total Users</div>
+        <div class="stat-card-value">{{ number_format($stats['users']) }}</div>
+        <div class="stat-card-meta">
+          @can('viewAny', App\Models\User::class)
+            <a href="{{ route('users.index') }}">View users</a>
+          @else
+            Users
+          @endcan
+        </div>
       </div>
     </div>
     <div class="col-6 col-lg-3">
@@ -115,10 +119,10 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card mb-4">
     <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3 px-4">
-      <h2 class="h5 fw-semibold mb-0">Upcoming arrivals</h2>
-      <a href="{{ route('calendar.index') }}" class="btn btn-sm btn-outline-secondary">Calendar</a>
+      <h2 class="h5 fw-semibold mb-0">Upcoming Arrivals</h2>
+      <!-- <a href="{{ route('calendar.index') }}" class="btn btn-sm btn-outline-secondary">Calendar</a> -->
     </div>
     <div class="table-wrapper">
       <table class="table table-hover mb-0">
@@ -153,6 +157,51 @@
           @empty
             <tr>
               <td colspan="8" class="text-center text-secondary py-4">No upcoming arrivals.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+      <h2 class="h5 fw-semibold mb-0">Upcoming Departures</h2>
+      <!-- <a href="{{ route('departures.index') }}" class="btn btn-sm btn-outline-secondary">Departures</a> -->
+    </div>
+    <div class="table-wrapper">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Group</th>
+            <th>Hotel</th>
+            <th>Travel agency</th>
+            <th>Departure</th>
+            <th class="text-center">Rooms</th>
+            <th class="text-center">Pax</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse ($upcomingDepartures as $booking)
+            <tr>
+              <td><code>{{ $booking->ref ?: '—' }}</code></td>
+              <td class="fw-semibold">{{ $booking->group_name }}</td>
+              <td>{{ $booking->hotel?->name ?? '—' }}</td>
+              <td>{{ $booking->travelAgency?->name ?? '—' }}</td>
+              <td>{{ $booking->check_out?->format('d M Y') ?? '—' }}</td>
+              <td class="text-center">{{ $booking->rooms_per_night ?? '—' }}</td>
+              <td class="text-center">{{ $booking->total_pax ?? '—' }}</td>
+              <td class="text-end">
+                <a href="{{ route('enquiries.show', $booking) }}" class="btn btn-sm btn-outline-secondary" title="View">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="8" class="text-center text-secondary py-4">No upcoming departures.</td>
             </tr>
           @endforelse
         </tbody>

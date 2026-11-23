@@ -40,5 +40,6 @@
   <script src="{{ asset('assets/js/pages.js') }}"></script>
   <script src="{{ asset('assets/js/app.js') }}?v={{ @filemtime(public_path('assets/js/app.js')) }}"></script>
   @stack('scripts')
+  <script src="{{ asset('assets/js/required-field-validation.js') }}?v={{ @filemtime(public_path('assets/js/required-field-validation.js')) }}"></script>
 </body>
 </html>

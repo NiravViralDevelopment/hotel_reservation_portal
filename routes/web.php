@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArrivalController;
+use App\Http\Controllers\BobController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartureController;
 use App\Http\Controllers\EnquiryController;
+use App\Http\Controllers\GroupBookingAttachmentController;
 use App\Http\Controllers\GroupBookingController;
 use App\Http\Controllers\HotelContextController;
 use App\Http\Controllers\HotelController;
@@ -90,7 +92,9 @@ Route::middleware('auth')->group(function () {
     // Group bookings = confirmed enquiries (same enquiries table)
     Route::get('group-bookings', [GroupBookingController::class, 'index'])->name('group-bookings.index');
     Route::get('group-bookings/export', [GroupBookingController::class, 'export'])->name('group-bookings.export');
+    Route::get('group-bookings/import/template', [GroupBookingController::class, 'importTemplate'])->name('group-bookings.import.template');
     Route::post('group-bookings/import', [GroupBookingController::class, 'import'])->name('group-bookings.import');
+    Route::post('group-bookings/import/confirm', [GroupBookingController::class, 'confirmImport'])->name('group-bookings.import.confirm');
     Route::get('group-bookings/create', [GroupBookingController::class, 'create'])->name('group-bookings.create');
     Route::get('group-bookings/hotel-contract/{hotel}', [GroupBookingController::class, 'viewHotelContract'])->name('group-bookings.hotel-contract');
     Route::get('group-bookings/{enquiry}/contract', [GroupBookingController::class, 'contract'])->name('group-bookings.contract');
@@ -101,6 +105,13 @@ Route::middleware('auth')->group(function () {
     Route::get('group-bookings/{enquiry}/contract/pdf', [GroupBookingController::class, 'previewContractPdf'])->name('group-bookings.contract.pdf');
     Route::get('group-bookings/{enquiry}/contract/hotel-preview', [GroupBookingController::class, 'previewHotelContract'])->name('group-bookings.contract.hotel-preview');
     Route::get('group-bookings/{enquiry}/contract/download', [GroupBookingController::class, 'downloadBookingContract'])->name('group-bookings.contract.download');
+    Route::get('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'index'])->name('group-bookings.attachments.index');
+    Route::get('group-bookings/{enquiry}/attachments/create', [GroupBookingAttachmentController::class, 'create'])->name('group-bookings.attachments.create');
+    Route::post('group-bookings/{enquiry}/attachments', [GroupBookingAttachmentController::class, 'store'])->name('group-bookings.attachments.store');
+    Route::get('group-bookings/{enquiry}/attachments/{attachment}/edit', [GroupBookingAttachmentController::class, 'edit'])->name('group-bookings.attachments.edit');
+    Route::put('group-bookings/{enquiry}/attachments/{attachment}', [GroupBookingAttachmentController::class, 'update'])->name('group-bookings.attachments.update');
+    Route::get('group-bookings/{enquiry}/attachments/{attachment}/download', [GroupBookingAttachmentController::class, 'download'])->name('group-bookings.attachments.download');
+    Route::delete('group-bookings/{enquiry}/attachments/{attachment}', [GroupBookingAttachmentController::class, 'destroy'])->name('group-bookings.attachments.destroy');
     Route::get('group-bookings/{enquiry}', [GroupBookingController::class, 'show'])->name('group-bookings.show');
     Route::get('group-bookings/{enquiry}/edit', [GroupBookingController::class, 'edit'])->name('group-bookings.edit');
 
@@ -117,6 +128,10 @@ Route::middleware('auth')->group(function () {
     Route::any('documents/{any?}', fn () => redirect()->route('dashboard'))
         ->where('any', '.*')
         ->name('documents.hidden');
+
+    Route::get('bob/export', [BobController::class, 'export'])->name('bob.export');
+    Route::get('bob', [BobController::class, 'index'])->name('bob.index');
+    Route::post('bob', [BobController::class, 'update'])->name('bob.update');
 
     Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

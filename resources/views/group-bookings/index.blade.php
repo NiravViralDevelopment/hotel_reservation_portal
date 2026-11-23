@@ -70,32 +70,62 @@
           </div>
           <div class="modal-body">
             <p class="text-secondary small mb-3">
-              Upload an Excel file mapped to enquiry fields. Every imported row is saved with
-              <strong>is_confirm = 1</strong> and shown here.
+              Download the template, fill in the same columns shown on this page, then upload it.
+              The rows stay on this page until you click Confirm Group Booking. They are saved only for
+              <strong>{{ $importHotel?->name ?: 'the hotel you have selected' }}</strong>.
             </p>
             <div class="mb-3">
+              <a href="{{ route('group-bookings.import.template') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-download"></i> Download template
+              </a>
+            </div>
+            <div class="mb-0">
               <label for="import_file" class="form-label">Excel file <span class="text-danger">*</span></label>
               <input type="file" name="file" id="import_file" class="form-control @error('file') is-invalid @enderror" accept=".xlsx,.xls" required>
               @error('file')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
-            <div class="mb-0">
-              <label for="import_hotel_id" class="form-label">Hotel</label>
-              <select name="hotel_id" id="import_hotel_id" class="form-select">
-                <option value="">Current / first hotel</option>
-                @foreach ($hotels as $hotel)
-                  <option value="{{ $hotel->id }}" @selected((string) request('hotel_id') === (string) $hotel->id)>{{ $hotel->name }}</option>
-                @endforeach
-              </select>
-            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-accent"><i class="bi bi-upload"></i> Import</button>
+            <button type="submit" class="btn btn-accent"><i class="bi bi-upload"></i> Upload</button>
           </div>
         </form>
       </div>
     </div>
   </div>
+
+  @if (! empty($importPreview['rows']))
+    <div class="card mb-3">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>Uploaded group bookings{{ $importHotel ? ' for '.$importHotel->name : '' }}</span>
+        <form method="POST" action="{{ route('group-bookings.import.confirm') }}">
+          @csrf
+          <button type="submit" class="btn btn-accent btn-sm">Confirm Group Booking</button>
+        </form>
+      </div>
+      <div class="table-scroll-hint"><i class="bi bi-arrows-expand"></i> Scroll horizontally to see all columns</div>
+      <div class="table-wrapper table-scroll-wide">
+        <table class="table table-hover table-sm mb-0" style="font-size:0.78rem">
+          <thead>
+            <tr>
+              @foreach ($importPreview['headers'] as $header)
+                <th class="text-nowrap">{{ $header }}</th>
+              @endforeach
+            </tr>
+          </thead>
+          <tbody>
+            @foreach ($importPreview['rows'] as $row)
+              <tr>
+                @foreach ($importPreview['headers'] as $header)
+                  <td class="text-nowrap">{{ filled($row[$header] ?? null) ? $row[$header] : '—' }}</td>
+                @endforeach
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </div>
+  @endif
 
   <div class="card">
     <div class="table-toolbar">
@@ -126,6 +156,8 @@
       'defaultSort' => 'check_in',
       'defaultDir' => 'asc',
       'emptyMessage' => 'No confirmed bookings found.',
+      'showAttachments' => true,
+      'trackerOrder' => true,
     ])
 
     @include('partials.pagination-footer', ['paginator' => $bookings])

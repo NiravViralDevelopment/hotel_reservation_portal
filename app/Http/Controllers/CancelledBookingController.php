@@ -53,7 +53,7 @@ class CancelledBookingController extends Controller
                 $enquiry->nights,
                 $enquiry->block_id,
                 $enquiry->client,
-                $enquiry->contact_name,
+                $enquiry->contact_number,
                 $enquiry->email,
                 $status !== '' ? ucwords($status) : null,
                 $enquiry->contract_sent_on?->format('Y-m-d'),
@@ -71,6 +71,8 @@ class CancelledBookingController extends Controller
                 $this->exportMoney($enquiry->single_rate),
                 $enquiry->double_rooms,
                 $this->exportMoney($enquiry->double_rate),
+                $enquiry->twin_rooms,
+                $this->exportMoney($enquiry->twin_rate),
                 $enquiry->triple_rooms,
                 $this->exportMoney($enquiry->triple_rate),
                 $enquiry->total_rns,
@@ -101,7 +103,7 @@ class CancelledBookingController extends Controller
                 'No. of Nights',
                 'Block ID',
                 'Client',
-                'Contact',
+                'Contact number',
                 'Email ID',
                 'Status',
                 'Contract Sent On',
@@ -119,6 +121,8 @@ class CancelledBookingController extends Controller
                 'Single Gross Rate',
                 'Double RNs',
                 'Double Gross Rate',
+                'Twin RNs',
+                'Twin Gross Rate',
                 'Triple RNs',
                 'Triple Gross Rate',
                 'Total RNs',
@@ -147,7 +151,7 @@ class CancelledBookingController extends Controller
     {
         $query = Enquiry::query()
             ->accessibleBy()
-            ->with(['hotel', 'travelAgency'])
+            ->with(['hotel', 'travelAgency', 'contact'])
             ->cancelledBookings();
 
         if ($request->filled('q')) {

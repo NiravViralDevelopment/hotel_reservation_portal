@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\Enquiry;
 use App\Models\Hotel;
-use App\Models\TravelAgency;
+use App\Models\User;
 use App\Support\HotelAccess;
 use Illuminate\View\View;
 
@@ -22,19 +22,14 @@ class DashboardController extends Controller
             return view('dashboard.select-hotel', compact('allocatedHotels'));
         }
 
-        $hotelIds = HotelAccess::hotelIds();
-        $hotelsQuery = Hotel::query()->accessibleBy()->where('status', 'active');
         $confirmedQuery = Enquiry::query()->accessibleBy()->groupBookings();
         $enquiriesQuery = Enquiry::query()->accessibleBy();
 
         $stats = [
-            'hotels' => (clone $hotelsQuery)->count(),
-            'companies' => Company::query()
-                ->where('status', 'active')
-                ->whereHas('hotels', fn ($q) => $q->whereIn('hotels.id', $hotelIds ?: [0]))
-                ->count(),
-            'travelAgencies' => TravelAgency::query()->where('status', 'active')->count(),
-            'activeGroups' => (clone $confirmedQuery)->count(),
+            'hotels' => Hotel::query()->accessibleBy()->count(),
+            'companies' => Company::query()->count(),
+            'users' => User::query()->count(),
+            'activeGroups' => Enquiry::query()->accessibleBy()->groupBookings()->count(),
             'arrivalsToday' => (clone $confirmedQuery)->whereDate('check_in', now()->toDateString())->count(),
             'departuresToday' => (clone $confirmedQuery)->whereDate('check_out', now()->toDateString())->count(),
             'openEnquiries' => (clone $enquiriesQuery)->openPipeline()->count(),
@@ -52,6 +47,15 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard.index', compact('stats', 'upcomingArrivals', 'currentHotel', 'allocatedHotels'));
+        $upcomingDepartures = Enquiry::query()
+            ->accessibleBy()
+            ->with(['hotel', 'travelAgency'])
+            ->groupBookings()
+            ->whereDate('check_out', '>=', now()->toDateString())
+            ->orderBy('check_out')
+            ->limit(10)
+            ->get();
+
+        return view('dashboard.index', compact('stats', 'upcomingArrivals', 'upcomingDepartures', 'currentHotel', 'allocatedHotels'));
     }
 }

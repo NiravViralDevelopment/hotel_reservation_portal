@@ -37,6 +37,7 @@
 
     @include('group-bookings.partials.list-table', [
       'rows' => $bookings,
+      'trackerOrder' => true,
       'showCancellationReason' => true,
       'defaultSort' => 'updated_at',
       'defaultDir' => 'desc',

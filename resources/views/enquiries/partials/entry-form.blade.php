@@ -75,7 +75,19 @@
       </div>
       <div class="col-md-6 col-xl-3">
         <label for="rooms_per_night" class="form-label">Total Room per Night <span class="text-danger">*</span></label>
-        <input type="text" name="rooms_per_night" id="rooms_per_night" inputmode="numeric" class="form-control js-digits @error('rooms_per_night') is-invalid @enderror" value="{{ $v('rooms_per_night') }}" placeholder="Enter total rooms" required>
+        @php
+          $selectedRooms = $v('rooms_per_night');
+          $selectedRooms = ($selectedRooms === '' || $selectedRooms === null) ? null : (int) $selectedRooms;
+        @endphp
+        <select name="rooms_per_night" id="rooms_per_night" class="form-select @error('rooms_per_night') is-invalid @enderror" required>
+          <option value="" @selected($selectedRooms === null)>Select total rooms</option>
+          @for ($rooms = 1; $rooms <= 50; $rooms++)
+            <option value="{{ $rooms }}" @selected($selectedRooms === $rooms)>{{ $rooms }}</option>
+          @endfor
+          @if ($selectedRooms !== null && ($selectedRooms < 1 || $selectedRooms > 50))
+            <option value="{{ $selectedRooms }}" selected>{{ $selectedRooms }}</option>
+          @endif
+        </select>
         @error('rooms_per_night')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
     </div>
@@ -122,7 +134,7 @@
 <div class="card mb-3">
   <div class="card-header">
     <h2 class="enquiry-section-title"><i class="bi bi-door-open"></i> Rooms and rates</h2>
-    <span class="enquiry-section-hint">Each row is one date range. Enter the rooms per night. That row’s revenue is nights × ((Single × rate) + (Double × rate) + (Triple × rate)). The total adds every row.</span>
+    <span class="enquiry-section-hint">Each row is one date range. Enter the rooms per night. That row’s revenue is nights × ((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate)). The total adds every row.</span>
   </div>
   <div class="card-body">
     @php
@@ -159,7 +171,7 @@
   </div>
   <div class="card-body">
     <div class="row g-3 align-items-start">
-      <div class="col-md-6 col-xl-3">
+      <div class="col-md-6 col-xl-4">
         <label for="basis" class="form-label">Basis</label>
         <select name="basis" id="basis" class="form-select select2 @error('basis') is-invalid @enderror" data-placeholder="Select basis">
           <option value="">Select basis</option>
@@ -169,7 +181,17 @@
         </select>
         @error('basis')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
-      <div class="col-md-6 col-xl-3">
+      <div class="col-md-6 col-xl-4">
+        <label for="foc_rooms" class="form-label">FOC ROOMs</label>
+        <select name="foc_rooms" id="foc_rooms" class="form-select @error('foc_rooms') is-invalid @enderror">
+          <option value="">Select</option>
+          @for ($rooms = 1; $rooms <= 5; $rooms++)
+            <option value="{{ $rooms }}" @selected((string) $v('foc_rooms') === (string) $rooms)>{{ $rooms }}</option>
+          @endfor
+        </select>
+        @error('foc_rooms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      </div>
+      <div class="col-md-6 col-xl-4">
         <label for="option_date" class="form-label">Option Date</label>
         <div class="date-placeholder-wrap">
           <input type="date" name="option_date" id="option_date" class="form-control @error('option_date') is-invalid @enderror" value="{{ $v('option_date') }}">
@@ -177,13 +199,54 @@
         </div>
         @error('option_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
-      <div class="col-xl-6">
+      @php
+        $selectedNonRefundable = old('non_refundable');
+        if ($selectedNonRefundable === null && $e !== null && $e->non_refundable !== null) {
+            $selectedNonRefundable = $e->non_refundable ? '1' : '0';
+        }
+        $selectedNonRefundable = $selectedNonRefundable === null ? '' : (string) $selectedNonRefundable;
+        $nonRefundableYes = $selectedNonRefundable === '1';
+      @endphp
+      <div class="col-md-6 col-xl-4" id="cxl_policy_field" @if ($nonRefundableYes) hidden @endif>
         <label for="cxl_policy" class="form-label">CXL Policy</label>
-        <input type="text" name="cxl_policy" id="cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ $v('cxl_policy') }}" placeholder="e.g. 30 days" maxlength="255">
-        <div class="form-text">Enter the number of days before arrival.</div>
+        @php
+          $cxlPolicy = trim((string) $v('cxl_policy'));
+          $cxlDays = null;
+          if (preg_match('/^(\d+)\s*(days?)?$/i', $cxlPolicy, $cxlMatch)) {
+              $parsedCxlDays = (int) $cxlMatch[1];
+              if ($parsedCxlDays >= 1 && $parsedCxlDays <= 60) {
+                  $cxlDays = $parsedCxlDays;
+              }
+          }
+        @endphp
+        <select name="cxl_policy" id="cxl_policy" class="form-select @error('cxl_policy') is-invalid @enderror">
+          <option value="">Select days</option>
+          @for ($days = 1; $days <= 60; $days++)
+            @php $cxlLabel = $days === 1 ? '1 day' : $days.' days'; @endphp
+            <option value="{{ $cxlLabel }}" @selected($cxlDays === $days)>{{ $cxlLabel }}</option>
+          @endfor
+          @if ($cxlPolicy !== '' && $cxlDays === null)
+            <option value="{{ $cxlPolicy }}" selected>{{ $cxlPolicy }}</option>
+          @endif
+        </select>
+        <div class="form-text">Select the number of days before arrival.</div>
         @error('cxl_policy')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
-      <div class="col-md-6 col-xl-3">
+      <div class="col-md-6 col-xl-4">
+        <span class="form-label d-block">Non-refundable</span>
+        <div class="d-flex flex-wrap gap-3 align-items-center" style="min-height:38px;">
+          <div class="form-check mb-0">
+            <input class="form-check-input js-non-refundable" type="checkbox" name="non_refundable" id="non_refundable_yes" value="1" @checked($selectedNonRefundable === '1')>
+            <label class="form-check-label" for="non_refundable_yes">Yes</label>
+          </div>
+          <div class="form-check mb-0">
+            <input class="form-check-input js-non-refundable" type="checkbox" name="non_refundable" id="non_refundable_no" value="0" @checked($selectedNonRefundable === '0')>
+            <label class="form-check-label" for="non_refundable_no">No</label>
+          </div>
+        </div>
+        @error('non_refundable')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+      </div>
+      <div class="col-md-6 col-xl-4" id="cxl_due_date_field" @if ($nonRefundableYes) hidden @endif>
         <label for="cxl_due_date" class="form-label">CXL Due Date <span class="field-auto-badge">Auto</span></label>
         <div class="date-placeholder-wrap">
           <input type="date" name="cxl_due_date" id="cxl_due_date" class="form-control cxl-due-auto @error('cxl_due_date') is-invalid @enderror" value="{{ $v('cxl_due_date') }}" readonly tabindex="-1" aria-readonly="true">
@@ -192,16 +255,18 @@
         <div class="form-text">Arrival date minus the CXL Policy days.</div>
         @error('cxl_due_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
-      <div class="col-md-6 col-xl-3">
+    </div>
+    <div class="row g-3 align-items-start mt-0">
+      <div class="col-md-6 col-xl-4">
         <div class="revenue-panel">
           <label for="total_revenue_display" class="form-label">Total Revenue</label>
           <input type="text" id="total_revenue_display" class="form-control" value="" placeholder="£0.00" readonly>
           <input type="hidden" name="total_revenue" id="total_revenue" value="{{ $v('total_revenue') }}">
-          <div class="form-text">Sum of each row: Nights × ((Single × rate) + (Double × rate) + (Triple × rate))</div>
+          <div class="form-text">Sum of each row: Nights × ((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate))</div>
           @error('total_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>
-      <div class="col-md-6 col-xl-9">
+      <div class="col-md-6 col-xl-8">
         <label for="remarks" class="form-label">Remarks</label>
         <textarea name="remarks" id="remarks" rows="3" class="form-control @error('remarks') is-invalid @enderror" placeholder="Enter remarks">{{ $v('remarks') }}</textarea>
         @error('remarks')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror

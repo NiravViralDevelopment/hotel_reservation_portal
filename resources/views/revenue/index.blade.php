@@ -51,7 +51,7 @@
               <td class="text-end">£{{ number_format((float) ($row->total_revenue ?? 0), 2) }}</td>
               <td class="text-end">£{{ number_format((float) ($row->bb_revenue ?? 0), 2) }}</td>
               <td class="text-end">£{{ number_format((float) ($row->dinner_revenue ?? 0), 2) }}</td>
-              <td class="text-end">@if($snap)£{{ number_format((float) ($snap->bob_current ?? 0), 2) }}@else — @endif</td>
+              <td class="text-end">@if($snap && $snap->bob_nett !== null)£{{ number_format((float) $snap->bob_nett, 2) }}@else — @endif</td>
             </tr>
           @endfor
         </tbody>

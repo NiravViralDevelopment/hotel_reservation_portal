@@ -115,6 +115,8 @@
     <div class="cancel-banner">
       <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
       <div>
+        <div class="fw-semibold mb-1">Cancellation charges</div>
+        <div class="mb-2">{{ $enquiry->cancellation_charges === null ? '—' : ($enquiry->cancellation_charges ? 'Yes' : 'No') }}</div>
         <div class="fw-semibold mb-1">Cancellation reason</div>
         <div class="mb-0" style="white-space: pre-wrap;">{{ $enquiry->cancellation_reason ?: '—' }}</div>
       </div>
@@ -169,7 +171,7 @@
     <div class="card-body">
       <div class="gb-dl">
         <div><div class="gb-label">Client</div><div class="gb-value">{{ $text($enquiry->client) }}</div></div>
-        <div><div class="gb-label">Contact</div><div class="gb-value">{{ $text($enquiry->contact_name) }}</div></div>
+        <div><div class="gb-label">Contact number</div><div class="gb-value">{{ $text($enquiry->contact_number) }}</div></div>
         <div><div class="gb-label">Email ID</div><div class="gb-value">{{ $text($enquiry->email) }}</div></div>
         <div><div class="gb-label">Status</div><div class="gb-value"><x-badge-status :status="$enquiry->status" /></div></div>
       </div>
@@ -234,6 +236,8 @@
         <div><div class="gb-label">Single Gross Rate</div><div class="gb-value">{{ $money($enquiry->single_rate) }}</div></div>
         <div><div class="gb-label">Double RNs</div><div class="gb-value">{{ $enquiry->double_rooms ?? '—' }}</div></div>
         <div><div class="gb-label">Double Gross Rate</div><div class="gb-value">{{ $money($enquiry->double_rate) }}</div></div>
+        <div><div class="gb-label">Twin RNs</div><div class="gb-value">{{ $enquiry->twin_rooms ?? '—' }}</div></div>
+        <div><div class="gb-label">Twin Gross Rate</div><div class="gb-value">{{ $money($enquiry->twin_rate) }}</div></div>
         <div><div class="gb-label">Triple RNs</div><div class="gb-value">{{ $enquiry->triple_rooms ?? '—' }}</div></div>
         <div><div class="gb-label">Triple Gross Rate</div><div class="gb-value">{{ $money($enquiry->triple_rate) }}</div></div>
         <div><div class="gb-label">Total RNs</div><div class="gb-value">{{ $enquiry->total_rns ?? '—' }}</div></div>
@@ -242,7 +246,21 @@
         <div><div class="gb-label">Dinner Revenue (Nett £)</div><div class="gb-value">{{ $money($enquiry->dinner_revenue) }}</div></div>
         <div><div class="gb-label">Nett Rev EX VAT &amp; BF</div><div class="gb-value">{{ $money($enquiry->nett_rev_ex_vat) }}</div></div>
         <div><div class="gb-label">City Tax</div><div class="gb-value">{{ $money($enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat)) }}</div></div>
+        @php
+          $shownCityTax = $enquiry->hotel?->calculatedCityTax($enquiry->total_rns, $enquiry->nett_rev_ex_vat);
+          $shownCityTaxVat = $enquiry->city_tax_including_vat;
+          if ($shownCityTaxVat === null && $shownCityTax !== null) {
+              $shownCityTaxVat = round(((float) $shownCityTax) * 0.2, 2);
+          }
+          $shownTotalWithCityTax = $enquiry->total_rev_including_city_tax;
+          if ($shownTotalWithCityTax === null) {
+              $shownTotalWithCityTax = round((float) ($enquiry->total_revenue ?? 0) + (float) ($shownCityTaxVat ?? 0), 2);
+          }
+        @endphp
+        <div><div class="gb-label">City Tax Including VAT</div><div class="gb-value">{{ $money($shownCityTaxVat) }}</div></div>
+        <div><div class="gb-label">Total Rev Including City Tax</div><div class="gb-value">{{ $money($shownTotalWithCityTax) }}</div></div>
         <div><div class="gb-label">BB/DBB</div><div class="gb-value">{{ $text($enquiry->basis) }}</div></div>
+        <div><div class="gb-label">Total Dinner Covers</div><div class="gb-value">{{ $enquiry->total_dinner_covers === null ? '—' : $enquiry->total_dinner_covers }}</div></div>
       </div>
       @php
         $staySegments = is_array($enquiry->stay_segments) ? array_values($enquiry->stay_segments) : [];
@@ -264,6 +282,8 @@
                 <th class="text-end">Rate</th>
                 <th class="text-end">Double</th>
                 <th class="text-end">Rate</th>
+                <th class="text-end">Twin</th>
+                <th class="text-end">Rate</th>
                 <th class="text-end">Triple</th>
                 <th class="text-end">Rate</th>
                 <th class="text-end">Revenue</th>
@@ -273,6 +293,7 @@
                 @if ($showSegmentDinner)
                   <th class="text-end">Dinner</th>
                 @endif
+                <th class="text-end">Nett Rev EX VAT &amp; BF</th>
               </tr>
             </thead>
             <tbody>
@@ -281,6 +302,7 @@
                 $segmentRevenueTotal = 0.0;
                 $segmentBbTotal = 0.0;
                 $segmentDinnerTotal = 0.0;
+                $segmentNettTotal = 0.0;
               @endphp
               @foreach ($staySegments as $segment)
                 @php
@@ -289,16 +311,20 @@
                   $segmentSingleRate = (float) ($segment['single_rate'] ?? 0);
                   $segmentDouble = (int) ($segment['double_rooms'] ?? 0);
                   $segmentDoubleRate = (float) ($segment['double_rate'] ?? 0);
+                  $segmentTwin = (int) ($segment['twin_rooms'] ?? 0);
+                  $segmentTwinRate = (float) ($segment['twin_rate'] ?? 0);
                   $segmentTriple = (int) ($segment['triple_rooms'] ?? 0);
                   $segmentTripleRate = (float) ($segment['triple_rate'] ?? 0);
-                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTriple * $segmentTripleRate));
-                  $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTriple * 3));
+                  $segmentRevenue = $segmentNights * (($segmentSingle * $segmentSingleRate) + ($segmentDouble * $segmentDoubleRate) + ($segmentTwin * $segmentTwinRate) + ($segmentTriple * $segmentTripleRate));
+                  $segmentCovers = $segmentNights * (($segmentSingle * 1) + ($segmentDouble * 2) + ($segmentTwin * 2) + ($segmentTriple * 3));
                   $segmentBb = $segmentCovers * $segmentBreakfast;
                   $segmentDinnerAmount = $segmentCovers * $segmentDinner;
+                  $segmentNett = (($segmentRevenue * 100) / 120) - $segmentBb - ($enquiry->dinner_rate !== null ? $segmentDinnerAmount : 0);
                   $segmentNightsTotal += $segmentNights;
                   $segmentRevenueTotal += $segmentRevenue;
                   $segmentBbTotal += $segmentBb;
                   $segmentDinnerTotal += $segmentDinnerAmount;
+                  $segmentNettTotal += $segmentNett;
                 @endphp
                 <tr>
                   <td class="text-nowrap">{{ \Illuminate\Support\Carbon::parse($segment['check_in'])->format('d-m-Y') }}</td>
@@ -309,6 +335,8 @@
                   <td class="text-end">{{ $money($segmentSingleRate) }}</td>
                   <td class="text-end">{{ $segmentDouble }}</td>
                   <td class="text-end">{{ $money($segmentDoubleRate) }}</td>
+                  <td class="text-end">{{ $segmentTwin }}</td>
+                  <td class="text-end">{{ $money($segmentTwinRate) }}</td>
                   <td class="text-end">{{ $segmentTriple }}</td>
                   <td class="text-end">{{ $money($segmentTripleRate) }}</td>
                   <td class="text-end fw-semibold">{{ $money($segmentRevenue) }}</td>
@@ -318,6 +346,7 @@
                   @if ($showSegmentDinner)
                     <td class="text-end">{{ $money($segmentDinnerAmount) }}</td>
                   @endif
+                  <td class="text-end fw-semibold">{{ $money($segmentNett) }}</td>
                 </tr>
               @endforeach
             </tbody>
@@ -325,7 +354,7 @@
               <tr>
                 <th scope="row" colspan="3">Total</th>
                 <td class="text-end fw-semibold">{{ $segmentNightsTotal }}</td>
-                <td colspan="6"></td>
+                <td colspan="8"></td>
                 <td class="text-end fw-semibold">{{ $money($segmentRevenueTotal) }}</td>
                 @if ($showSegmentBreakfast)
                   <td class="text-end fw-semibold">{{ $money($segmentBbTotal) }}</td>
@@ -333,6 +362,7 @@
                 @if ($showSegmentDinner)
                   <td class="text-end fw-semibold">{{ $money($segmentDinnerTotal) }}</td>
                 @endif
+                <td class="text-end fw-semibold">{{ $money($segmentNettTotal) }}</td>
               </tr>
             </tfoot>
           </table>
@@ -373,9 +403,31 @@
             </div>
             <div class="modal-body">
               <p class="text-secondary">Cancel this group booking? The status will be set to Cancelled and it will move to Cancelled Bookings.</p>
+              <label for="show_booking_cancel_at" class="form-label">Cancel on</label>
+              <input type="datetime-local" name="cancel_at" id="show_booking_cancel_at" class="form-control mb-3 @error('cancel_at') is-invalid @enderror" value="{{ old('cancel_at', now()->format('Y-m-d\TH:i')) }}" @if (old('cancel_at')) data-keep="1" @endif readonly tabindex="-1" aria-readonly="true">
+              @error('cancel_at')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
+              <label for="show_booking_cxl_date" class="form-label">CXL Date</label>
+              <div class="date-placeholder-wrap mb-3">
+                <input type="date" name="cxl_date" id="show_booking_cxl_date" class="form-control @error('cxl_date') is-invalid @enderror" value="{{ old('cxl_date') }}">
+                <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+              </div>
+              @error('cxl_date')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
               <label for="booking_cancellation_reason" class="form-label">Cancellation reason <span class="text-danger">*</span></label>
-              <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancellation_reason') }}</textarea>
-              @error('cancellation_reason')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+              <textarea name="cancellation_reason" id="booking_cancellation_reason" rows="4" class="form-control mb-3 @error('cancellation_reason') is-invalid @enderror" required maxlength="2000" placeholder="Enter the cancellation reason">{{ old('cancellation_reason') }}</textarea>
+              @error('cancellation_reason')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
+              @php $selectedCancellationCharges = old('cancellation_charges'); @endphp
+              <label class="form-label d-block">Cancellation charges <span class="text-danger">*</span></label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input js-cancellation-charges" type="checkbox" name="cancellation_charges" id="show_booking_cancellation_charges_yes" value="1" @checked((string) $selectedCancellationCharges === '1')>
+                  <label class="form-check-label" for="show_booking_cancellation_charges_yes">Yes</label>
+                </div>
+                <div class="form-check mb-0">
+                  <input class="form-check-input js-cancellation-charges" type="checkbox" name="cancellation_charges" id="show_booking_cancellation_charges_no" value="0" @checked((string) $selectedCancellationCharges === '0')>
+                  <label class="form-check-label" for="show_booking_cancellation_charges_no">No</label>
+                </div>
+              </div>
+              @error('cancellation_charges')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
@@ -386,10 +438,35 @@
       </div>
     </div>
   @endcan
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var input = document.getElementById('show_booking_cancel_at');
+      var modal = document.getElementById('cancelGroupBookingModal');
+      document.querySelectorAll('#cancelGroupBookingModal .js-cancellation-charges').forEach(function (box) {
+        box.addEventListener('change', function () {
+          if (!box.checked) return;
+          document.querySelectorAll('#cancelGroupBookingModal .js-cancellation-charges').forEach(function (other) {
+            if (other !== box) other.checked = false;
+          });
+        });
+      });
+      if (!input || input.dataset.keep === '1') return;
+
+      function stampCancelOn() {
+        var now = new Date();
+        var pad = function (value) { return String(value).padStart(2, '0'); };
+        input.value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+          + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+      }
+
+      stampCancelOn();
+      if (modal) modal.addEventListener('show.bs.modal', stampCancelOn);
+    });
+  </script>
 @endif
 @endsection
 
-@if ($errors->has('cancellation_reason'))
+@if ($errors->has('cancellation_reason') || $errors->has('cancellation_charges') || $errors->has('cxl_date') || $errors->has('cancel_at'))
   @push('scripts')
     <script>
       document.addEventListener('DOMContentLoaded', function () {

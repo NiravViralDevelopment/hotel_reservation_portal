@@ -11,7 +11,7 @@
   $recordRoute = $recordRoute ?? 'enquiries.show';
   $editRoute = $editRoute ?? 'enquiries.edit';
   $recordQuery = $recordQuery ?? [];
-  $enquiryColspan = ($showCancellationReason ? 26 : 24) + ($showCreatedBy ? 1 : 0);
+  $enquiryColspan = ($showCancellationReason ? 29 : 26) + ($showCreatedBy ? 1 : 0);
   $money = function ($value) {
       if ($value === null || $value === '') {
           return '—';
@@ -46,6 +46,8 @@
         <th>Single Rate</th>
         <th>Double</th>
         <th>Double Rate</th>
+        <th>Twin</th>
+        <th>Twin Rate</th>
         <th>Triple</th>
         <th>Triple Rate</th>
         <th>Basis</th>
@@ -55,6 +57,7 @@
         <x-sortable-th column="total_revenue" label="Total Revenue" :default="$defaultSort" :default-dir="$defaultDir" />
         <th>Remarks</th>
         @if ($showCancellationReason)
+          <x-sortable-th column="cancel_at" label="Cancel on" :default="$defaultSort" :default-dir="$defaultDir" />
           <th>CXL Date</th>
           <th>Cancellation Reason</th>
         @endif
@@ -83,6 +86,8 @@
           <td class="text-nowrap">{{ $money($enquiry->single_rate) }}</td>
           <td>{{ $enquiry->double_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->double_rate) }}</td>
+          <td>{{ $enquiry->twin_rooms ?? '—' }}</td>
+          <td class="text-nowrap">{{ $money($enquiry->twin_rate) }}</td>
           <td>{{ $enquiry->triple_rooms ?? '—' }}</td>
           <td class="text-nowrap">{{ $money($enquiry->triple_rate) }}</td>
           <td class="text-nowrap">{{ $enquiry->basis ?: '—' }}</td>
@@ -92,6 +97,7 @@
           <td class="text-nowrap fw-semibold">{{ $money($enquiry->total_revenue) }}</td>
           <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->remarks }}">{{ $enquiry->remarks ?: '—' }}</td>
           @if ($showCancellationReason)
+            <td class="text-nowrap">{{ $enquiry->cancel_at?->format('d M Y H:i') ?? '—' }}</td>
             <td class="text-nowrap">{{ $enquiry->cxl_date?->format('d M Y') ?? '—' }}</td>
             <td style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $enquiry->cancellation_reason }}">{{ $enquiry->cancellation_reason ?: '—' }}</td>
           @endif
@@ -123,7 +129,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="{{ 24 + ($showCancellationReason ? 2 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
+        <tr><td colspan="{{ 26 + ($showCancellationReason ? 3 : 0) + ($showCreatedBy ? 1 : 0) }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
         <tr><td colspan="{{ $enquiryColspan }}" class="text-center text-secondary py-4">{{ $emptyMessage }}</td></tr>
       @endforelse
     </tbody>

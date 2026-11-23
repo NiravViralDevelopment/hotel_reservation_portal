@@ -63,6 +63,8 @@ class CancelledInquiryController extends Controller
                 $this->exportMoney($enquiry->single_rate),
                 $this->exportInt($enquiry->double_rooms),
                 $this->exportMoney($enquiry->double_rate),
+                $this->exportInt($enquiry->twin_rooms),
+                $this->exportMoney($enquiry->twin_rate),
                 $this->exportInt($enquiry->triple_rooms),
                 $this->exportMoney($enquiry->triple_rate),
                 $enquiry->basis,
@@ -71,6 +73,7 @@ class CancelledInquiryController extends Controller
                 $enquiry->cxl_due_date?->format('Y-m-d'),
                 $this->exportMoney($enquiry->total_revenue),
                 $enquiry->remarks,
+                $enquiry->cancel_at?->format('Y-m-d H:i'),
                 $enquiry->cancellation_reason,
             ];
         })->all();
@@ -95,6 +98,8 @@ class CancelledInquiryController extends Controller
                 'Single Rate',
                 'Double',
                 'Double Rate',
+                'Twin',
+                'Twin Rate',
                 'Triple',
                 'Triple Rate',
                 'Basis',
@@ -103,6 +108,7 @@ class CancelledInquiryController extends Controller
                 'CXL Due Date',
                 'Total Revenue',
                 'Remarks',
+                'Cancel on',
                 'Cancellation Reason',
             ],
             $rows
@@ -154,6 +160,7 @@ class CancelledInquiryController extends Controller
             'status' => 'status',
             'total_revenue' => 'total_revenue',
             'option_date' => 'option_date',
+            'cancel_at' => 'cancel_at',
             'updated_at' => 'updated_at',
         ], 'updated_at', 'desc');
 

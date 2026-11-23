@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasPublicUuid;
 use App\Support\HotelAccess;
+use App\Support\TotalDinnerCovers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,6 +44,8 @@ class Enquiry extends Model
         'single_to_date',
         'double_rooms',
         'double_rate',
+        'twin_rooms',
+        'twin_rate',
         'double_from_date',
         'double_to_date',
         'triple_rooms',
@@ -59,6 +62,8 @@ class Enquiry extends Model
         'tax_percentage',
         'tax_revenue',
         'cxl_policy',
+        'non_refundable',
+        'foc_rooms',
         'option_date',
         'email',
         'mobile',
@@ -91,8 +96,9 @@ class Enquiry extends Model
         'is_confirm',
         'is_cancel',
         'cancellation_reason',
+        'cancellation_charges',
         'block_id',
-        'contact_name',
+        'contact_number',
         'contract_sent_on',
         'contract_received_on',
         'saved_to_doc',
@@ -102,14 +108,18 @@ class Enquiry extends Model
         'payment_status',
         'cxl_due_date',
         'cxl_date',
+        'cancel_at',
         'has_commission',
         'commission_percentage',
         'commission',
         'total_rns',
         'bb_revenue',
         'dinner_revenue',
+        'total_dinner_covers',
         'nett_rev_ex_vat',
         'city_tax',
+        'city_tax_including_vat',
+        'total_rev_including_city_tax',
         'booking_update',
         'rooming',
         'invoice_status',
@@ -151,7 +161,9 @@ class Enquiry extends Model
             'contract_received_on' => 'date',
             'payment_due_date' => 'date',
             'cxl_due_date' => 'date',
+            'non_refundable' => 'boolean',
             'cxl_date' => 'date',
+            'cancel_at' => 'datetime',
             'invoice_sent_on' => 'date',
             'year' => 'integer',
             'payment_term_days' => 'integer',
@@ -162,15 +174,19 @@ class Enquiry extends Model
             'rooms_per_night' => 'integer',
             'single_rooms' => 'integer',
             'double_rooms' => 'integer',
+            'twin_rooms' => 'integer',
             'triple_rooms' => 'integer',
+            'foc_rooms' => 'integer',
             'total_pax' => 'integer',
             'single_rate' => 'decimal:2',
             'double_rate' => 'decimal:2',
+            'twin_rate' => 'decimal:2',
             'triple_rate' => 'decimal:2',
             'total_revenue' => 'decimal:2',
             'has_tax' => 'boolean',
             'is_confirm' => 'boolean',
             'is_cancel' => 'boolean',
+            'cancellation_charges' => 'boolean',
             'tax_percentage' => 'decimal:2',
             'tax_revenue' => 'decimal:2',
             'adults_price' => 'decimal:2',
@@ -195,8 +211,11 @@ class Enquiry extends Model
             'dinner_rate' => 'decimal:2',
             'bb_revenue' => 'decimal:2',
             'dinner_revenue' => 'decimal:2',
+            'total_dinner_covers' => 'integer',
             'nett_rev_ex_vat' => 'decimal:2',
             'city_tax' => 'decimal:2',
+            'city_tax_including_vat' => 'decimal:2',
+            'total_rev_including_city_tax' => 'decimal:2',
             'invoice_amount' => 'decimal:2',
             'total_rns' => 'integer',
             'booking_contract_size' => 'integer',
@@ -206,9 +225,21 @@ class Enquiry extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Enquiry $enquiry): void {
+            $enquiry->total_dinner_covers = TotalDinnerCovers::calculate(
+                is_array($enquiry->stay_segments) ? $enquiry->stay_segments : [],
+                is_array($enquiry->daily_room_rates) ? $enquiry->daily_room_rates : [],
+                (int) ($enquiry->single_rooms ?? 0),
+                (int) ($enquiry->double_rooms ?? 0),
+                (int) ($enquiry->triple_rooms ?? 0),
+                (int) ($enquiry->nights ?? 0),
+            );
+        });
+
         static::deleting(function (Enquiry $enquiry): void {
             $enquiry->deleteBookingContractFile();
             $enquiry->contractPhotos()->get()->each->delete();
+            $enquiry->attachments()->get()->each->delete();
         });
     }
 
@@ -282,6 +313,11 @@ class Enquiry extends Model
     public function contractPhotos(): HasMany
     {
         return $this->hasMany(EnquiryContractPhoto::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(GroupBookingAttachment::class);
     }
 
     /**

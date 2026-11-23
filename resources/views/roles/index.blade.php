@@ -23,7 +23,6 @@
         <thead>
           <tr>
             <x-sortable-th column="name" label="Role" />
-            <x-sortable-th column="users" label="Users" class="text-center" />
             <th>Permissions</th>
             <th class="text-end">Actions</th>
           </tr>
@@ -34,7 +33,6 @@
               <td class="fw-semibold">
                 <a href="{{ route('roles.show', $role) }}">{{ $role->name }}</a>
               </td>
-              <td class="text-center">{{ $role->users_count }}</td>
               <td>
                 @if ($role->name === 'Administrator')
                   <span class="badge bg-info-subtle text-info-emphasis border">Full access</span>
@@ -59,7 +57,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="4" class="text-center text-secondary py-5">
+              <td colspan="3" class="text-center text-secondary py-5">
                 <div class="mb-2"><i class="bi bi-shield-check fs-3"></i></div>
                 <div>No roles found.</div>
               </td>

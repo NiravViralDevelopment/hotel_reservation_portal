@@ -39,9 +39,9 @@ class BookingContractHtml
 
         $clientName = $agency?->name ?: ($enquiry->client ?: $enquiry->group_name);
         $clientCityLine = collect([$agency?->city, $agency?->country])->filter()->implode(', ');
-        $clientContact = $enquiry->contact_name ?: ($contact?->name ?: $agency?->contact_name);
+        $clientContact = $contact?->name ?: $agency?->contact_name;
         $clientRole = $contact?->position;
-        $clientPhone = $enquiry->mobile ?: ($contact?->phone ?: $agency?->phone);
+        $clientPhone = $enquiry->contact_number ?: ($enquiry->mobile ?: ($contact?->phone ?: $agency?->phone));
         $clientEmail = $enquiry->email ?: ($contact?->email ?: $agency?->email);
 
         $nights = (int) ($enquiry->nights ?? 0);
@@ -368,6 +368,7 @@ class BookingContractHtml
         foreach ([
             'single_rooms' => 'Single',
             'double_rooms' => 'Double',
+            'twin_rooms' => 'Twin',
             'triple_rooms' => 'Triple',
         ] as $field => $label) {
             $count = (int) ($enquiry->{$field} ?? 0);
@@ -389,6 +390,9 @@ class BookingContractHtml
         }
         if ($enquiry->double_rate !== null && $enquiry->double_rate !== '') {
             $parts[] = $money($enquiry->double_rate).' DBL';
+        }
+        if ((float) ($enquiry->twin_rate ?? 0) > 0 || (int) ($enquiry->twin_rooms ?? 0) > 0) {
+            $parts[] = $money($enquiry->twin_rate).' TWN';
         }
         if ($enquiry->triple_rate !== null && $enquiry->triple_rate !== '') {
             $parts[] = $money($enquiry->triple_rate).' TPL';

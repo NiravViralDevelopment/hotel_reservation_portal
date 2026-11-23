@@ -12,10 +12,10 @@ class SimpleXlsxWriter
      * @param  list<string>  $headers
      * @param  list<list<string|int|float|null>>  $rows
      */
-    public static function download(string $filename, array $headers, array $rows): StreamedResponse
+    public static function download(string $filename, array $headers, array $rows, string $sheetName = 'Group bookings'): StreamedResponse
     {
-        return response()->streamDownload(function () use ($headers, $rows) {
-            $path = self::writeTemp($headers, $rows);
+        return response()->streamDownload(function () use ($headers, $rows, $sheetName) {
+            $path = self::writeTemp($headers, $rows, $sheetName);
             $handle = fopen($path, 'rb');
             if ($handle === false) {
                 @unlink($path);
@@ -37,7 +37,7 @@ class SimpleXlsxWriter
      * @param  list<string>  $headers
      * @param  list<list<string|int|float|null>>  $rows
      */
-    public static function writeTemp(array $headers, array $rows): string
+    public static function writeTemp(array $headers, array $rows, string $sheetName = 'Group bookings'): string
     {
         $base = tempnam(sys_get_temp_dir(), 'xlsx');
         if ($base === false) {
@@ -56,7 +56,7 @@ class SimpleXlsxWriter
 
         $zip->addFromString('[Content_Types].xml', self::contentTypes());
         $zip->addFromString('_rels/.rels', self::rootRels());
-        $zip->addFromString('xl/workbook.xml', self::workbook());
+        $zip->addFromString('xl/workbook.xml', self::workbook($sheetName));
         $zip->addFromString('xl/_rels/workbook.xml.rels', self::workbookRels());
         $zip->addFromString('xl/styles.xml', self::styles());
         $zip->addFromString('xl/sharedStrings.xml', $shared);
@@ -186,12 +186,26 @@ class SimpleXlsxWriter
             .'</Relationships>';
     }
 
-    private static function workbook(): string
+    private static function workbook(string $sheetName): string
     {
+        $name = self::sheetName($sheetName);
+
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             .'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            .'<sheets><sheet name="Group bookings" sheetId="1" r:id="rId1"/></sheets>'
+            .'<sheets><sheet name="'.self::xmlText($name).'" sheetId="1" r:id="rId1"/></sheets>'
             .'</workbook>';
+    }
+
+    private static function sheetName(string $name): string
+    {
+        $name = preg_replace('/[\\\\\\/\\?\\*\\[\\]:]/', '', $name) ?? '';
+        $name = trim($name);
+
+        if ($name === '') {
+            return 'Sheet1';
+        }
+
+        return mb_substr($name, 0, 31);
     }
 
     private static function workbookRels(): string

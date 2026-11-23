@@ -24,10 +24,22 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:30', 'regex:/^[A-Za-z][A-Za-z\s\'.-]*$/'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\s()-]*$/'],
             'job_title' => ['nullable', 'string', 'max:255'],
+        ], [
+            'name.regex' => 'Numbers are not allowed in name.',
+            'phone.regex' => 'Phone can only contain numbers.',
         ]);
+
+        if (! empty($validated['phone'])) {
+            $digits = preg_replace('/\D+/', '', $validated['phone']) ?? '';
+            if (strlen($digits) < 7 || strlen($digits) > 15) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['phone' => 'Enter a valid phone number.']);
+            }
+        }
 
         $user->update($validated);
         Audit::log('updated', 'profile', $user->email, $user);

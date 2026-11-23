@@ -84,6 +84,8 @@
             single_rate: item.single_rate,
             double_rooms: item.double_rooms,
             double_rate: item.double_rate,
+            twin_rooms: item.twin_rooms,
+            twin_rate: item.twin_rate,
             triple_rooms: item.triple_rooms,
             triple_rate: item.triple_rate
           });
@@ -95,7 +97,7 @@
     var rows = [];
     document.querySelectorAll('#stay-date-list tbody tr[data-stay-date]').forEach(function (row) {
       var item = { date: row.getAttribute('data-stay-date') };
-      ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'].forEach(function (key) {
+      ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'twin_rooms', 'twin_rate', 'triple_rooms', 'triple_rate'].forEach(function (key) {
         var input = row.querySelector('[data-field="' + key + '"]');
         item[key] = input ? input.value : '';
       });
@@ -115,7 +117,7 @@
     holder.innerHTML = rows.map(function (row) {
       var date = String(row.date || '');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return '';
-      return ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'triple_rooms', 'triple_rate'].map(function (key) {
+      return ['single_rooms', 'single_rate', 'double_rooms', 'double_rate', 'twin_rooms', 'twin_rate', 'triple_rooms', 'triple_rate'].map(function (key) {
         return '<input type="hidden" name="daily_rooms[' + date + '][' + key + ']" value="' + String(row[key] == null ? '' : row[key]).replace(/"/g, '') + '">';
       }).join('');
     }).join('');
@@ -137,10 +139,12 @@
     var singleRate = parseAmount(row.single_rate);
     var doubleRooms = parseAmount(row.double_rooms);
     var doubleRate = parseAmount(row.double_rate);
+    var twinRooms = parseAmount(row.twin_rooms);
+    var twinRate = parseAmount(row.twin_rate);
     var triple = parseAmount(row.triple_rooms);
     var tripleRate = parseAmount(row.triple_rate);
-    var rooms = single + doubleRooms + triple;
-    var revenue = (single * singleRate) + (doubleRooms * doubleRate) + (triple * tripleRate);
+    var rooms = single + doubleRooms + twinRooms + triple;
+    var revenue = (single * singleRate) + (doubleRooms * doubleRate) + (twinRooms * twinRate) + (triple * tripleRate);
     return {
       date: row.date,
       single: single,
@@ -149,13 +153,16 @@
       doubleRooms: doubleRooms,
       doubleRate: doubleRate,
       doubleRevenue: doubleRooms * doubleRate,
+      twinRooms: twinRooms,
+      twinRate: twinRate,
+      twinRevenue: twinRooms * twinRate,
       triple: triple,
       tripleRate: tripleRate,
       tripleRevenue: triple * tripleRate,
       rooms: rooms,
       revenue: revenue,
       average: rooms > 0 ? revenue / rooms : 0,
-      covers: (single * 1) + (doubleRooms * 2) + (triple * 3)
+      covers: (single * 1) + (doubleRooms * 2) + (twinRooms * 2) + (triple * 3)
     };
   }
 
@@ -168,6 +175,8 @@
       singleRevenue: 0,
       doubleRooms: 0,
       doubleRevenue: 0,
+      twinRooms: 0,
+      twinRevenue: 0,
       tripleRooms: 0,
       tripleRevenue: 0
     };
@@ -180,6 +189,8 @@
       summary.singleRevenue += day.singleRevenue;
       summary.doubleRooms += day.doubleRooms;
       summary.doubleRevenue += day.doubleRevenue;
+      summary.twinRooms += day.twinRooms;
+      summary.twinRevenue += day.twinRevenue;
       summary.tripleRooms += day.triple;
       summary.tripleRevenue += day.tripleRevenue;
     });
@@ -194,6 +205,7 @@
     [
       ['single', summary.singleRooms, summary.singleRevenue],
       ['double', summary.doubleRooms, summary.doubleRevenue],
+      ['twin', summary.twinRooms, summary.twinRevenue],
       ['triple', summary.tripleRooms, summary.tripleRevenue]
     ].forEach(function (item) {
       var roomsEl = field('gb_' + item[0] + '_rooms');
@@ -208,14 +220,14 @@
       }
     });
     setHint('gb_rooms_hint', 'Each date is totalled on its own. Room counts are the sum of those dates, and each rate is that room type’s revenue divided by its rooms.');
-    setHint('gb_total_rns_hint', 'Sum of each date’s single, double, and triple rooms.');
-    setHint('gb_total_revenue_hint', 'Sum of each date’s (Single × rate) + (Double × rate) + (Triple × rate).');
-    setHint('gb_bb_revenue_hint', 'Sum of each date’s covers × breakfast rate. Covers = (Single × 1) + (Double × 2) + (Triple × 3).');
-    setHint('gb_dinner_revenue_hint', 'Sum of each date’s covers × dinner rate. Covers = (Single × 1) + (Double × 2) + (Triple × 3).');
+    setHint('gb_total_rns_hint', 'Sum of each date’s single, double, twin, and triple rooms.');
+    setHint('gb_total_revenue_hint', 'Sum of each date’s (Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate).');
+    setHint('gb_bb_revenue_hint', 'Sum of each date’s covers × breakfast rate. Covers = (Single × 1) + (Double × 2) + (Twin × 2) + (Triple × 3).');
+    setHint('gb_dinner_revenue_hint', 'Sum of each date’s covers × dinner rate. Covers = (Single × 1) + (Double × 2) + (Twin × 2) + (Triple × 3).');
   }
 
   function unlockRoomFields() {
-    ['single', 'double', 'triple'].forEach(function (type) {
+    ['single', 'double', 'twin', 'triple'].forEach(function (type) {
       var roomsEl = field('gb_' + type + '_rooms');
       var rateEl = field('gb_' + type + '_rate');
       if (roomsEl) roomsEl.readOnly = false;
@@ -225,10 +237,10 @@
 
   function resetAggregateHints() {
     setHint('gb_rooms_hint', 'Room counts, rates, and nights update Total RNs, Total Rev, BB Revenue, and Nett Rev.');
-    setHint('gb_total_rns_hint', '(Single + Double + Triple) × nights');
-    setHint('gb_total_revenue_hint', '((Single × rate) + (Double × rate) + (Triple × rate)) × nights');
-    setHint('gb_bb_revenue_hint', '((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate');
-    setHint('gb_dinner_revenue_hint', '((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Triple RNs × 3)) × dinner rate');
+    setHint('gb_total_rns_hint', '(Single + Double + Twin + Triple) × nights');
+    setHint('gb_total_revenue_hint', '((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate)) × nights');
+    setHint('gb_bb_revenue_hint', '((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Twin RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate');
+    setHint('gb_dinner_revenue_hint', '((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Twin RNs × 2) + (Nights × Triple RNs × 3)) × dinner rate');
   }
 
   function renderDailyBreakdown(summary) {
@@ -254,6 +266,7 @@
         + '<td class="fw-semibold text-nowrap">' + formatDmY(day.date) + '</td>'
         + '<td>' + Math.round(day.single) + '</td><td>' + money(day.singleRate) + '</td>'
         + '<td>' + Math.round(day.doubleRooms) + '</td><td>' + money(day.doubleRate) + '</td>'
+        + '<td>' + Math.round(day.twinRooms) + '</td><td>' + money(day.twinRate) + '</td>'
         + '<td>' + Math.round(day.triple) + '</td><td>' + money(day.tripleRate) + '</td>'
         + '<td class="stay-calc">' + Math.round(day.rooms) + '</td>'
         + '<td class="stay-calc">' + money(day.average) + '</td>'
@@ -267,17 +280,18 @@
       + '<div class="table-responsive"><table class="table table-sm table-hover stay-date-table mb-0">'
       + '<thead><tr>'
       + '<th rowspan="2">Date</th>'
-      + '<th colspan="2">Single</th><th colspan="2">Double</th><th colspan="2">Triple</th>'
+      + '<th colspan="2">Single</th><th colspan="2">Double</th><th colspan="2">Twin</th><th colspan="2">Triple</th>'
       + '<th rowspan="2" class="stay-calc">Rooms</th>'
       + '<th rowspan="2" class="stay-calc">Avg rate</th>'
       + '<th rowspan="2" class="stay-calc">Revenue</th>'
       + (showBreakfast ? '<th rowspan="2" class="stay-calc">BB</th>' : '')
       + (showDinner ? '<th rowspan="2" class="stay-calc">Dinner</th>' : '')
-      + '</tr><tr><th>Rooms</th><th>Rate</th><th>Rooms</th><th>Rate</th><th>Rooms</th><th>Rate</th></tr></thead>'
+      + '</tr><tr><th>Rooms</th><th>Rate</th><th>Rooms</th><th>Rate</th><th>Rooms</th><th>Rate</th><th>Rooms</th><th>Rate</th></tr></thead>'
       + '<tbody>' + body + '</tbody><tfoot><tr>'
       + '<th scope="row">Total</th>'
       + '<td>' + Math.round(summary.singleRooms) + '</td><td>' + money(weightedRate(summary.singleRooms, summary.singleRevenue)) + '</td>'
       + '<td>' + Math.round(summary.doubleRooms) + '</td><td>' + money(weightedRate(summary.doubleRooms, summary.doubleRevenue)) + '</td>'
+      + '<td>' + Math.round(summary.twinRooms) + '</td><td>' + money(weightedRate(summary.twinRooms, summary.twinRevenue)) + '</td>'
       + '<td>' + Math.round(summary.tripleRooms) + '</td><td>' + money(weightedRate(summary.tripleRooms, summary.tripleRevenue)) + '</td>'
       + '<td class="stay-calc">' + Math.round(summary.rooms) + '</td>'
       + '<td class="stay-calc">' + money(weightedRate(summary.rooms, summary.revenue)) + '</td>'
@@ -290,6 +304,16 @@
   function selectedBasis() {
     var el = field('gb_basis');
     return el ? el.value : '';
+  }
+
+  function nettInputsReady() {
+    var basis = selectedBasis();
+    var breakfastRateEl = field('gb_breakfast_rate');
+    var dinnerRateEl = field('gb_dinner_rate');
+    if (basis !== 'BB' && basis !== 'DBB') return false;
+    if (!breakfastRateEl || breakfastRateEl.value.trim() === '') return false;
+    if (basis === 'DBB' && (!dinnerRateEl || dinnerRateEl.value.trim() === '')) return false;
+    return true;
   }
 
   function updateMealInputs() {
@@ -316,6 +340,7 @@
     var nights = num('gb_nights');
     return (nights * num('gb_single_rooms') * 1)
       + (nights * num('gb_double_rooms') * 2)
+      + (nights * num('gb_twin_rooms') * 2)
       + (nights * num('gb_triple_rooms') * 3);
   }
 
@@ -339,7 +364,14 @@
     setMoney('gb_total_revenue', 'gb_total_revenue_display', totalRev);
     setMoney('gb_bb_revenue', 'gb_bb_revenue_display', bbRevenue);
     setMoney('gb_dinner_revenue', 'gb_dinner_revenue_display', dinnerRevenue);
-    setMoney('gb_nett_rev_ex_vat', 'gb_nett_rev_ex_vat_display', nettRev);
+    if (nettInputsReady()) {
+      setMoney('gb_nett_rev_ex_vat', 'gb_nett_rev_ex_vat_display', nettRev);
+    } else {
+      var nettInput = field('gb_nett_rev_ex_vat');
+      var nettDisplay = field('gb_nett_rev_ex_vat_display');
+      if (nettInput) nettInput.value = '';
+      if (nettDisplay) nettDisplay.value = '';
+    }
     writeCityTax(totalRns, nettRev);
   }
 
@@ -358,6 +390,7 @@
     var config = cityTaxConfig();
     var hint = field('gb_city_tax_hint');
     var display = field('gb_city_tax_display');
+    var vatDisplay = field('gb_city_tax_vat_display');
     var input = field('gb_city_tax');
     var basis = config.basis || '';
     var cityTax = null;
@@ -375,9 +408,23 @@
     if (cityTax === null) {
       if (display) display.value = '';
       if (input) input.value = '';
+      if (vatDisplay) vatDisplay.value = '';
+      var vatInput = field('gb_city_tax_including_vat');
+      if (vatInput) vatInput.value = '';
+      writeTotalRevIncludingCityTax();
       return;
     }
     setMoney('gb_city_tax', 'gb_city_tax_display', cityTax);
+    setMoney('gb_city_tax_including_vat', 'gb_city_tax_vat_display', parseFloat(money(cityTax)) * 0.2);
+    writeTotalRevIncludingCityTax();
+  }
+
+  function writeTotalRevIncludingCityTax() {
+    setMoney(
+      'gb_total_rev_including_city_tax',
+      'gb_total_rev_including_city_tax_display',
+      num('gb_total_revenue') + num('gb_city_tax_including_vat')
+    );
   }
 
   function mealTotals(summary) {
@@ -439,18 +486,22 @@
     var singleRate = parseAmount(row.single_rate);
     var doubleRooms = parseAmount(row.double_rooms);
     var doubleRate = parseAmount(row.double_rate);
+    var twinRooms = parseAmount(row.twin_rooms);
+    var twinRate = parseAmount(row.twin_rate);
     var triple = parseAmount(row.triple_rooms);
     var tripleRate = parseAmount(row.triple_rate);
-    var nightly = (single * singleRate) + (doubleRooms * doubleRate) + (triple * tripleRate);
+    var nightly = (single * singleRate) + (doubleRooms * doubleRate) + (twinRooms * twinRate) + (triple * tripleRate);
     return {
       nights: nights,
       day: segmentDay(row.check_in),
       revenue: nights * nightly,
-      covers: nights * ((single * 1) + (doubleRooms * 2) + (triple * 3)),
+      covers: nights * ((single * 1) + (doubleRooms * 2) + (twinRooms * 2) + (triple * 3)),
       singleRn: nights * single,
       singleRev: nights * single * singleRate,
       doubleRn: nights * doubleRooms,
       doubleRev: nights * doubleRooms * doubleRate,
+      twinRn: nights * twinRooms,
+      twinRev: nights * twinRooms * twinRate,
       tripleRn: nights * triple,
       tripleRev: nights * triple * tripleRate
     };
@@ -519,11 +570,14 @@
         + '<td>' + segField('single_rate', row.single_rate, false, false) + '</td>'
         + '<td>' + segField('double_rooms', row.double_rooms, true, false) + '</td>'
         + '<td>' + segField('double_rate', row.double_rate, false, false) + '</td>'
+        + '<td>' + segField('twin_rooms', row.twin_rooms, true, false) + '</td>'
+        + '<td>' + segField('twin_rate', row.twin_rate, false, false) + '</td>'
         + '<td>' + segField('triple_rooms', row.triple_rooms, true, false) + '</td>'
         + '<td>' + segField('triple_rate', row.triple_rate, false, false) + '</td>'
         + '<td class="stay-calc" data-seg-revenue>0.00</td>'
         + '<td class="stay-calc gb-seg-bb" data-seg-bb>0.00</td>'
         + '<td class="stay-calc gb-seg-dinner" data-seg-dinner>0.00</td>'
+        + '<td class="stay-calc gb-seg-nett" data-seg-nett>0.00</td>'
         + '<td><button type="button" class="btn btn-sm btn-outline-secondary" data-remove-segment="' + index + '" aria-label="Remove date range"><i class="bi bi-x-lg"></i></button></td>'
         + '</tr>';
     }).join('');
@@ -554,6 +608,8 @@
       single_rate: field('gb_single_rate') ? field('gb_single_rate').value : '',
       double_rooms: field('gb_double_rooms') ? field('gb_double_rooms').value : '',
       double_rate: field('gb_double_rate') ? field('gb_double_rate').value : '',
+      twin_rooms: field('gb_twin_rooms') ? field('gb_twin_rooms').value : '',
+      twin_rate: field('gb_twin_rate') ? field('gb_twin_rate').value : '',
       triple_rooms: field('gb_triple_rooms') ? field('gb_triple_rooms').value : '',
       triple_rate: field('gb_triple_rate') ? field('gb_triple_rate').value : ''
     };
@@ -572,24 +628,30 @@
   function applySegmentHints() {
     setHint('gb_rooms_hint', 'Each date range is calculated on its own. Room counts are rooms × nights, and each rate is that room type’s revenue divided by its room nights.');
     setHint('gb_total_rns_hint', 'Sum of each date range’s rooms × nights.');
-    setHint('gb_total_revenue_hint', 'Sum of each date range: Nights × ((Single × rate) + (Double × rate) + (Triple × rate)).');
-    setHint('gb_bb_revenue_hint', 'Sum of each date range: Nights × covers × breakfast rate. Covers = (Single × 1) + (Double × 2) + (Triple × 3).');
-    setHint('gb_dinner_revenue_hint', 'Sum of each date range: Nights × covers × dinner rate. Covers = (Single × 1) + (Double × 2) + (Triple × 3).');
+    setHint('gb_total_revenue_hint', 'Sum of each date range: Nights × ((Single × rate) + (Double × rate) + (Twin × rate) + (Triple × rate)).');
+    setHint('gb_bb_revenue_hint', 'Sum of each date range: Nights × covers × breakfast rate. Covers = (Single × 1) + (Double × 2) + (Twin × 2) + (Triple × 3).');
+    setHint('gb_dinner_revenue_hint', 'Sum of each date range: Nights × covers × dinner rate. Covers = (Single × 1) + (Double × 2) + (Twin × 2) + (Triple × 3).');
   }
 
   function updateSegments(rows) {
     var basis = selectedBasis();
     var breakfastRate = (basis === 'BB' || basis === 'DBB') ? num('gb_breakfast_rate') : 0;
     var dinnerRate = basis === 'DBB' ? num('gb_dinner_rate') : 0;
+    var dinnerRateEl = field('gb_dinner_rate');
+    var hasDinnerRate = basis === 'DBB' && dinnerRateEl && dinnerRateEl.value !== '';
+    var ready = nettInputsReady();
     var totals = {
       nights: 0,
       revenue: 0,
       bb: 0,
       dinner: 0,
+      nett: 0,
       singleRn: 0,
       singleRev: 0,
       doubleRn: 0,
       doubleRev: 0,
+      twinRn: 0,
+      twinRev: 0,
       tripleRn: 0,
       tripleRev: 0,
       rooms: 0
@@ -600,17 +662,20 @@
       var fig = segmentFigure(row);
       var bb = fig.covers * breakfastRate;
       var dinner = fig.covers * dinnerRate;
+      var nett = ready ? ((fig.revenue * 100) / 120) - bb - (hasDinnerRate ? dinner : 0) : 0;
       var tr = trs[index];
       if (tr) {
         var dayCell = tr.querySelector('[data-seg-day]');
         var nightsCell = tr.querySelector('[data-seg-nights]');
         var revenueCell = tr.querySelector('[data-seg-revenue]');
         var bbCell = tr.querySelector('[data-seg-bb]');
+        var nettCell = tr.querySelector('[data-seg-nett]');
         var dinnerCell = tr.querySelector('[data-seg-dinner]');
         if (dayCell) dayCell.textContent = fig.day;
         if (nightsCell) nightsCell.textContent = fig.nights > 0 ? String(fig.nights) : '—';
         if (revenueCell) revenueCell.textContent = money(fig.revenue);
         if (bbCell) bbCell.textContent = money(bb);
+        if (nettCell) nettCell.textContent = ready ? money(nett) : '—';
         if (dinnerCell) dinnerCell.textContent = money(dinner);
       }
       if (fig.nights <= 0) return;
@@ -618,23 +683,28 @@
       totals.revenue += fig.revenue;
       totals.bb += bb;
       totals.dinner += dinner;
+      if (ready) totals.nett += nett;
       totals.singleRn += fig.singleRn;
       totals.singleRev += fig.singleRev;
       totals.doubleRn += fig.doubleRn;
       totals.doubleRev += fig.doubleRev;
+      totals.twinRn += fig.twinRn;
+      totals.twinRev += fig.twinRev;
       totals.tripleRn += fig.tripleRn;
       totals.tripleRev += fig.tripleRev;
-      totals.rooms += fig.singleRn + fig.doubleRn + fig.tripleRn;
+      totals.rooms += fig.singleRn + fig.doubleRn + fig.twinRn + fig.tripleRn;
     });
-    setSegmentText('gb-segment-nights', String(totals.nights));
     setSegmentText('gb-segment-single-rooms', String(Math.round(totals.singleRn)));
     setSegmentText('gb-segment-single-rate', money(weightedRate(totals.singleRn, totals.singleRev)));
     setSegmentText('gb-segment-double-rooms', String(Math.round(totals.doubleRn)));
     setSegmentText('gb-segment-double-rate', money(weightedRate(totals.doubleRn, totals.doubleRev)));
+    setSegmentText('gb-segment-twin-rooms', String(Math.round(totals.twinRn)));
+    setSegmentText('gb-segment-twin-rate', money(weightedRate(totals.twinRn, totals.twinRev)));
     setSegmentText('gb-segment-triple-rooms', String(Math.round(totals.tripleRn)));
     setSegmentText('gb-segment-triple-rate', money(weightedRate(totals.tripleRn, totals.tripleRev)));
     setSegmentText('gb-segment-revenue', money(totals.revenue));
     setSegmentText('gb-segment-bb', money(totals.bb));
+    setSegmentText('gb-segment-nett', ready ? money(totals.nett) : '—');
     setSegmentText('gb-segment-dinner', money(totals.dinner));
     var note = document.getElementById('gb-segment-note');
     if (note) {
@@ -652,6 +722,7 @@
     [
       ['single', totals.singleRn, totals.singleRev],
       ['double', totals.doubleRn, totals.doubleRev],
+      ['twin', totals.twinRn, totals.twinRev],
       ['triple', totals.tripleRn, totals.tripleRev]
     ].forEach(function (item) {
       var roomsEl = field('gb_' + item[0] + '_rooms');
@@ -700,14 +771,16 @@
     var nights = num('gb_nights');
     var single = num('gb_single_rooms');
     var doubleRooms = num('gb_double_rooms');
+    var twinRooms = num('gb_twin_rooms');
     var triple = num('gb_triple_rooms');
     var totalRev = (
       (single * num('gb_single_rate'))
       + (doubleRooms * num('gb_double_rate'))
+      + (twinRooms * num('gb_twin_rate'))
       + (triple * num('gb_triple_rate'))
     ) * nights;
     writeRevenue(
-      (single + doubleRooms + triple) * nights,
+      (single + doubleRooms + twinRooms + triple) * nights,
       totalRev
     );
   }
@@ -903,6 +976,8 @@
           single_rate: field('gb_single_rate') ? field('gb_single_rate').value : '',
           double_rooms: field('gb_double_rooms') ? field('gb_double_rooms').value : '',
           double_rate: field('gb_double_rate') ? field('gb_double_rate').value : '',
+          twin_rooms: field('gb_twin_rooms') ? field('gb_twin_rooms').value : '',
+          twin_rate: field('gb_twin_rate') ? field('gb_twin_rate').value : '',
           triple_rooms: field('gb_triple_rooms') ? field('gb_triple_rooms').value : '',
           triple_rate: field('gb_triple_rate') ? field('gb_triple_rate').value : ''
         });
@@ -915,6 +990,8 @@
           single_rate: previous.single_rate || '',
           double_rooms: previous.double_rooms || '',
           double_rate: previous.double_rate || '',
+          twin_rooms: previous.twin_rooms || '',
+          twin_rate: previous.twin_rate || '',
           triple_rooms: previous.triple_rooms || '',
           triple_rate: previous.triple_rate || ''
         });

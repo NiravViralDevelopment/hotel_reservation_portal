@@ -20,9 +20,10 @@
 
       return $value === null || $value === '' ? $fallback : $value;
   };
-  $contactValue = old('contact_name');
+  $contactValue = old('contact_number');
   if ($contactValue === null) {
-      $contactValue = $enquiry->contact_name ?: ($enquiry->contact?->name ?? '');
+      $contactValue = preg_replace('/\D+/', '', (string) ($enquiry->contact_number ?: ($enquiry->contact?->phone ?? '')));
+      $contactValue = substr($contactValue, 0, 15);
   }
   $selectedBasis = old('basis');
   if ($selectedBasis === null) {
@@ -106,9 +107,9 @@
             @error('client')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
-            <label for="contact_name" class="form-label">Contact</label>
-            <input type="text" name="contact_name" id="contact_name" class="form-control @error('contact_name') is-invalid @enderror" value="{{ $contactValue }}" maxlength="255">
-            @error('contact_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            <label for="contact_number" class="form-label">Contact number</label>
+            <input type="text" name="contact_number" id="contact_number" inputmode="numeric" pattern="[0-9]*" class="form-control js-digits @error('contact_number') is-invalid @enderror" value="{{ $contactValue }}" maxlength="15">
+            @error('contact_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
             <label for="email" class="form-label">Email ID</label>

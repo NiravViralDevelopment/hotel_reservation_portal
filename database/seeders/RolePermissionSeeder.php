@@ -21,6 +21,7 @@ class RolePermissionSeeder extends Seeder
             'bookings.view', 'bookings.create', 'bookings.edit', 'bookings.delete', 'bookings.cancel',
             'enquiries.view', 'enquiries.create', 'enquiries.edit', 'enquiries.delete', 'enquiries.convert',
             'documents.view', 'documents.upload', 'documents.download', 'documents.delete',
+            'bob.view',
             'revenue.view', 'reports.view', 'reports.generate',
             'users.view', 'users.create', 'users.edit', 'users.delete',
             'roles.view', 'roles.edit',
@@ -42,6 +43,7 @@ class RolePermissionSeeder extends Seeder
             'bookings.view', 'bookings.create', 'bookings.edit', 'bookings.cancel',
             'enquiries.view', 'enquiries.create', 'enquiries.edit', 'enquiries.convert',
             'documents.view', 'documents.upload', 'documents.download',
+            'bob.view',
             'revenue.view', 'reports.view', 'reports.generate',
         ];
 

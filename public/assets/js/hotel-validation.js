@@ -144,7 +144,7 @@
     return true;
   }
 
-  function buildRules() {
+  function buildRules(form) {
     return {
       code: { required: true, max: 20, uniquePair: true, requiredMessage: 'Hotel code is required.' },
       name: { required: true, max: 255, uniquePair: true, requiredMessage: 'Hotel name is required.' },
@@ -162,7 +162,21 @@
       status: { required: true, requiredMessage: 'Status is required.' },
       phone: { required: true, max: 15, requiredMessage: 'Phone is required.' },
       email: { required: true, email: true, max: 255, requiredMessage: 'Email is required.' },
-      notes: { max: 5000 }
+      notes: { max: 5000 },
+      city_tax_amount: {
+        required: function () {
+          var checked = form.querySelector('input[name="city_tax_basis"]:checked');
+          return !!(checked && checked.value === 'total_rns');
+        },
+        requiredMessage: 'Enter the city tax amount.'
+      },
+      city_tax_percentage: {
+        required: function () {
+          var checked = form.querySelector('input[name="city_tax_basis"]:checked');
+          return !!(checked && checked.value === 'nett_rev');
+        },
+        requiredMessage: 'Enter the city tax percentage.'
+      }
     };
   }
 
@@ -178,7 +192,7 @@
       pairs = [];
     }
 
-    var rulesMap = buildRules();
+    var rulesMap = buildRules(form);
 
     function fields() {
       return Object.keys(rulesMap)
@@ -240,6 +254,15 @@
         runField(this);
       });
     }
+
+    form.querySelectorAll('input[name="city_tax_basis"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        var amount = form.querySelector('[name="city_tax_amount"]');
+        var percent = form.querySelector('[name="city_tax_percentage"]');
+        if (amount) runField(amount);
+        if (percent) runField(percent);
+      });
+    });
 
     form.addEventListener('submit', function (e) {
       var firstInvalid = null;
