@@ -233,6 +233,14 @@ class GroupBookingController extends Controller
         $result = $importer->saveRows($rows, (int) $hotel->id, auth()->id());
         session()->forget('group_booking_import');
 
+        if ($result['saved'] > 0) {
+            Audit::log(
+                'imported',
+                'group_bookings',
+                $result['saved'].' booking'.($result['saved'] === 1 ? '' : 's').' for '.$hotel->name
+            );
+        }
+
         $message = $result['saved'].' group booking'.($result['saved'] === 1 ? '' : 's').' saved for '.$hotel->name.'.';
         if ($result['errors'] !== []) {
             $message .= ' '.implode(' ', $result['errors']);

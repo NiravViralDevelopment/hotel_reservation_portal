@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\Audit;
 use App\Support\HotelAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,12 +27,18 @@ class LoginController extends Controller
 
         $user = Auth::user();
         $user->forceFill(['last_login_at' => now()])->save();
+        Audit::log('logged_in', 'auth', $user->email, $user);
 
         return redirect()->intended(route('dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user) {
+            Audit::log('logged_out', 'auth', $user->email, $user);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

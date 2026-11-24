@@ -7,6 +7,7 @@
         ['route' => 'bob.index', 'icon' => 'bar-chart-line', 'label' => 'BOB', 'permission' => 'bob.view'],
         ['route' => 'hotels.index', 'icon' => 'building', 'label' => 'Hotels', 'permission' => 'hotels.view'],
         ['route' => 'companies.index', 'icon' => 'briefcase', 'label' => 'Companies', 'permission' => 'companies.view'],
+        ['route' => 'activity-logs.index', 'icon' => 'clock-history', 'label' => 'Activity Logs', 'permission' => 'activity.view'],
         // ['route' => 'travel-agencies.index', 'icon' => 'airplane', 'label' => 'Travel Agencies', 'permission' => 'agencies.view'],
       ],
     ],

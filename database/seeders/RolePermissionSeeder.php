@@ -27,6 +27,7 @@ class RolePermissionSeeder extends Seeder
             'roles.view', 'roles.edit',
             'statuses.view', 'statuses.create', 'statuses.edit', 'statuses.delete',
             'settings.manage', 'audit.view',
+            'activity.view', 'activity.view_all',
         ];
 
         foreach ($permissions as $permission) {
@@ -45,6 +46,7 @@ class RolePermissionSeeder extends Seeder
             'documents.view', 'documents.upload', 'documents.download',
             'bob.view',
             'revenue.view', 'reports.view', 'reports.generate',
+            'activity.view',
         ];
 
         $matrix = [

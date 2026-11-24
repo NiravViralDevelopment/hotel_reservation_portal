@@ -443,10 +443,17 @@ class EnquiryController extends Controller
         $data['cancellation_charges'] = null;
         $data['cancel_at'] = null;
 
+        $wasConfirmed = (bool) $enquiry->is_confirm;
+
         $enquiry->update($data);
         $enquiry->refresh();
         GroupQuotePdf::generate($enquiry);
-        Audit::log('confirmed', 'group_bookings', $enquiry->block_id ?: $enquiry->ref, $enquiry);
+        Audit::log(
+            $wasConfirmed ? 'updated' : 'confirmed',
+            'group_bookings',
+            $enquiry->block_id ?: $enquiry->ref,
+            $enquiry
+        );
 
         return redirect()
             ->route('group-bookings.index')

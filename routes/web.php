@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ArrivalController;
 use App\Http\Controllers\BobController;
 use App\Http\Controllers\AuditLogController;
@@ -158,6 +159,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
 
     // Settings module temporarily hidden
     Route::any('settings/{any?}', fn () => redirect()->route('dashboard'))

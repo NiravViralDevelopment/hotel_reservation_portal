@@ -33,6 +33,7 @@ class RoleController extends Controller
         'statuses' => 'Status master',
         'settings' => 'Settings',
         'audit' => 'Audit logs',
+        'activity' => 'Activity logs',
     ];
 
     /**
@@ -40,6 +41,7 @@ class RoleController extends Controller
      */
     private array $actionLabels = [
         'view' => 'View',
+        'view_all' => 'View all',
         'create' => 'Create',
         'edit' => 'Edit',
         'delete' => 'Delete',
