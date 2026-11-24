@@ -546,7 +546,8 @@
     var type = isDate ? 'date' : 'text';
     var extra = isDate ? segmentDateLimits() : ' inputmode="' + (numeric ? 'numeric' : 'decimal') + '"';
     var classes = 'form-control form-control-sm' + (isDate ? '' : (numeric ? ' js-digits' : ' js-decimal'));
-    return '<input type="' + type + '"' + extra + ' class="' + classes + '" data-seg="' + key + '" value="' + String(value == null ? '' : value).replace(/"/g, '&quot;') + '">';
+    var placeholder = isDate ? '' : (' placeholder="' + (numeric ? '0' : '0.00') + '"');
+    return '<input type="' + type + '"' + extra + placeholder + ' class="' + classes + '" data-seg="' + key + '" value="' + String(value == null ? '' : value).replace(/"/g, '&quot;') + '">';
   }
 
   function renderSegmentTable(rows) {

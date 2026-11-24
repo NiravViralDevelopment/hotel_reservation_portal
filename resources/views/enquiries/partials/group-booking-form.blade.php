@@ -79,12 +79,12 @@
         </div>
         <div class="col-md-6 col-xl-3">
           <label for="gb_nights" class="form-label">No. of Nights <span class="text-danger">*</span></label>
-          <input type="text" name="nights" id="gb_nights" inputmode="numeric" class="form-control js-digits gb-calc @error('nights') is-invalid @enderror" value="{{ $v('nights') }}" required>
+          <input type="text" name="nights" id="gb_nights" inputmode="numeric" class="form-control js-digits gb-calc @error('nights') is-invalid @enderror" value="{{ $v('nights') }}" placeholder="Enter nights" required>
           @error('nights')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-3">
           <label for="gb_block_id" class="form-label">Block ID <span class="text-danger">*</span></label>
-          <input type="text" name="block_id" id="gb_block_id" class="form-control @error('block_id') is-invalid @enderror" value="{{ $v('block_id') }}" maxlength="255" required>
+          <input type="text" name="block_id" id="gb_block_id" class="form-control @error('block_id') is-invalid @enderror" value="{{ $v('block_id') }}" placeholder="Enter block ID" maxlength="255" required>
           @error('block_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>
@@ -99,17 +99,17 @@
       <div class="row g-3">
         <div class="col-md-6">
           <label for="gb_client" class="form-label">Client</label>
-          <input type="text" name="client" id="gb_client" class="form-control @error('client') is-invalid @enderror" value="{{ $v('client') }}" maxlength="255">
+          <input type="text" name="client" id="gb_client" class="form-control @error('client') is-invalid @enderror" value="{{ $v('client') }}" placeholder="Enter client" maxlength="255">
           @error('client')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6">
           <label for="gb_contact_number" class="form-label">Contact number</label>
-          <input type="text" name="contact_number" id="gb_contact_number" inputmode="numeric" pattern="[0-9]*" class="form-control js-digits @error('contact_number') is-invalid @enderror" value="{{ $contactValue }}" maxlength="15">
+          <input type="text" name="contact_number" id="gb_contact_number" inputmode="numeric" pattern="[0-9]*" class="form-control js-digits @error('contact_number') is-invalid @enderror" value="{{ $contactValue }}" placeholder="Enter contact number" maxlength="15">
           @error('contact_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6">
           <label for="gb_email" class="form-label">Email ID</label>
-          <input type="text" name="email" id="gb_email" class="form-control @error('email') is-invalid @enderror" value="{{ $v('email') }}" maxlength="255" inputmode="email">
+          <input type="text" name="email" id="gb_email" class="form-control @error('email') is-invalid @enderror" value="{{ $v('email') }}" placeholder="Enter email" maxlength="255" inputmode="email">
           @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
       </div>
@@ -140,7 +140,7 @@
         </div>
         <div class="col-md-6 col-xl-4">
           <label for="gb_saved_to_doc" class="form-label">Saved to Doc</label>
-          <input type="text" name="saved_to_doc" id="gb_saved_to_doc" class="form-control @error('saved_to_doc') is-invalid @enderror" value="{{ $v('saved_to_doc') }}" maxlength="255">
+          <input type="text" name="saved_to_doc" id="gb_saved_to_doc" class="form-control @error('saved_to_doc') is-invalid @enderror" value="{{ $v('saved_to_doc') }}" placeholder="Enter saved to doc" maxlength="255">
           @error('saved_to_doc')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         @php
@@ -195,7 +195,7 @@
       <div class="row g-3">
         <div class="col-md-6 col-xl-3">
           <label for="gb_cxl_policy" class="form-label">CXL Policy</label>
-          <input type="text" name="cxl_policy" id="gb_cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ $v('cxl_policy') }}" maxlength="255">
+          <input type="text" name="cxl_policy" id="gb_cxl_policy" class="form-control @error('cxl_policy') is-invalid @enderror" value="{{ $v('cxl_policy') }}" placeholder="Enter CXL policy" maxlength="255">
           @error('cxl_policy')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-3">
@@ -332,19 +332,19 @@
         </div>
         <div class="col-md-6 col-xl-3" id="gb_breakfast_rate_wrap" @unless ($showBreakfastRate) hidden @endunless>
           <label for="gb_breakfast_rate" class="form-label">Breakfast rate (Net)<span class="text-danger">*</span></label>
-          <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('breakfast_rate') is-invalid @enderror" value="{{ $v('breakfast_rate') }}">
+          <input type="text" name="breakfast_rate" id="gb_breakfast_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('breakfast_rate') is-invalid @enderror" value="{{ $v('breakfast_rate') }}" placeholder="0.00">
           @error('breakfast_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-3" id="gb_dinner_rate_wrap" @unless ($showDinnerRate) hidden @endunless>
           <label for="gb_dinner_rate" class="form-label">Dinner rate <span class="text-danger">*</span></label>
-          <input type="text" name="dinner_rate" id="gb_dinner_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('dinner_rate') is-invalid @enderror" value="{{ $v('dinner_rate') }}">
+          <input type="text" name="dinner_rate" id="gb_dinner_rate" inputmode="decimal" class="form-control js-decimal gb-calc @error('dinner_rate') is-invalid @enderror" value="{{ $v('dinner_rate') }}" placeholder="0.00">
           @error('dinner_rate')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <input type="hidden" name="total_rns" id="gb_total_rns" value="{{ $v('total_rns') }}">
         <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_nett_rev_ex_vat_display" class="form-label">Nett Rev EX VAT &amp; BF</label>
-            <input type="text" id="gb_nett_rev_ex_vat_display" class="form-control @error('nett_rev_ex_vat') is-invalid @enderror" value="" readonly>
+            <input type="text" id="gb_nett_rev_ex_vat_display" class="form-control @error('nett_rev_ex_vat') is-invalid @enderror" value="" placeholder="£0.00" readonly>
             <input type="hidden" name="nett_rev_ex_vat" id="gb_nett_rev_ex_vat" value="{{ $v('nett_rev_ex_vat') }}">
             <div class="form-text" id="gb_nett_rev_ex_vat_hint">(Total Rev × 100 / 120) − BB Revenue</div>
             @error('nett_rev_ex_vat')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -353,7 +353,7 @@
         <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_bb_revenue_display" class="form-label">BB Revenue (Nett £)</label>
-            <input type="text" id="gb_bb_revenue_display" class="form-control @error('bb_revenue') is-invalid @enderror" value="" readonly>
+            <input type="text" id="gb_bb_revenue_display" class="form-control @error('bb_revenue') is-invalid @enderror" value="" placeholder="£0.00" readonly>
             <input type="hidden" name="bb_revenue" id="gb_bb_revenue" value="{{ $v('bb_revenue') }}">
             <div class="form-text" id="gb_bb_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Twin RNs × 2) + (Nights × Triple RNs × 3)) × breakfast rate</div>
             @error('bb_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -362,7 +362,7 @@
         <div class="col-md-6 col-xl-3" id="gb_dinner_revenue_wrap" @unless ($showDinnerRate) hidden @endunless>
           <div class="revenue-panel">
             <label for="gb_dinner_revenue_display" class="form-label">Dinner Revenue (Nett £)</label>
-            <input type="text" id="gb_dinner_revenue_display" class="form-control @error('dinner_revenue') is-invalid @enderror" value="" readonly>
+            <input type="text" id="gb_dinner_revenue_display" class="form-control @error('dinner_revenue') is-invalid @enderror" value="" placeholder="£0.00" readonly>
             <input type="hidden" name="dinner_revenue" id="gb_dinner_revenue" value="{{ $v('dinner_revenue') }}">
             <div class="form-text" id="gb_dinner_revenue_hint">((Nights × Single RNs × 1) + (Nights × Double RNs × 2) + (Nights × Twin RNs × 2) + (Nights × Triple RNs × 3)) × dinner rate</div>
             @error('dinner_revenue')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -371,7 +371,7 @@
         <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_city_tax_display" class="form-label">City Tax</label>
-            <input type="text" id="gb_city_tax_display" class="form-control" value="" readonly>
+            <input type="text" id="gb_city_tax_display" class="form-control" value="" placeholder="£0.00" readonly>
             <input type="hidden" name="city_tax" id="gb_city_tax" value="{{ $v('city_tax') }}">
             <div class="form-text" id="gb_city_tax_hint"></div>
           </div>
@@ -379,7 +379,7 @@
         <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_city_tax_vat_display" class="form-label">City Tax Including VAT</label>
-            <input type="text" id="gb_city_tax_vat_display" class="form-control" value="" readonly>
+            <input type="text" id="gb_city_tax_vat_display" class="form-control" value="" placeholder="£0.00" readonly>
             <input type="hidden" name="city_tax_including_vat" id="gb_city_tax_including_vat" value="{{ $v('city_tax_including_vat') }}">
           </div>
         </div>
@@ -394,7 +394,7 @@
         <div class="col-md-6 col-xl-3">
           <div class="revenue-panel">
             <label for="gb_total_rev_including_city_tax_display" class="form-label">Total Rev Including City Tax</label>
-            <input type="text" id="gb_total_rev_including_city_tax_display" class="form-control" value="" readonly>
+            <input type="text" id="gb_total_rev_including_city_tax_display" class="form-control" value="" placeholder="£0.00" readonly>
             <input type="hidden" name="total_rev_including_city_tax" id="gb_total_rev_including_city_tax" value="{{ $v('total_rev_including_city_tax') }}">
           </div>
         </div>
@@ -410,22 +410,22 @@
       <div class="row g-3">
         <div class="col-md-6 col-xl-4">
           <label for="gb_booking_update" class="form-label">Update</label>
-          <input type="text" name="booking_update" id="gb_booking_update" class="form-control @error('booking_update') is-invalid @enderror" value="{{ $v('booking_update') }}" maxlength="255">
+          <input type="text" name="booking_update" id="gb_booking_update" class="form-control @error('booking_update') is-invalid @enderror" value="{{ $v('booking_update') }}" placeholder="Enter update" maxlength="255">
           @error('booking_update')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-4">
           <label for="gb_rooming" class="form-label">Rooming</label>
-          <input type="text" name="rooming" id="gb_rooming" class="form-control @error('rooming') is-invalid @enderror" value="{{ $v('rooming') }}" maxlength="255">
+          <input type="text" name="rooming" id="gb_rooming" class="form-control @error('rooming') is-invalid @enderror" value="{{ $v('rooming') }}" placeholder="Enter rooming" maxlength="255">
           @error('rooming')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-4">
           <label for="gb_invoice_status" class="form-label">Invoice Status</label>
-          <input type="text" name="invoice_status" id="gb_invoice_status" class="form-control @error('invoice_status') is-invalid @enderror" value="{{ $v('invoice_status') }}" maxlength="255">
+          <input type="text" name="invoice_status" id="gb_invoice_status" class="form-control @error('invoice_status') is-invalid @enderror" value="{{ $v('invoice_status') }}" placeholder="Enter invoice status" maxlength="255">
           @error('invoice_status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-4">
           <label for="gb_invoice_number" class="form-label">Invoice Number</label>
-          <input type="text" name="invoice_number" id="gb_invoice_number" class="form-control @error('invoice_number') is-invalid @enderror" value="{{ $v('invoice_number') }}" maxlength="255">
+          <input type="text" name="invoice_number" id="gb_invoice_number" class="form-control @error('invoice_number') is-invalid @enderror" value="{{ $v('invoice_number') }}" placeholder="Enter invoice number" maxlength="255">
           @error('invoice_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-4">
@@ -438,7 +438,7 @@
         </div>
         <div class="col-md-6 col-xl-4">
           <label for="gb_invoice_amount" class="form-label">Invoice Amount</label>
-          <input type="text" name="invoice_amount" id="gb_invoice_amount" inputmode="decimal" class="form-control js-decimal @error('invoice_amount') is-invalid @enderror" value="{{ $v('invoice_amount') }}">
+          <input type="text" name="invoice_amount" id="gb_invoice_amount" inputmode="decimal" class="form-control js-decimal @error('invoice_amount') is-invalid @enderror" value="{{ $v('invoice_amount') }}" placeholder="0.00">
           @error('invoice_amount')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6 col-xl-4" id="gb_commission_payable_wrap" @unless ($selectedHasCommission === '1' || $selectedHasCommission === 1 || $selectedHasCommission === true) hidden @endunless>
