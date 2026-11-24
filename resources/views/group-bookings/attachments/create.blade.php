@@ -19,11 +19,11 @@
       @if ($enquiry->hotel?->name)
         · {{ $enquiry->hotel->name }}
       @endif
-      · All fields are optional.
+      · Fill in at least one field to enable Save.
     </p>
   </div>
 
-  <form method="POST" action="{{ route('group-bookings.attachments.store', $enquiry) }}" enctype="multipart/form-data" novalidate>
+  <form method="POST" action="{{ route('group-bookings.attachments.store', $enquiry) }}" id="attachment-form" enctype="multipart/form-data" novalidate>
     @csrf
     <div class="card">
       <div class="card-body">
@@ -31,7 +31,7 @@
       </div>
     </div>
     <div class="d-flex gap-2 mt-4">
-      <button type="submit" class="btn btn-accent">Save</button>
+      <button type="submit" class="btn btn-accent" id="attachment-submit" disabled>Save</button>
       <a href="{{ route('group-bookings.attachments.index', $enquiry) }}" class="btn btn-outline-secondary">Cancel</a>
     </div>
   </form>

@@ -2,36 +2,40 @@
   $currentKind = (isset($attachment) && $attachment->canPreview()) ? $attachment->previewKind() : null;
   $currentUrl = $currentKind ? $attachment->fileUrl($enquiry) : '';
   $currentName = isset($attachment) ? ($attachment->original_name ?: 'Attachment') : '';
+  $hasExistingFile = isset($attachment) && $attachment->hasFile();
 @endphp
 
 <div class="row g-3">
   <div class="col-md-6">
     <label for="title" class="form-label">Title</label>
-    <input type="text" name="title" id="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $attachment->title ?? '') }}" maxlength="255">
+    <input type="text" name="title" id="title" class="form-control js-attachment-field @error('title') is-invalid @enderror" value="{{ old('title', $attachment->title ?? '') }}" placeholder="Enter title" maxlength="255">
     @error('title')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
   </div>
   <div class="col-md-6">
     <label for="date" class="form-label">Date</label>
-    <input type="date" name="date" id="date" class="form-control @error('date') is-invalid @enderror" value="{{ old('date', isset($attachment) ? $attachment->attachment_date?->format('Y-m-d') : '') }}">
+    <div class="date-placeholder-wrap">
+      <input type="date" name="date" id="date" class="form-control js-attachment-field @error('date') is-invalid @enderror" value="{{ old('date', isset($attachment) ? $attachment->attachment_date?->format('Y-m-d') : '') }}" placeholder="DD/MM/YYYY">
+      <span class="date-placeholder" aria-hidden="true">DD/MM/YYYY</span>
+    </div>
     @error('date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
   </div>
   <div class="col-12">
     <label for="feedback" class="form-label">Feedback</label>
-    <textarea name="feedback" id="feedback" rows="4" class="form-control @error('feedback') is-invalid @enderror" maxlength="5000">{{ old('feedback', $attachment->feedback ?? '') }}</textarea>
+    <textarea name="feedback" id="feedback" rows="4" class="form-control js-attachment-field @error('feedback') is-invalid @enderror" placeholder="Enter feedback" maxlength="5000">{{ old('feedback', $attachment->feedback ?? '') }}</textarea>
     @error('feedback')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
   </div>
   <div class="col-12">
     <label for="attachment" class="form-label">Attachment</label>
-    @if (isset($attachment) && $attachment->hasFile())
+    @if ($hasExistingFile)
       <div class="form-text mb-2">
         Current file:
         <a href="{{ $attachment->fileUrl($enquiry) }}" target="_blank" rel="noopener">{{ $currentName }}</a>
       </div>
     @endif
-    <input type="file" name="attachment" id="attachment" class="form-control @error('attachment') is-invalid @enderror">
+    <input type="file" name="attachment" id="attachment" class="form-control js-attachment-field @error('attachment') is-invalid @enderror" data-has-existing="{{ $hasExistingFile ? '1' : '0' }}">
     <div class="form-text">
       Any file, up to 10 MB. PDF and image files show a preview below.
-      @if (isset($attachment))
+      @if ($hasExistingFile)
         Leave this blank to keep the current file.
       @endif
     </div>
@@ -94,6 +98,8 @@
   @push('scripts')
     <script>
       (function () {
+        var form = document.getElementById('attachment-form');
+        var submit = document.getElementById('attachment-submit');
         var input = document.getElementById('attachment');
         var box = document.getElementById('attachmentPreview');
         var image = document.getElementById('attachmentPreviewImage');
@@ -152,6 +158,29 @@
           return 'other';
         }
 
+        function fieldFilled(el) {
+          if (!el) return false;
+          var type = (el.getAttribute('type') || '').toLowerCase();
+          if (type === 'file') {
+            if (el.files && el.files.length > 0) return true;
+            return el.getAttribute('data-has-existing') === '1';
+          }
+          return String(el.value || '').trim() !== '';
+        }
+
+        function syncSubmit() {
+          if (!form || !submit) return;
+          var fields = form.querySelectorAll('.js-attachment-field');
+          var filled = false;
+          for (var i = 0; i < fields.length; i++) {
+            if (fieldFilled(fields[i])) {
+              filled = true;
+              break;
+            }
+          }
+          submit.disabled = !filled;
+        }
+
         input.addEventListener('change', function () {
           if (objectUrl) {
             URL.revokeObjectURL(objectUrl);
@@ -167,6 +196,7 @@
               label.textContent = '';
               box.hidden = true;
             }
+            syncSubmit();
             return;
           }
 
@@ -174,11 +204,19 @@
           if (kind === 'image' || kind === 'pdf') {
             objectUrl = URL.createObjectURL(file);
             show(objectUrl, kind, file.name);
-            return;
+          } else {
+            show('', 'other', file.name);
           }
-
-          show('', 'other', file.name);
+          syncSubmit();
         });
+
+        if (form) {
+          form.querySelectorAll('.js-attachment-field').forEach(function (el) {
+            el.addEventListener('input', syncSubmit);
+            el.addEventListener('change', syncSubmit);
+          });
+          syncSubmit();
+        }
       })();
     </script>
   @endpush

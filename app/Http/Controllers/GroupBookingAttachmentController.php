@@ -51,14 +51,24 @@ class GroupBookingAttachmentController extends Controller
             'attachment' => ['nullable', 'file', 'max:10240'],
         ]);
 
+        $title = $this->blankToNull($validated['title'] ?? null);
+        $feedback = $this->blankToNull($validated['feedback'] ?? null);
+        $date = $validated['date'] ?? null;
+        $file = $request->file('attachment');
+
+        if ($title === null && $feedback === null && $date === null && ! ($file instanceof UploadedFile)) {
+            return back()
+                ->withInput()
+                ->withErrors(['title' => 'Fill in at least one field before saving.']);
+        }
+
         $attributes = [
-            'title' => $this->blankToNull($validated['title'] ?? null),
-            'feedback' => $this->blankToNull($validated['feedback'] ?? null),
-            'attachment_date' => $validated['date'] ?? null,
+            'title' => $title,
+            'feedback' => $feedback,
+            'attachment_date' => $date,
             'uploaded_by' => auth()->id(),
         ];
 
-        $file = $request->file('attachment');
         if ($file instanceof UploadedFile) {
             $attributes = array_merge($attributes, $this->storedFileAttributes($enquiry, $file));
         }
@@ -94,13 +104,24 @@ class GroupBookingAttachmentController extends Controller
             'attachment' => ['nullable', 'file', 'max:10240'],
         ]);
 
+        $title = $this->blankToNull($validated['title'] ?? null);
+        $feedback = $this->blankToNull($validated['feedback'] ?? null);
+        $date = $validated['date'] ?? null;
+        $file = $request->file('attachment');
+        $keepingFile = $attachment->hasFile() && ! ($file instanceof UploadedFile);
+
+        if ($title === null && $feedback === null && $date === null && ! ($file instanceof UploadedFile) && ! $keepingFile) {
+            return back()
+                ->withInput()
+                ->withErrors(['title' => 'Fill in at least one field before saving.']);
+        }
+
         $attributes = [
-            'title' => $this->blankToNull($validated['title'] ?? null),
-            'feedback' => $this->blankToNull($validated['feedback'] ?? null),
-            'attachment_date' => $validated['date'] ?? null,
+            'title' => $title,
+            'feedback' => $feedback,
+            'attachment_date' => $date,
         ];
 
-        $file = $request->file('attachment');
         if ($file instanceof UploadedFile) {
             $stored = $this->storedFileAttributes($enquiry, $file);
             $attachment->deleteStoredFile();

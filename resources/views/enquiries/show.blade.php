@@ -158,22 +158,9 @@
       <a href="{{ ! empty($cancelledContext) ? route('cancelled-inquiries.index') : route('enquiries.index') }}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left"></i> Back
       </a>
-      @can('convert', $enquiry)
-        @if (! $enquiry->is_confirm && ! $enquiry->is_cancel)
-          <form method="POST" action="{{ route('enquiries.convert', $enquiry) }}" data-confirm-title="Confirm enquiry" data-confirm="{{ sprintf('Confirm enquiry "%s"? It will move to Confirm Group Bookings.', $enquiry->group_name ?? 'this enquiry') }}" data-confirm-button="Confirm" data-confirm-variant="primary" data-confirm-icon="bi-check-circle">
-            @csrf
-            <button type="submit" class="btn btn-accent btn-sm">
-              <i class="bi bi-check2-circle"></i> Confirm
-            </button>
-          </form>
-        @endif
-      @endcan
       @can('update', $enquiry)
         <a href="{{ $enquiry->is_cancel && ! $enquiry->is_confirm ? route('cancelled-inquiries.edit', $enquiry) : route('enquiries.edit', $enquiry) }}" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-pencil"></i> Edit
-        </a>
-        <a href="#client-response" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-chat-left-text"></i> Add remark
         </a>
       @endcan
       @can('delete', $enquiry)

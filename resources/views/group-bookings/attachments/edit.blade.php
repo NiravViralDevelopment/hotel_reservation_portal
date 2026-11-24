@@ -19,10 +19,11 @@
       @if ($enquiry->hotel?->name)
         · {{ $enquiry->hotel->name }}
       @endif
+      · Fill in at least one field to enable Update.
     </p>
   </div>
 
-  <form method="POST" action="{{ route('group-bookings.attachments.update', [$enquiry, $attachment]) }}" enctype="multipart/form-data" novalidate>
+  <form method="POST" action="{{ route('group-bookings.attachments.update', [$enquiry, $attachment]) }}" id="attachment-form" enctype="multipart/form-data" novalidate>
     @csrf
     @method('PUT')
     <div class="card">
@@ -31,7 +32,7 @@
       </div>
     </div>
     <div class="d-flex gap-2 mt-4">
-      <button type="submit" class="btn btn-accent">Update</button>
+      <button type="submit" class="btn btn-accent" id="attachment-submit" disabled>Update</button>
       <a href="{{ route('group-bookings.attachments.index', $enquiry) }}" class="btn btn-outline-secondary">Cancel</a>
     </div>
   </form>
